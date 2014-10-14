@@ -1,2 +1,5 @@
 server/game/.idea/*
 server/game/__pycache__/*
+
+*~
+*.swp
