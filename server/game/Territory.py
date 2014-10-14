@@ -7,13 +7,14 @@ class Territory:
         self.income = income
         self.connections = []
         self.country = country
+        self.board = None
         # id tag
 
     def distance(self, goal, unit):
         getPath(self, goal, unit)
 
     def units(self):
-        return []
+        return self.board.territoryUnits(self)
 
     def __hash__(self):
         return hash(str(self.name))

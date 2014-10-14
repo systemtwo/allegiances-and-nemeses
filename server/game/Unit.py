@@ -5,7 +5,7 @@ class Unit:
         self.country = country
 
 
-def findUnitInfo(unitType):
+def unitInfo(unitType):
     return UnitInfo(10, 3)
 
 

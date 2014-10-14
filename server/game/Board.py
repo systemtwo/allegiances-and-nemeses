@@ -1,15 +1,32 @@
 from Country import Country
-from Stages import BuyStage
+from Stages import BuyStage, AttackStage, ResolveStage, MovementStage, PlacementStage
 
 
 class Board:
-    def __init__(self):
+    def __init__(self, territories, units, countries):
         self.players = []
-        self.territories = []
-        self.units = []
-        self.countries = []
+        self.territories = territories
+        for t in territories:
+            t.board = self
+        self.units = units
+        self.countries = countries
         self.currentCountry = Country("Russia")
-        self.stage = BuyStage(self.currentCountry)
+        self.stage = BuyStage(self.currentCountry.ipc)
+        self.attackMoveList = []
+        self.buyList = []
+
+    def addPlayer(self):
+        pass
+
+    def territoryUnits(self, t):
+        unitList = []
+        for u in self.units:
+            if u.territory == t:
+                unitList.append(u)
+        return unitList
+
+    def removeUnit(self, u):
+        self.units.remove(u)
 
 def getPath(start, goal, unit):
     if start is goal:

@@ -1,3 +1,4 @@
+from Board import Board
 from Territory import Territory
 from Stages import BuyStage
 from Country import Country
@@ -10,6 +11,8 @@ t2 = Territory("Quebec", 10, iceland)
 t3 = Territory("Nova Scotia", 10, iceland)
 
 fighter = Unit("fighter", iceland, t1)
+
+board = Board([t1, t2, t3], [fighter], [iceland])
 
 t1.connections.append(t2)
 t2.connections.append(t3)
