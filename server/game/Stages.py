@@ -44,15 +44,23 @@ class AttackStage:
             self.moveList.append((unit, unit.territory, destination))
 
     def nextStage(self):
-        conflicts = []
+        conflicts = {} # list of territories being attacked, and the attacking units
         for (unit, start, dest) in self.moveList:
             if unit.country is not dest.country:
-                conflicts.append(dest)
-        self.board.stage = ResolveStage()
+                if dest not in conflicts:
+                    conflicts[dest] = [unit]
+                else:
+                    conflicts[dest].append(unit)
+
+        self.board.stage = ResolveStage(conflicts)
 
 
 class ResolveStage:
-    def __init__(self):
+    def __init__(self, conflicts):
+        # dictionary of territory ->  list of units
+        self.conflicts = conflicts
+
+    def battle(self, attackers, defenders):
         pass
 
 
