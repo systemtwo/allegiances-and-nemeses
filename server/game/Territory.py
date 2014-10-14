@@ -15,6 +15,12 @@ class Territory:
     def units(self):
         return []
 
+    def __hash__(self):
+        return hash(str(self.name))
+
+    def __eq__(self, other):
+        return str(self.name) == str(other.name)
+
     def containsUnitType(self, unitType):
         for u in self.units():
             if u.type is unitType:

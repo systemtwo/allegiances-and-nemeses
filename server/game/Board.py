@@ -1,3 +1,16 @@
+from Country import Country
+from Stages import BuyStage
+
+
+class Board:
+    def __init__(self):
+        self.players = []
+        self.territories = []
+        self.units = []
+        self.countries = []
+        self.currentCountry = Country("Russia")
+        self.stage = BuyStage(self.currentCountry)
+
 def getPath(start, goal, unit):
     if start is goal:
         return []
