@@ -17,7 +17,7 @@ class NoCacheStaticFileHandler(tornado.web.StaticFileHandler):
 
 class IndexHandler(tornado.web.RequestHandler):
 	def get(self):
-		self.write("Hello, World!")
+		self.write("The Allegiances and the Nemeses says \"Hello, World!\"")
 
 
 app = tornado.web.Application([
