@@ -1,8 +1,8 @@
 import random
-from Unit import unitInfo
+from Unit import unitInfo, Unit
 
 
-class BuyStage:
+class BuyPhase:
     def __init__(self, ipc):
         # List[(unitType, cost)]
         self.buyList = []
@@ -25,13 +25,13 @@ class BuyStage:
             total += cost
         return total
 
-    def nextStage(self, board):
-        board.buyList = self.buyList
-        board.stage = AttackStage(board)
+    def nextPhase(self, board):
+        board.buyList = [unitType for (unitType, cost) in self.buyList]
+        board.stage = AttackPhase(board)
         return board.stage
 
 
-class BaseMoveStage:
+class BaseMovePhase:
     def __init__(self, board):
         self.board = board
         self.moveList = []
@@ -41,11 +41,11 @@ class BaseMoveStage:
             self.moveList.append((unit, unit.territory, destination))
 
     def canMove(self, unit, destination):
-        return unit.territory.distance(destination, unit) <= unitInfo(unit.type).movement
+        return self.board.getPath(unit.territory, destination, unit) <= unitInfo(unit.type).movement
 
 
-class AttackStage(BaseMoveStage):
-    def nextStage(self, board):
+class AttackPhase(BaseMovePhase):
+    def nextPhase(self, board):
         conflicts = {}  # list of territories being attacked, and the attacking units
         for (unit, start, dest) in self.moveList:
             if unit.country is not dest.country:
@@ -55,11 +55,11 @@ class AttackStage(BaseMoveStage):
                     conflicts[dest].append(unit)
 
         board.attackMoveList = self.moveList
-        board.stage = ResolveStage(conflicts, self.board)
+        board.stage = ResolvePhase(conflicts, self.board)
         return board.stage
 
 
-class ResolveStage:
+class ResolvePhase:
     def __init__(self, conflicts, board):
         # dictionary of territory ->  list of units
         self.unresolvedConflicts = conflicts
@@ -151,11 +151,11 @@ class ResolveStage:
                         break
         return BattleReport(attackers, defenders, deadA, deadD)
 
-    def nextStage(self, board):
+    def nextPhase(self, board):
         if len(self.unresolvedConflicts) > 0:
             return False
         else:
-            board.stage = MovementStage()
+            board.stage = MovementPhase(board)
             return True
 
 
@@ -167,18 +167,32 @@ class BattleReport:
         self.deadDefenders = deadDefend
 
 
-class MovementStage(BaseMoveStage):
+class MovementPhase(BaseMovePhase):
     def canMove(self, unit, destination):
         return unit not in self.board.attackMoveList and super(self).canMove(unit, destination)
 
-    def nextStage(self, board):
+    def nextPhase(self, board):
         board.neutralMoveList = self.moveList
-        board.stage = PlacementStage(board.buyList)
+        board.stage = PlacementPhase(board.buyList)
 
 
-class PlacementStage:
-    def __init__(self, units, board):
-        self.units = units
-        self.board = board
+class PlacementPhase:
+    def __init__(self, units):
+        self.unitList = units
+        self.placeList = []
 
-    def place(self, unitType):pass
+    def place(self, unitType, territory, board):
+        if unitType in self.unitList and territory.hasFactory():
+            alreadyPlaced = [u for u in self.placeList if u.territory == territory]
+            if len(alreadyPlaced) < territory.income:
+                newUnit = Unit(unitType, board.currentCountry, territory)
+                self.unitList.remove(unitType)
+                self.placeList.append(newUnit)
+
+    def nextPhase(self, board):
+        for u in self.placeList:
+            board.units.append(u)
+        board.currentCountry.colllectIncome()
+
+        board.nextTurn()
+        board.stage = BuyPhase(board.currentCountry)

@@ -1,6 +1,3 @@
-from Board import getPath
-
-
 class Territory:
     def __init__(self, name, income, country):
         self.name = name
@@ -10,11 +7,14 @@ class Territory:
         self.board = None
         # id tag
 
-    def distance(self, goal, unit):
-        getPath(self, goal, unit)
-
     def units(self):
         return self.board.territoryUnits(self)
+
+    def hasFactory(self):
+        for u in self.units():
+            if u.type == "factory":
+                return True
+        return False
 
     def __hash__(self):
         return hash(str(self.name))
