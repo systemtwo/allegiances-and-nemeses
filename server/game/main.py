@@ -34,3 +34,6 @@ buy.cancel("fighter")
 print(buy.buyList)
 buy.cancel("tank")
 print(buy.buyList)
+
+print(board.getPath(t1, t2, fighter))
+print(board.getPath(t1, t3, fighter))

@@ -22,6 +22,12 @@ class Territory:
     def __eq__(self, other):
         return str(self.name) == str(other.name)
 
+    def __str__(self):
+        return "Territory<" + self.name + ">"
+
+    def __repr__(self):
+        return str(self)
+
     def containsUnitType(self, unitType):
         for u in self.units():
             if u.type is unitType:

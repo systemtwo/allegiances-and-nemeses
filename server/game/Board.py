@@ -60,9 +60,9 @@ class Board:
         checked = []
 
         while len(frontier) > 0:
-            (currentTerritory, path) = frontier.pop()
+            (currentTerritory, path) = frontier.pop(0)
             if currentTerritory is goal:
-                return path
+                return path + [currentTerritory]
 
             if canMoveThrough(unit, currentTerritory):
                 newPath = path[:]
