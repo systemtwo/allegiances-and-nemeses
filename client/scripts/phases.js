@@ -1,35 +1,4 @@
-var Board = function() {
-    this.players = [];
-    this.units = [];
-    this.countries = [];
-    this.currentCountry = null;
-    this.currentPhase = null;
-    this.attackMoveList = [];
-    this.buyList = [];
-    return this;
-};
-var board = new Board();
-
-Board.prototype.territoriesSelectable = function(territories) {
-
-};
-
-function unitInfo(unitType) {
-    return {
-        attack: 1,
-        defence: 2,
-        movement: 2,
-        cost: 8
-    };
-}
-
-var Country = function(team) {
-    this.ipc = 0;
-    this.team = team;
-    return this;
-};
-
-// PHASES
+define(["globals"], function(_g) {
 
 var BuyPhase = function() {
     board.buyList = [];
@@ -78,8 +47,13 @@ BuyPhase.prototype.nextPhase = function() {
 
 
 var MovementPhase = function() {
+    this.states = {
+        START: "selectMoveStart",
+        DEST: "selectMoveDest",
+        UNIT: "selectUnits"
+    };
     selectableTerritories(countryTerritories(board.currentCountry));
-    this.state = "selectStart";
+    this.state = this.states.START;
     this.selectedUnits = [];
     this.origin = null;
     this.destination = null;
@@ -87,15 +61,10 @@ var MovementPhase = function() {
 };
 
 // helper function
-function territoriesInRange(territory, country) {
-    var unitList = territory.units().filter(function(u, typeList) {
-        // Get units belonging to the given country
-        return u.country === country;
-    });
-
+function territoriesInRange(units) {
     // TODO - filter similar units
     var territories = {};
-    unitList.forEach(function(unit) {
+    units.forEach(function(unit) {
         var frontier = [unit.originalTerritory];
         var checked = {};
         while(frontier.length) {
@@ -116,15 +85,16 @@ function territoriesInRange(territory, country) {
 }
 
 MovementPhase.prototype.onTerritorySelect = function(territory) {
-    if (this.state == "selectStart") {
-        this.state = "selectDestination";
+    if (this.state == this.states.START) {
+        this.state = this.states.DEST;
         this.origin = territory;
-        selectableTerritories(territoriesInRange(territory, board.currentCountry));
+        var controlledUnits = territory.countryUnits(board.currentCountry)
+        selectableTerritories(territoriesInRange(controlledUnits, board.currentCountry));
 
-    } else if (this.state == "selectDestination") {
+    } else if (this.state == this.states.DEST) {
         this.destination = territory;
         this.showUnitSelectionWindow();
-        this.state = "selectUnits";
+        this.state = this.states.UNIT;
     }
 };
 
@@ -135,7 +105,7 @@ MovementPhase.prototype.moveUnits = function(units) {
     });
     this.origin = null;
     this.destination = null;
-    this.state = "selectStart";
+    this.state = this.states.START;
 };
 
 MovementPhase.prototype.showUnitSelectionWindow = function() {
@@ -152,7 +122,7 @@ MovementPhase.prototype.showUnitSelectionWindow = function() {
         }
     });
 
-    renderWindow(able, unable);
+    // renderMoveWindow(able, unable);
 };
 
 
@@ -179,6 +149,8 @@ ResolvePhase.prototype.retreat = function() {
 
 ResolvePhase.prototype.battle = function() {
     // send battle request to server
+    // Get result
+    // Update conflict with matching territory
 };
 
 // Another movement phase, with restrictions on movement.
@@ -217,4 +189,14 @@ PlacementPhase.prototype.onTerritorySelect = function(territory) {
     var newUnit = new Unit(this.placingType, territory, board.currentCountry);
     board.units.push(newUnit);
     this.placed.push(newUnit);
+    // push to server? or wait for end of phase?
 };
+
+return {
+    BuyPhase: BuyPhase,
+    MovementPhase: MovementPhase,
+    ResolvePhase: ResolvePhase,
+    PlacementPhase: PlacementPhase
+}
+
+});
