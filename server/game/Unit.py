@@ -5,11 +5,12 @@ class Unit:
         self.country = country
 
 
-def unitInfo(unitType):
-    return UnitInfo(10, 3)
-
-
 class UnitInfo:
-    def __init__(self, cost, maxMove):
-        self.cost = cost
-        self.movement = maxMove
+    def __init__(self, dictionary):
+        self.cost = dictionary["cost"]
+        self.movement = dictionary["move"]
+        self.attack = dictionary["attack"]
+        self.defense = dictionary["defence"]
+
+        if "description" in dictionary:
+            self.description = dictionary["description"]

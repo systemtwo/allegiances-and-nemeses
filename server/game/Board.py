@@ -2,6 +2,7 @@ import json
 from Country import Country
 from Phases import BuyPhase
 from Territory import Territory
+from Unit import UnitInfo
 
 
 class Board:
@@ -12,7 +13,7 @@ class Board:
         for c in countries:
             c.board = self
         self.currentCountry = Country("Russia")
-        self.stage = BuyPhase(self.currentCountry.ipc)
+        self.currentPhase = BuyPhase(self.currentCountry.ipc, self)
         self.attackMoveList = []
         self.buyList = []
 
@@ -72,6 +73,13 @@ class Board:
 
             checked.append(currentTerritory)
         return None
+
+    def unitInfo(self, unitType):
+        if unitType not in self.unitCatalog:
+            return None
+
+        unit_dict = self.unitCatalog[unitType]
+        return UnitInfo(unit_dict)
 
 
 def canMoveThrough(unit, territory):

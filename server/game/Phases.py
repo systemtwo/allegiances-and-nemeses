@@ -1,15 +1,16 @@
 import random
-from Unit import unitInfo, Unit
+from Unit import Unit
 
 
 class BuyPhase:
-    def __init__(self, ipc):
+    def __init__(self, ipc, board):
         # List[(unitType, cost)]
         self.buyList = []
         self.moneyCap = ipc
+        self.board = board
 
     def buyUnit(self, unitType):
-        info = unitInfo(unitType)
+        info = self.board.unitInfo(unitType)
         if self.money() + info.cost <= self.moneyCap:
             self.buyList.append((unitType, info.cost))
 
@@ -27,8 +28,8 @@ class BuyPhase:
 
     def nextPhase(self, board):
         board.buyList = [unitType for (unitType, cost) in self.buyList]
-        board.stage = AttackPhase(board)
-        return board.stage
+        board.currentPhase = AttackPhase(board)
+        return board.currentPhase
 
 
 class BaseMovePhase:
@@ -41,7 +42,7 @@ class BaseMovePhase:
             self.moveList.append((unit, unit.territory, destination))
 
     def canMove(self, unit, destination):
-        return self.board.getPath(unit.territory, destination, unit) <= unitInfo(unit.type).movement
+        return self.board.getPath(unit.territory, destination, unit) <= self.board.unitInfo(unit.type).movement
 
 
 class AttackPhase(BaseMovePhase):
@@ -55,8 +56,8 @@ class AttackPhase(BaseMovePhase):
                     conflicts[dest].append(unit)
 
         board.attackMoveList = self.moveList
-        board.stage = ResolvePhase(conflicts, self.board)
-        return board.stage
+        board.currentPhase = ResolvePhase(conflicts, self.board)
+        return board.currentPhase
 
 
 class ResolvePhase:
@@ -110,13 +111,13 @@ class ResolvePhase:
 
         # Calculate hits. Chance for a hit is attack/6 for attackers, defence/6 for defenders
         for u in attackers:
-            info = unitInfo(u.type)
+            info = self.board.unitInfo(u.type)
             sumAttackers += 1.0/info.attack
             if random.randint(1, 6) <= info.attack:
                 defendingCasualties += 1
 
         for u in defenders:
-            info = unitInfo(u.type)
+            info = self.board.unitInfo(u.type)
             sumDefenders += 1.0/info.defence
             if random.randint(1, 6) <= info.defence:
                 attackingCasualties += 1
@@ -129,7 +130,7 @@ class ResolvePhase:
             runningTotal = 0
             rand = random.random()*sumDefenders
             for d in defenders:
-                defence = unitInfo(d).defence
+                defence = self.board.unitInfo(d).defence
                 if defence > 0:
                     runningTotal += 1.0/defence
                     if runningTotal >= rand:
@@ -142,7 +143,7 @@ class ResolvePhase:
             runningTotal = 0
             rand = random.random()*sumAttackers
             for a in attackers:
-                attack = unitInfo(a).attack
+                attack = self.board.unitInfo(a).attack
                 if attack > 0:
                     runningTotal += 1.0/attack
                     if runningTotal >= rand:
@@ -153,10 +154,10 @@ class ResolvePhase:
 
     def nextPhase(self, board):
         if len(self.unresolvedConflicts) > 0:
-            return False
+            return None
         else:
-            board.stage = MovementPhase(board)
-            return True
+            board.currentPhase = MovementPhase(board)
+            return board.currentPhase
 
 
 class BattleReport:
@@ -173,7 +174,8 @@ class MovementPhase(BaseMovePhase):
 
     def nextPhase(self, board):
         board.neutralMoveList = self.moveList
-        board.stage = PlacementPhase(board.buyList)
+        board.currentPhase = PlacementPhase(board.buyList)
+        return board.currentPhase
 
 
 class PlacementPhase:
@@ -195,4 +197,5 @@ class PlacementPhase:
         board.currentCountry.colllectIncome()
 
         board.nextTurn()
-        board.stage = BuyPhase(board.currentCountry)
+        board.currentPhase = BuyPhase(board.currentCountry)
+        return board.currentPhase

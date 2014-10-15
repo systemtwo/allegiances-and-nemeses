@@ -2,108 +2,108 @@
 "infantry": {
     "description": "Soldiers who make up the backbone of any ground force.",
 
-    "cost": "3",
-    "attack": "1",
-    "defence": "2",
-    "move": "1"
+    "cost": 3,
+    "attack": 1,
+    "defence": 2,
+    "move": 1
 },
 
 "artillery": {
     "description": "Heavy gun batteries that can support infantry attacks.",
 
-    "cost": "4",
-    "attack": "2",
-    "defence": "2",
-    "move": "1"
+    "cost": 4,
+    "attack": 2,
+    "defence": 2,
+    "move": 1
 },
 
 "tank": {
     "description": "Armored units that pack a major punch.",
 
-    "cost": "5",
-    "attack": "3",
-    "defence": "3",
-    "move": "2"
+    "cost": 5,
+    "attack": 3,
+    "defence": 3,
+    "move": 2
 },
 
 "aa": {
     "description": "Gun batteries that shoot down invading air units.",
 
-    "cost": "5",
-    "attack": "0",
-    "defence": "1",
-    "move": "1"
+    "cost": 5,
+    "attack": 0,
+    "defence": 1,
+    "move": 1
 },
 
 "factory": {
     "description": "Factories that produce new units.",
 
-    "cost": "15",
-    "attack": "0",
-    "defence": "0",
-    "move": "0"
+    "cost": 15,
+    "attack": 0,
+    "defence": 0,
+    "move": 0
 },
 
 "fighter": {
     "description": "Small, fast aircraft that threaten everything on land or sea.",
 
-    "cost": "10",
-    "attack": "3",
-    "defence": "4",
-    "move": "4"
+    "cost": 10,
+    "attack": 3,
+    "defence": 4,
+    "move": 4
 },
 
 "bomber": {
     "description": "Mammoth, long-range aircraft that drop bombs on their targets.",
 
-    "cost": "15",
-    "attack": "4",
-    "defence": "1",
-    "move": "6"
+    "cost": 15,
+    "attack": 4,
+    "defence": 1,
+    "move": 6
 },
 
 "battleship": {
     "description": "Powerful and nearly indestructible monarchs of the sea.",
 
-    "cost": "24",
-    "attack": "4",
-    "defence": "4",
-    "move": "2"
+    "cost": 24,
+    "attack": 4,
+    "defence": 4,
+    "move": 2
 },
 
 "destroyer": {
     "description": "Small, fast warships that hunt submarines.",
 
-    "cost": "12",
-    "attack": "3",
-    "defence": "3",
-    "move": "2"
+    "cost": 12,
+    "attack": 3,
+    "defence": 3,
+    "move": 2
 },
 
 "carrier": {
     "description": "Giant seaborne platforms from which fighters can take off and land.",
 
-    "cost": "16",
-    "attack": "1",
-    "defence": "3",
-    "move": "2"
+    "cost": 16,
+    "attack": 1,
+    "defence": 3,
+    "move": 2
 },
 
 "transport": {
-    "description": "Vulnerable troop carriers. The true heroes.",
+    "description": "Vulnerable troop carriers to shuttle human cargo.",
 
-    "cost": "8",
-    "attack": "0",
-    "defence": "1",
-    "move": "2"
+    "cost": 8,
+    "attack": 0,
+    "defence": 1,
+    "move": 2
 },
 
 "sub": {
     "description": "Predators that attack from beneath the surface.",
 
-    "cost": "8",
-    "attack": "2",
-    "defence": "2",
-    "move": "2"
+    "cost": 8,
+    "attack": 2,
+    "defence": 2,
+    "move": 2
 }
 }

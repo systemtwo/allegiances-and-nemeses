@@ -19,7 +19,7 @@ t2.connections.append(t3)
 t2.connections.append(t1)
 t3.connections.append(t2)
 
-buy = BuyPhase(40)
+buy = BuyPhase(40, board)
 buy.buyUnit("infantry")
 buy.buyUnit("tank")
 buy.buyUnit("fighter")
