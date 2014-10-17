@@ -1,4 +1,4 @@
-define(function() {
+define(["globals"], function(_g) {
 
 var Unit = function(unitType, country, territory) {
     this.unitType = unitType;
@@ -13,14 +13,24 @@ var Territory = function(name, income, country) {
     this.name = name;
     this.income = income;
     this.country = country;
+    this.previousOwner = country;
     this.connections = [];
 };
 
 Territory.prototype.units = function () {
     var that = this;
-    return board.units.filter(function(u) {
+    return _g.board.units.filter(function(u) {
         return u.territory === that
     })
+};
+
+Territory.prototype.hasFactory = function() {
+    for(var i=0; i < _g.board.units.length; i++) {
+        if (_g.board.units[i].type == "factory") {
+            return true;
+        }
+    }
+    return false;
 };
 
 Territory.prototype.countryUnits = function(country) {

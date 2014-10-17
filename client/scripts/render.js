@@ -1,7 +1,11 @@
 function showRecruitmentWindow() {
     
 }
-function showBoughtWindow() {
+
+/**
+ * Shows the list of units bought, indicates which are available to be placed, and which have already been placed
+ */
+function showPlacementWindow() {
 
 }
 function showBattle(conflict) {

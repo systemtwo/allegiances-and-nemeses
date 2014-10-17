@@ -1,24 +1,18 @@
-define(function() {
+define(["components"], function(_c) {
     var Board = function() {
         this.players = [];
         this.units = [];
+        this.territories = [];
         this.countries = [];
-        this.currentCountry = null;
-        this.currentPhase = null;
-        this.attackMoveList = [];
-        this.buyList = [];
         return this;
     };
-    Board.prototype.territoriesSelectable = function(territories) {
 
+    Board.prototype.addUnit = function(unitType, territory, country) {
+        var newUnit = new _c.Unit(unitType, territory, country);
+        this.units.push(newUnit);
     };
 
-    function countryTerritories() {
-
-    }
-
     return {
-        countryTerritories: countryTerritories,
         Board: Board
     }
 });
