@@ -1,9 +1,9 @@
-define(["globals", "helpers"], function(_g, _h) {
+define(["globals", "helpers", "render"], function(_g, _h, _r) {
 
 var BuyPhase = function() {
     _g.buyList = [];
     this.moneyCap = _g.currentCountry.ipc;
-    showRecruitmentWindow();
+    _r.showRecruitmentWindow();
     return this;
 };
 
