@@ -3,8 +3,10 @@ import tornado.web
 
 import os.path
 
+import config
 
-STATIC_CONTENT_PATH = "client/"
+
+STATIC_CONTENT_PATH = config.STATIC_CONTENT_PATH
 
 
 #A File handler that always serves files
@@ -33,7 +35,7 @@ class Server:
 		app = tornado.web.Application([
 			(r"/", IndexHandler),
 			(r"/board/([0-9]+)", BoardHandler), 
-			(r"/js/(.*)", NoCacheStaticFileHandler, {"path": os.path.join(STATIC_CONTENT_PATH, "js")})
+			(r"/static/(.*)", NoCacheStaticFileHandler, {"path": os.path.join(STATIC_CONTENT_PATH)}) #This is not a great way of doing this TODO: Change this to be more intuative
 		])
 
 		app.listen(8888)
