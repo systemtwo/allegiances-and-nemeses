@@ -4,3 +4,5 @@ client/.idea/*
 
 *~
 *.swp
+
+*.pyc
