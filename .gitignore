@@ -1,6 +1,9 @@
-server/game/.idea/*
-server/game/__pycache__/*
+game/.idea/*
+game/__pycache__/*
 client/.idea/*
+.idea/*
 
 *~
 *.swp
+
+*.pyc
