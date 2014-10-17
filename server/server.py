@@ -4,7 +4,7 @@ import tornado.web
 import os.path
 
 
-STATIC_CONTENT_PATH = "static/"
+STATIC_CONTENT_PATH = "client/"
 
 
 #A File handler that always serves files
@@ -15,31 +15,30 @@ class NoCacheStaticFileHandler(tornado.web.StaticFileHandler):
 	def should_return_304(self):
 		return False
 
+
 class IndexHandler(tornado.web.RequestHandler):
 	def get(self):
 		with open(os.path.join(STATIC_CONTENT_PATH, "html", "index.html")) as f:
 			self.write(f.read())
 
 
-app = tornado.web.Application([
-	(r"/", IndexHandler),
-	(r"/js/(.*)", NoCacheStaticFileHandler, {"path": os.path.join(STATIC_CONTENT_PATH, "js")})
-])
+class BoardHandler(tornado.web.RequestHandler):
+	def get(self, boardid):
+		self.write(boardid)
 
 
-#Import guard 
-if __name__ == "__main__":
-	app.listen(8888)
 
+class Server:
+	def __init__(self):
+		app = tornado.web.Application([
+			(r"/", IndexHandler),
+			(r"/board/([0-9]+)", BoardHandler), 
+			(r"/js/(.*)", NoCacheStaticFileHandler, {"path": os.path.join(STATIC_CONTENT_PATH, "js")})
+		])
 
-	#Allow Ctrl-C to stop application
-	#    http://stackoverflow.com/questions/17101502/how-to-stop-the-tornado-web-server-with-ctrlc
+		app.listen(8888)
+		ioloop = tornado.ioloop.IOLoop.instance()
 
-	try:
 		print "Starting Server"
-		tornado.ioloop.IOLoop.instance().start()
-	except KeyboardInterrupt:
-		print "Stopping Server"
-		tornado.ioloop.IOLoop.instance().stop()
-
+		ioloop.start()
 
