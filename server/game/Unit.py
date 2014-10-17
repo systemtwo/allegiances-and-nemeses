@@ -2,7 +2,14 @@ class Unit:
     def __init__(self, unitType, country, territory):
         self.type = unitType
         self.territory = territory
+        self.previousTerritory = territory
         self.country = country
+
+    def isFlying(self):
+        return self.type == "fighter" or self.type == "bomber"
+
+    def isLand(self):
+        return self.type != "fighter" and self.type != "bomber"
 
 
 class UnitInfo:

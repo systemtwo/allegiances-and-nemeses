@@ -1,7 +1,22 @@
 import random
+import Board
 from Unit import Unit
 
 
+"""
+Phases handle the major operational logic of the game. Each phase it's own unique logic, and different available actions
+Every phase has a nextPhase method, that progresses to the next phase.
+The methods for each phase validate client actions, then perform the requested action.
+Actions available to the user are computed by Phase objects on client side, not server side.
+
+The six phases are:
+Buy -> purchase units to place later
+Attack -> Move units into enemy territories
+Resolve -> Units in any territory under attack must fight until one side is dead, or the attacker retreats
+Neutral Move -> Planes must land, units that haven't moved can move to friendly territories.
+Placement -> Place the units bought at the beginning of the turn
+Collect Income -> Collect income from all the territories owned (including conquered territories)
+"""
 class BuyPhase:
     def __init__(self, ipc, board):
         # List[(unitType, cost)]
@@ -45,15 +60,21 @@ class BaseMovePhase:
         return self.board.getPath(unit.territory, destination, unit) <= self.board.unitInfo(unit.type).movement
 
 
+# Units are added to a moveList, but unit.territory does not get modified if they are attacking a territory.
+# when they win, unit.territory is updated, and unit.previousTerritory is set
 class AttackPhase(BaseMovePhase):
     def nextPhase(self, board):
         conflicts = {}  # list of territories being attacked, and the attacking units
         for (unit, start, dest) in self.moveList:
-            if unit.country is not dest.country:
+            if not Board.allied(dest.country, unit.country):
                 if dest not in conflicts:
                     conflicts[dest] = [unit]
                 else:
                     conflicts[dest].append(unit)
+            else:
+                # not in conflict
+                unit.previousTerritory = unit.territory
+                unit.territory = dest
 
         board.attackMoveList = self.moveList
         board.currentPhase = ResolvePhase(conflicts, self.board)
@@ -81,7 +102,7 @@ class ResolvePhase:
             # bit of safety
             constraint -= 1
             if constraint == 0:
-                print("Aut-resolve does not complete")
+                print("Auto-resolve does not complete")
                 break
 
             outcome = self.battle(attackers, defenders)
@@ -94,18 +115,28 @@ class ResolvePhase:
                 self.resolvedConflicts.append((territory, outcomes, defenders))
                 break
             elif len(defenders) == 0:
-                # attackers win
+                # attackers win if no defenders, and 1+ attackers
                 self.resolvedConflicts.append((territory, outcomes, attackers))
-                territory.country = self.board.currentCountry
+
+                # can only take the territory if 1+ attackers are land attackers
+                landAttackers = [u for u in attackers if u.isLand()]
+                if len(landAttackers) > 0:
+                    territory.country = self.board.currentCountry
+
+                # now we can update the attackers' current territory. They've officially moved in
                 for u in attackers:
+                    u.previousTerritory = u.territory
                     u.territory = territory
                 break
 
+    # Performs a single step in a territory conflict
     # Takes in a list of attackers and defenders. Removes casualties from list
     def battle(self, attackers, defenders):
+        # counts number of each side that must die
         attackingCasualties = 0
         defendingCasualties = 0
 
+        # there's a weighted chance of each unit dying. We sum the weights for all the attackers and defenders
         sumAttackers = 0
         sumDefenders = 0
 
@@ -123,6 +154,9 @@ class ResolvePhase:
                 attackingCasualties += 1
 
         # kill random peeps. chance of dying is 1/attack or 1/defence
+        # using the sum of the weights, we take a random number that's less than the sum
+        # Then we add up the weights of each unit until the total exceeds our random number
+        # That unlucky unit is now dead
         deadA = []
         deadD = []
         while defendingCasualties > 0:
@@ -169,8 +203,18 @@ class BattleReport:
 
 
 class MovementPhase(BaseMovePhase):
+    # can move units that haven't moved in the attack phase, or planes that need to land
+    # can't move into enemy territories
     def canMove(self, unit, destination):
-        return unit not in self.board.attackMoveList and super(self).canMove(unit, destination)
+        if not Board.allied(destination.country, unit.country):
+            return False
+
+        if unit not in self.board.attackMoveList:
+            return super(self).canMove(unit, destination)
+        elif unit.isFlying():
+            previousMove = self.board.getPath(unit.previousTerritory, unit.territory, unit)
+            newMove = self.board.getPath(unit.territory, destination, unit)
+            return previousMove + newMove < self.board.unitInfo(unit.type).movement
 
     def nextPhase(self, board):
         board.neutralMoveList = self.moveList
@@ -197,5 +241,5 @@ class PlacementPhase:
         board.currentCountry.colllectIncome()
 
         board.nextTurn()
-        board.currentPhase = BuyPhase(board.currentCountry)
+        board.currentPhase = BuyPhase(board.currentCountry, board)
         return board.currentPhase

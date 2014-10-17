@@ -53,6 +53,7 @@ class Board:
     def removeUnit(self, u):
         self.units.remove(u)
 
+    # Finds a path from the start to the goal, based on the unit's type and country
     def getPath(self, start, goal, unit):
         if start is goal:
             return []
@@ -82,6 +83,7 @@ class Board:
         return UnitInfo(unit_dict)
 
 
+# Checks if a unit can move through a territory
 def canMoveThrough(unit, territory):
     unitType = unit.type
     if allied(territory.country, unit.country):
