@@ -4,18 +4,12 @@ import tornado.web
 import os.path
 
 import config
+import utils
 
 
 STATIC_CONTENT_PATH = config.STATIC_CONTENT_PATH
 
 
-#A File handler that always serves files
-class NoCacheStaticFileHandler(tornado.web.StaticFileHandler):
-	def set_extra_headers(self, path):
-		self.set_header("Cache-control", "no-cache")
-
-	def should_return_304(self):
-		return False
 
 
 class IndexHandler(tornado.web.RequestHandler):
@@ -35,7 +29,7 @@ class Server:
 		app = tornado.web.Application([
 			(r"/", IndexHandler),
 			(r"/board/([0-9]+)", BoardHandler), 
-			(r"/static/(.*)", NoCacheStaticFileHandler, {"path": os.path.join(STATIC_CONTENT_PATH)}) #This is not a great way of doing this TODO: Change this to be more intuative
+			(r"/static/(.*)", utils.NoCacheStaticFileHandler, {"path": os.path.join(STATIC_CONTENT_PATH)}) #This is not a great way of doing this TODO: Change this to be more intuative
 		])
 
 		app.listen(8888)
