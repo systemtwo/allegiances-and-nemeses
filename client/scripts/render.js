@@ -1,7 +1,9 @@
 define(["nunjucks"], function(nj) {
     function showRecruitmentWindow() {
-        var windowContents = nj.render("../templates/window.html", [{unitType: "Lich"}])
-        alert(windowContents)
+        var windowContents = nj.render("static/templates/window.html", {units: [{unitType: "Lich"}] });
+
+        $(windowContents).dialog()
+
     }
 
     /**
@@ -21,6 +23,7 @@ define(["nunjucks"], function(nj) {
     return {
         showBattle: showBattle,
         showPlacementWindow: showPlacementWindow,
-        showRecruitmentWindow: showRecruitmentWindow
+        showRecruitmentWindow: showRecruitmentWindow,
+        selectableTerritories: selectableTerritories
     }
 });

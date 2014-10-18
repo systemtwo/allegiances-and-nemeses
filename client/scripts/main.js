@@ -1,8 +1,14 @@
 requirejs.config({
-    baseUrl: '../scripts/'
-//    paths: {
-//        specialName: '../customPath/fileName'
-//    }
+    baseUrl: 'static/scripts',
+    paths: {
+        "nunjucks": "lib/nunjucks"
+    },
+    shim: {
+        "jQuery-ui": {
+            exports: "$",
+            deps: "jQuery"
+        }
+    }
 });
 
 // Start the main app logic.
