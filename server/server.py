@@ -3,22 +3,25 @@ import tornado.web
 
 import os.path
 
-import config
 import utils
-
 import game
 
-STATIC_CONTENT_PATH = config.STATIC_CONTENT_PATH
 
 
 
 class IndexHandler(tornado.web.RequestHandler):
+	def initialize(self, html_path):
+		self.HTML_PATH = html_path
+
 	def get(self):
-		with open(os.path.join(STATIC_CONTENT_PATH, "html", "index.html")) as f:
+		with open(os.path.join(self.HTML_PATH, "index.html")) as f:
 			self.write(f.read())
 
 
 class BoardHandler(tornado.web.RequestHandler):
+	def initialize(self, args):
+		pass
+
 	def get(self, boardid):
 		iceland = game.Country("Iceland")
 
@@ -46,11 +49,11 @@ class BoardHandler(tornado.web.RequestHandler):
 
 
 class Server:
-	def __init__(self):
+	def __init__(self, config):
 		app = tornado.web.Application([
-			(r"/", IndexHandler),
+			(r"/", IndexHandler, dict(html_path=os.path.join(config.STATIC_CONTENT_PATH, "html"))),
 			(r"/boards/([0-9]+)", BoardHandler), 
-			(r"/static/(.*)", utils.NoCacheStaticFileHandler, {"path": os.path.join(STATIC_CONTENT_PATH)}) #This is not a great way of doing this TODO: Change this to be more intuative
+			(r"/static/(.*)", utils.NoCacheStaticFileHandler, {"path": os.path.join(config.STATIC_CONTENT_PATH)}) #This is not a great way of doing this TODO: Change this to be more intuative
 		])
 
 		app.listen(8888)

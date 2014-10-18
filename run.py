@@ -2,7 +2,8 @@ import sys
 sys.path.append("server")
 
 import server
+import config
 
 
 
-server = server.Server()
+server = server.Server(config)
