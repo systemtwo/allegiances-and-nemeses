@@ -10,15 +10,15 @@
             <th>Defend</th>
             <th></th>
         </tr>
-        {% for u in units %}
-          <tr>
-              <td>{{ u.unitType }}</td>
-              <td>{{ u.cost }}</td>
-              <td>{{ u.movement }}</td>
-              <td>{{ u.attack }}</td>
-              <td>{{ u.defend }}</td>
+        {% for name, info in units %}
+          <tr data-type="{{name}}">
+              <td>{{ name }}</td>
+              <td>{{ info.cost }}</td>
+              <td>{{ info.move }}</td>
+              <td>{{ info.attack }}</td>
+              <td>{{ info.defence }}</td>
               <td>
-                  <input class="buyAmount" value="0"/>
+                  <input data-type="{{name}}" class="buyAmount" value="0"/>
               </td>
           </tr>
         {% endfor %}

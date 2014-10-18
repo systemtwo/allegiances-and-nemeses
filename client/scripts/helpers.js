@@ -1,11 +1,6 @@
 define(["globals"], function(_g) {
 function unitInfo(unitType) {
-    return {
-        attack: 1,
-        defence: 2,
-        movement: 2,
-        cost: 8
-    };
+    return _g.unitCatalogue[unitType];
 }
 
 function countryTerritories(country) {

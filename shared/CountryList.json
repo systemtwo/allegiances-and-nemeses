@@ -1,0 +1,22 @@
+[
+    {
+        "name": "ussr",
+        "team": "allies"
+    },
+    {
+        "name": "germany",
+        "team": "axis"
+    },
+    {
+        "name": "uk",
+        "team": "allies"
+    },
+    {
+        "name": "japan",
+        "team": "axis"
+    },
+    {
+        "name": "us",
+        "team": "allies"
+    }
+]

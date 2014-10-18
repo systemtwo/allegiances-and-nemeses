@@ -50,6 +50,7 @@ class Server:
 		app = tornado.web.Application([
 			(r"/", IndexHandler),
 			(r"/boards/([0-9]+)", BoardHandler), 
+			(r"/shared/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join("shared")}), 
 			(r"/static/(.*)", utils.NoCacheStaticFileHandler, {"path": os.path.join(STATIC_CONTENT_PATH)}) #This is not a great way of doing this TODO: Change this to be more intuative
 		])
 
