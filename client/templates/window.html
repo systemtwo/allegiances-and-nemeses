@@ -1,6 +1,26 @@
-<h1>Posts</h1>
-<ul>
-{% for u in units %}
-  <li>{{ u.unitType }}</li>
-{% endfor %}
-</ul>
+<div>
+    <!-- Autofocus a hidden element -->
+    <span class="ui-helper-hidden-accessible"><input type="text"/></span>
+    <table class="table">
+        <tr>
+            <th>Unit</th>
+            <th>Cost</th>
+            <th>Move</th>
+            <th>Attack</th>
+            <th>Defend</th>
+            <th></th>
+        </tr>
+        {% for u in units %}
+          <tr>
+              <td>{{ u.unitType }}</td>
+              <td>{{ u.cost }}</td>
+              <td>{{ u.movement }}</td>
+              <td>{{ u.attack }}</td>
+              <td>{{ u.defend }}</td>
+              <td>
+                  <input class="buyAmount" value="0"/>
+              </td>
+          </tr>
+        {% endfor %}
+    </table>
+</div>
