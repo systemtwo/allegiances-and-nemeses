@@ -1,8 +1,24 @@
 define(["nunjucks"], function(nj) {
     function showRecruitmentWindow() {
-        var windowContents = nj.render("static/templates/window.html", {units: [{unitType: "Lich"}] });
+        var windowContents = $(nj.render("static/templates/window.html", {units: [{unitType: "Lich"}] }));
 
-        $(windowContents).dialog()
+        windowContents.find(".buyAmount").spinner({
+            min: 0
+        });
+
+        windowContents.dialog({
+            title: "Unit List",
+            modal: false,
+            width: 600, // TODO base off of window width/user pref
+            buttons: {
+                "Ok": function () {
+                    $(this).dialog("close");
+                },
+                "Minimize": function () {
+                    $(this).dialog("close");
+                }
+            }
+        })
 
     }
 
