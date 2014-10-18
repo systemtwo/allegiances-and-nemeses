@@ -1,5 +1,5 @@
-game/.idea/*
-game/__pycache__/*
+server/game/.idea/*
+server/game/__pycache__/*
 client/.idea/*
 .idea/*
 
