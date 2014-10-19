@@ -12,11 +12,12 @@ requirejs.config({
 });
 
 // Start the main app logic.
-requirejs(["globals", 'board', "phases", "components"],
-function (_g, board, _p, _c) {
+requirejs(["globals", 'board', "phases", "components", "render"],
+function (_g, board, _p, _c, _r) {
 
-    function initBoard() {
-        _g.board = new board.Board();
+    function initBoard(image) {
+        _g.board = new board.Board(image);
+        _r.createMap();
 
         var unitPromise = $.getJSON("/shared/UnitList.json");
         var tPromise = $.getJSON("/shared/TerritoryList.json");
@@ -47,6 +48,10 @@ function (_g, board, _p, _c) {
         });
     }
 
-    initBoard();
+    var map = new Image();
+    map.src = "/static/css/images/defaultMap.jpg";
+    map.onload = function() {
+        initBoard(map);
+    };
 
 });
