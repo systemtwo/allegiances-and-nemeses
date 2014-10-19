@@ -41,7 +41,7 @@ class BoardsHandler(tornado.web.RequestHandler):
 		self.config = config
 		self.action = action
 
-	def get(self, *params):
+	def get(self, **params):
 		if self.action == self.actions.ALL:
 			#Return list of active boards
 			self.write("All")
@@ -50,13 +50,13 @@ class BoardsHandler(tornado.web.RequestHandler):
 			self.redirect(r"/boards/" + str(random.randint(0, 100)))
 		elif self.action == self.actions.ID:
 			#Return info about board with id boardId
-			self.write("Board" + str(params[0]))
+			self.write("Board" + str(params["boardId"]))
 
 
-	def post(self, *params):
+	def post(self, **params):
 		if self.action == self.actions.ID:
 			req = self.request
-			self.write("boardid:" + str(params[0]))
+			self.write("boardid:" + str(params["boardId"]))
 			self.write(str(req.body))
 		else:
 			self.set_status(405)
@@ -72,7 +72,7 @@ class Server:
 			(r"/", IndexHandler, dict(html_path=os.path.join(config.STATIC_CONTENT_PATH, "html"))),
 			(r"/boards/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ALL)), 
 			(r"/boards/new/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.NEW)), 
-			(r"/boards/([0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID)), #Consider using named regex here
+			(r"/boards/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID)), #Consider using named regex here
 			(r"/static/(.*)", utils.NoCacheStaticFileHandler, {"path": os.path.join(config.STATIC_CONTENT_PATH)}) #This is not a great way of doing this TODO: Change this to be more intuative
 		])
 
