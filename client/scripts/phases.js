@@ -1,43 +1,27 @@
 define(["globals", "helpers", "render"], function(_g, _h, _r) {
 
 var BuyPhase = function() {
-    _g.buyList = [];
-    this.moneyCap = _g.currentCountry.ipc;
-    _r.showRecruitmentWindow();
+    _g.buyList = {};
+    _r.showRecruitmentWindow(this);
     return this;
 };
 
-BuyPhase.prototype.buyUnit = function(unitType) {
+    // Updates the amount of a certain unit to buy
+BuyPhase.prototype.buyUnits = function(unitType, amount) {
     var info = _h.unitInfo(unitType);
-    if (this.money() + info.cost <= this.moneyCap) {
-        _g.buyList.push(unitType)
-    }
-};
-
-BuyPhase.prototype.cancel = function(unitType) {
-    var removed = false;
-    _g.buyList.filter(function(u) {
-        if (!removed && u != unitType) {
-            removed = true;
-            return false;
-        } else {
-            return true;
-        }
-    })
-};
-
-BuyPhase.prototype.undo = function() {
-    _g.buyList.pop();
+    _g.buyList[unitType] = {
+        unitType: unitType,
+        cost: info.cost,
+        amount: amount
+    };
+    // Notify server
 };
 
 BuyPhase.prototype.money = function() {
-    _g.buyList.reduce(function(total, unitType) {
-        return total + _h.unitInfo(unitType).cost
+    return Object.keys(_g.buyList).reduce(function(total, key) {
+        var data = _g.buyList[key];
+        return total + data.cost*data.amount
     }, 0);
-};
-
-BuyPhase.prototype.availableActions = function() {
-    // buy shit
 };
 
 BuyPhase.prototype.nextPhase = function() {
@@ -54,7 +38,7 @@ var MovementPhase = function() {
         DEST: "selectMoveDest",
         UNIT: "selectUnits"
     };
-    selectableTerritories(_h.countryTerritories(_g.currentCountry));
+    _r.selectableTerritories(_h.countryTerritories(_g.currentCountry));
     this.state = this.states.START;
     this.selectedUnits = [];
     this.origin = null;
@@ -68,7 +52,7 @@ MovementPhase.prototype.onTerritorySelect = function(territory) {
         this.origin = territory;
         var controlledUnits = territory.countryUnits(_g.currentCountry);
         // Make selectable any territory that a unit currently in the clicked territory can move to
-        selectableTerritories(_h.territoriesInRange(controlledUnits, _g.currentCountry));
+        _r.selectableTerritories(_h.territoriesInRange(controlledUnits, _g.currentCountry));
 
     } else if (this.state == this.states.DEST) {
         this.destination = territory;
@@ -178,14 +162,14 @@ PlacementPhase.prototype.onUnitSelect = function(unitType) {
             (that.placed.length < t.income))
     });
 
-    selectableTerritories(validTerritories);
+    _r.selectableTerritories(validTerritories);
     this.placingType = unitType;
 };
 
 PlacementPhase.prototype.cancelCurrentPlacement = function() {
     this.placingType = null;
     this.state = this.states.SELECT_UNIT;
-    selectableTerritories([]);
+    _r.selectableTerritories([]);
 };
 
 PlacementPhase.prototype.onTerritorySelect = function(territory) {

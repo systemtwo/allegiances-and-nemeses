@@ -5,6 +5,8 @@ define(function() {
         board: null,
         currentCountry: null,
         currentPhase: null,
+        unitCatalogue: [],
+        territoryCatalogue: [],
         buyList: []
     };
     returnObject.getBoard = function() {
