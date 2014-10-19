@@ -1,31 +1,28 @@
 define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
-    function showRecruitmentWindow() {
-        var windowContents = $(nj.render("static/templates/window.html", {units: _g.unitCatalogue }));
-
-        function changeUnitAmount(unitType, amount) {
-            // Should to a check to make sure we're still in the buy phase
-            _g.currentPhase.buyUnits(unitType, amount);
-            var remainingMoney = _g.currentCountry.ipc - _g.currentPhase.money();
-            windowContents.find(".buyAmount").each(function(index, spinner) {
-                spinner = $(spinner);
-                var info = _h.unitInfo(spinner.data("type"));
-                var newMax = Math.floor(remainingMoney/ info.cost);
-                if (newMax <0) {
-                    console.error("Spent more than allowed")
-                }
-                spinner.spinner("option", "max", newMax)
-            })
-        }
+    function showRecruitmentWindow(buyPhase) {
+        var sum = $("<span>").text(0);
+        var windowContents = $(nj.render("static/templates/window.html", {units: _g.unitCatalogue })).prepend(sum);
 
         windowContents.find(".buyAmount").each(function(index, input) {
-            var spinner = $(input);
-            var unitType = spinner.data("type");
-            var max = Math.floor(_g.currentCountry.ipc/_h.unitInfo(unitType).cost);
-            spinner.spinner({
+            input = $(input);
+            var unitType = input.data("type");
+            var info = _h.unitInfo(unitType);
+
+            function getMax(){
+                var remainingMoney = _g.currentCountry.ipc - buyPhase.money();
+                var currentAmount = _g.buyList[unitType] ? _g.buyList[unitType].amount : 0;
+                var newMax = Math.floor(remainingMoney/ info.cost) + currentAmount;
+                if (newMax < 0) {
+                    console.error("Spent more than allowed")
+                }
+                return newMax;
+            }
+            input.counter({
                 min: 0,
-                max: max,
+                max: getMax,
                 change: function () {
-                    changeUnitAmount(unitType, this.value);
+                    buyPhase.buyUnits(unitType, input.counter("value"));
+                    sum.text(buyPhase.money())
                 }
             });
         });
@@ -33,6 +30,7 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         windowContents.dialog({
             title: "Unit List",
             modal: false,
+            closeOnEscape: false,
             width: 600, // TODO base off of window width/user pref
             buttons: {
                 "Ok": function () {

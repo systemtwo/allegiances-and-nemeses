@@ -2,32 +2,25 @@ define(["globals", "helpers", "render"], function(_g, _h, _r) {
 
 var BuyPhase = function() {
     _g.buyList = {};
-    this.moneyCap = _g.currentCountry.ipc;
-    _r.showRecruitmentWindow();
+    _r.showRecruitmentWindow(this);
     return this;
 };
 
     // Updates the amount of a certain unit to buy
 BuyPhase.prototype.buyUnits = function(unitType, amount) {
     var info = _h.unitInfo(unitType);
-    if (this.money(unitType) + info.cost*amount <= this.moneyCap) {
-        _g.buyList[unitType] = {
-            unitType: unitType,
-            cost: info.cost,
-            amount: amount
-        }
-    }
+    _g.buyList[unitType] = {
+        unitType: unitType,
+        cost: info.cost,
+        amount: amount
+    };
     // Notify server
 };
 
-BuyPhase.prototype.money = function(exclude) {
+BuyPhase.prototype.money = function() {
     return Object.keys(_g.buyList).reduce(function(total, key) {
         var data = _g.buyList[key];
-        if (data.unitType !== exclude) {
-            return total + data.cost*data.amount
-        } else {
-            return total;
-        }
+        return total + data.cost*data.amount
     }, 0);
 };
 
