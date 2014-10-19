@@ -73,8 +73,8 @@ class Server:
 			(r"/boards/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ALL)), 
 			(r"/boards/new/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.NEW)), 
 			(r"/boards/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID)), #Consider using named regex here
-			(r"/shared/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join("shared")}), 
-			(r"/static/(.*)", utils.NoCacheStaticFileHandler, {"path": os.path.join(config.STATIC_CONTENT_PATH)}) #This is not a great way of doing this TODO: Change this to be more intuative
+			(r"/shared/(.*)", utils.NoCacheStaticFileHandler, {"path": config.SHARED_CONTENT_PATH}), 
+			(r"/static/(.*)", utils.NoCacheStaticFileHandler, {"path": config.STATIC_CONTENT_PATH}) #This is not a great way of doing this TODO: Change this to be more intuative
 		])
 
 		self.app.listen(8888)
