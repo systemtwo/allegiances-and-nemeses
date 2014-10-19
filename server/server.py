@@ -2,9 +2,13 @@ import tornado.ioloop
 import tornado.web
 
 import os.path
+import json
 
 import utils
 import game
+
+
+import random
 
 
 
@@ -19,46 +23,63 @@ class IndexHandler(tornado.web.RequestHandler):
 
 
 class BoardHandler(tornado.web.RequestHandler):
-	def initialize(self, args):
+	def initialize(self):
 		pass
 
-	def get(self, boardid):
-		iceland = game.Country("Iceland")
+	def get(self):
+		pass
 
-		t1 = game.Territory("Ontario", 10, iceland)
-		t2 = game.Territory("Quebec", 10, iceland)
-		t3 = game.Territory("Nova Scotia", 10, iceland)
+	def post(self):
+		pass
 
-		t1.connections.append(t2)
-		t2.connections.append(t3)
-		t2.connections.append(t1)
-		t3.connections.append(t2)
 
-		fighter = game.Unit("fighter", iceland, t1)
+class BoardsHandler(tornado.web.RequestHandler):
+	#TODO: Consider spliting this class to handle the different scenarios
+	actions = utils.Enum(["ALL", "NEW", "ID"])
 
-		board = game.Board([fighter], [iceland], config.unitListFile, config.territoryListFile)
-		self.write(boardid)
-		self.write(str(board.getPath(t1, t2, fighter)))
+	def initialize(self, config, action):
+		self.config = config
+		self.action = action
 
-	def post(self, boardid):
-		req = self.request
-		self.write("boardid:" + str(boardid))
-		self.write(str(req.body))
-		#self.write(self.get_argument("key"))
+	def get(self, *params):
+		if self.action == self.actions.ALL:
+			#Return list of active boards
+			self.write("All")
+		elif self.action == self.actions.NEW:
+			#Make a new board
+			self.redirect(r"/boards/" + str(random.randint(0, 100)))
+		elif self.action == self.actions.ID:
+			#Return info about board with id boardId
+			self.write("Board" + str(params[0]))
+
+
+	def post(self, *params):
+		if self.action == self.actions.ID:
+			req = self.request
+			self.write("boardid:" + str(params[0]))
+			self.write(str(req.body))
+		else:
+			self.set_status(405)
+			self.write("Method Not Allowed")
+		return
+
 
 
 
 class Server:
 	def __init__(self, config):
-		app = tornado.web.Application([
+		self.app = tornado.web.Application([
 			(r"/", IndexHandler, dict(html_path=os.path.join(config.STATIC_CONTENT_PATH, "html"))),
-			(r"/boards/([0-9]+)", BoardHandler), 
+			(r"/boards/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ALL)), 
+			(r"/boards/new/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.NEW)), 
+			(r"/boards/([0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID)), #Consider using named regex here
 			(r"/static/(.*)", utils.NoCacheStaticFileHandler, {"path": os.path.join(config.STATIC_CONTENT_PATH)}) #This is not a great way of doing this TODO: Change this to be more intuative
 		])
 
-		app.listen(8888)
-		ioloop = tornado.ioloop.IOLoop.instance()
+		self.app.listen(8888)
+		self.ioloop = tornado.ioloop.IOLoop.instance()
 
+	def start(self):
 		print "Starting Server"
-		ioloop.start()
+		self.ioloop.start()
 
