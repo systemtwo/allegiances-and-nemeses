@@ -7,3 +7,4 @@ import config
 
 
 server = server.Server(config)
+server.start()
