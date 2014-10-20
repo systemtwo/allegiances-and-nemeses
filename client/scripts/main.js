@@ -17,7 +17,7 @@ function (_g, board, _p, _c, _r) {
 
     function initBoard(image) {
         _g.board = new board.Board(image);
-        _r.createMap();
+        _r.initMap();
 
         var unitPromise = $.getJSON("/shared/UnitList.json");
         var tPromise = $.getJSON("/shared/TerritoryList.json");
@@ -25,20 +25,19 @@ function (_g, board, _p, _c, _r) {
 
         $.when(unitPromise, tPromise, cPromise).done(function(unitResponse, territoryResponse, countryResponse) {
             _g.unitCatalogue = unitResponse[0];
-            _g.territoryCatalogue = territoryResponse[0];
 
             _g.board.countries = countryResponse[0].map(function(c) {
                 return new _c.Country(c.name, c.team)
             });
-            territoryResponse.forEach(function(t) {
+            territoryResponse[0].forEach(function(t) {
                 var country = null;
-                for (var i=0; i<_g.board.countries; i++) {
+                for (var i=0; i<_g.board.countries.length; i++) {
                     if (_g.board.countries[i].name == t.country) {
                         country = _g.board.countries[i];
                         break;
                     }
                 }
-                _g.board.territories.push(new _c.Territory(t.name, t.income, country))
+                _g.board.territories.push(new _c.Territory(t.name, t.income, country, t.x, t.y, t.width, t.height))
             });
 
             _g.currentCountry = _g.board.countries[0];

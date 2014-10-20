@@ -9,12 +9,16 @@ define(["globals"], function(_g) {
     };
 
 
-    var Territory = function(name, income, country) {
+    var Territory = function(name, income, country, x, y, width, height) {
         this.name = name;
         this.income = income;
         this.country = country;
         this.previousOwner = country;
         this.connections = [];
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
     };
 
     Territory.prototype.units = function () {
@@ -35,7 +39,7 @@ define(["globals"], function(_g) {
 
     Territory.prototype.countryUnits = function(country) {
         var that = this;
-        return board.units.filter(function(u) {
+        return _g.getBoard().units.filter(function(u) {
             return u.territory === that && u.country === country;
         })
     };

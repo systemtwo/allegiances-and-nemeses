@@ -39,7 +39,7 @@ var MovementPhase = function() {
         DEST: "selectMoveDest",
         UNIT: "selectUnits"
     };
-    _r.selectableTerritories(_h.countryTerritories(_g.currentCountry));
+    _h.setSelectableTerritories(_h.countryTerritories(_g.currentCountry));
     this.state = this.states.START;
     this.selectedUnits = [];
     this.origin = null;
@@ -53,7 +53,7 @@ MovementPhase.prototype.onTerritorySelect = function(territory) {
         this.origin = territory;
         var controlledUnits = territory.countryUnits(_g.currentCountry);
         // Make selectable any territory that a unit currently in the clicked territory can move to
-        _r.selectableTerritories(_h.territoriesInRange(controlledUnits, _g.currentCountry));
+        _h.setSelectableTerritories(_h.territoriesInRange(controlledUnits, _g.currentCountry));
 
     } else if (this.state == this.states.DEST) {
         this.destination = territory;
@@ -163,14 +163,14 @@ PlacementPhase.prototype.onUnitSelect = function(unitType) {
             (that.placed.length < t.income))
     });
 
-    _r.selectableTerritories(validTerritories);
+    _h.setSelectableTerritories(validTerritories);
     this.placingType = unitType;
 };
 
 PlacementPhase.prototype.cancelCurrentPlacement = function() {
     this.placingType = null;
     this.state = this.states.SELECT_UNIT;
-    _r.selectableTerritories([]);
+    _h.setSelectableTerritories([]);
 };
 
 PlacementPhase.prototype.onTerritorySelect = function(territory) {

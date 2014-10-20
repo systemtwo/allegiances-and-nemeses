@@ -1,6 +1,7 @@
 [
     {
         "name":"Karelia S.S.R.",
+        "country": "ussr",
         "x":871,
         "y":160,
         "width":82,
@@ -57,6 +58,7 @@
     },
     {
         "name":"Ukraine S.S.R.",
+        "country": "ussr",
         "x":966,
         "y":417,
         "width":81,
@@ -73,6 +75,7 @@
     },
     {
         "name":"Archangel",
+        "country": "ussr",
         "x":1113,
         "y":168,
         "width":61,
@@ -81,6 +84,7 @@
     },
     {
         "name":"Russia",
+        "country": "ussr",
         "x":1218,
         "y":243,
         "width":41,
@@ -105,6 +109,7 @@
     },
     {
         "name":"Caucasus",
+        "country": "ussr",
         "x":1021,
         "y":527,
         "width":59,
@@ -113,6 +118,7 @@
     },
     {
         "name":"Kazakh",
+        "country": "ussr",
         "x":1164,
         "y":527,
         "width":85,
@@ -121,6 +127,7 @@
     },
     {
         "name":"Novosibirsk",
+        "country": "ussr",
         "x":1255,
         "y":355,
         "width":67,
@@ -129,6 +136,7 @@
     },
     {
         "name":"Evenki",
+        "country": "ussr",
         "x":1382,
         "y":151,
         "width":126,
@@ -137,6 +145,7 @@
     },
     {
         "name":"Yakut",
+        "country": "ussr",
         "x":1595,
         "y":126,
         "width":75,
@@ -145,6 +154,7 @@
     },
     {
         "name":"Soviet Far East",
+        "country": "ussr",
         "x":1910,
         "y":108,
         "width":87,
@@ -153,6 +163,7 @@
     },
     {
         "name":"Buryatia",
+        "country": "ussr",
         "x":1704,
         "y":246,
         "width":91,

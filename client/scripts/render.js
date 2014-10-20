@@ -4,7 +4,6 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         x: 0,
         y: 0
     };
-    var singleBoardWidth = 2460;
 
     function showRecruitmentWindow(buyPhase) {
         var sum = $("<span>").text(0);
@@ -63,122 +62,83 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
 
     }
 
-    function selectableTerritories(territories){
-        alert("Selectable territories: " + territories)
-    }
-
-    function createMap() {
+    function initMap() {
         var canvas = document.getElementById("board");
-        var dragging = false;
-        var previous = {
-            x: 0,
-            y: 0
-        };
-        singleBoardWidth = _g.board.mapImage.width/2;
 
         function resizeBoard() {
             canvas.width = Math.max(window.innerWidth*0.8, 400);
             canvas.height = Math.max(window.innerHeight*0.8, 360);
-            drawTNames();
+            drawMap();
         }
 
         resizeBoard();
         window.onresize = resizeBoard;
-//        canvas.width = _g.board.mapImage.width;
-//        canvas.height = _g.board.mapImage.height;
 
-//        var secondClick = false, previous = {};
-//        canvas.onclick = function(e) {
-//            if (secondClick) {
-//                secondClick = false;
-//
-//                if (window.currentTerritory) {
-//                    var cache;
-//                    _g.territoryCatalogue.forEach(function(t) {
-//                        if (t.name == window.currentTerritory) {
-//                            cache = t;
-//                        }
-//                    });
-//                    cache.x = previous.x - canvas.offsetLeft;
-//                    cache.y = previous.y - canvas.offsetTop;
-//                    cache.width = e.pageX - previous.x;
-//                    cache.height = e.pageY - previous.y;
-//                    console.log(cache);
-//                } else {
-//                    _g.territoryCatalogue.push({
-//                        name: prompt("Territory Name"),
-//                        x: previous.x - canvas.offsetLeft,
-//                        y: previous.y - canvas.offsetTop,
-//                        width: e.pageX - previous.x,
-//                        height: e.pageY - previous.y
-//                    });
-//                }
-//                drawTNames();
-//            } else {
-//                previous.x = e.pageX;
-//                previous.y = e.pageY;
-//                secondClick = true;
-//                drawTNames();
-//            }
-//        };
+        listenToMap(canvas);
+
+        // test code
+        window.globals = _g;
+    }
+
+    function listenToMap(canvas) {
+        var dragging = false;
+        // Previous mouse pageX and pageY
+        var previous = {
+            x: 0,
+            y: 0
+        };
 
         $(canvas).mousemove(function (e) {
             e.preventDefault();
-            var mousex = e.pageX - canvas.offsetLeft;
-            var mousey = e.pageY - canvas.offsetTop;
-            var boardCoord = {
-                x: mousex + offset.x,
-                y: mousey + offset.y
-            };
-
+            var boardCoord = boardCoordinates(event);
 
             if (dragging) {
+                // Move the map
                 offset.x -= e.pageX - previous.x;
                 offset.y -= e.pageY - previous.y;
                 previous.x = e.pageX;
                 previous.y = e.pageY;
-                drawTNames();
+                drawMap();
             }
-            var t = territoryAtPoint(boardCoord.x, boardCoord.y);
+            var t = _h.territoryAtPoint(boardCoord.x, boardCoord.y);
 
-            if (t && territoryIsSelectable(t)) {
+            if (t && _h.territoryIsSelectable(t)) {
                 canvas.style.cursor = "pointer";
             } else {
                 canvas.style.cursor = "auto";
             }
         });
 
+        $(document).mouseup(function () {
+            dragging = false;
+        });
+
         $(canvas).mousedown(function (e) {
             e.preventDefault();
-            var mousex = e.pageX - canvas.offsetLeft;
-            var mousey = e.pageY - canvas.offsetTop;
-            var boardCoord = {
-                x: mousex + offset.x,
-                y: mousey + offset.y
-            };
+            var boardCoord = boardCoordinates(e);
 
-            var t = territoryAtPoint(boardCoord.x, boardCoord.y);
+            var t = _h.territoryAtPoint(boardCoord.x, boardCoord.y);
 
-            if (t && territoryIsSelectable(t)) {
-                selectTerritory(t)
+            if (t && _h.territoryIsSelectable(t)) {
+                // pass to phase controller
             } else {
                 dragging = true;
                 previous.x = e.pageX;
                 previous.y = e.pageY;
             }
         });
+    }
 
-        $(document).mouseup(function (e) {
-            dragging = false;
-        });
-        // test code
-        window.globals = _g;
-//        setTimeout(function(){
-//            drawTNames();
-//        }, 500)
+    function boardCoordinates(event) {
+        var canvas = document.getElementById("board");
+        return {
+                x: event.pageX - canvas.offsetLeft + offset.x,
+                y: event.pageY - canvas.offsetTop + offset.y
+            };
     }
 
     function adjustOffset() {
+        var singleBoardWidth = _g.board.mapImage.width/2;
         var canvas = document.getElementById("board");
         if (offset.x < 0) {
             console.log("less than");
@@ -197,82 +157,19 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
 
     }
 
-    function territoryIsSelectable() {
-        // return true if territory is in list of allowed
-        return true;
-    }
-
-    function drawTNames() {
+    function drawMap() {
         adjustOffset();
         var canvas = document.getElementById("board");
         canvas.width = canvas.width; // Force redraw
         var ctx = canvas.getContext("2d");
         ctx.drawImage(_g.board.mapImage, -offset.x, -offset.y);
-//        _g.territoryCatalogue.forEach(function(t) {
-//            ctx.rect(t.x, t.y, t.width, t.height);
-//        });
-        ctx.stroke();
     }
 
-    function showTerritoryList() {
-        var windowContents = $(nj.render( "static/templates/tList.html", {territories: _g.territoryCatalogue}));
-
-        windowContents.find("li").click(function(element) {
-            var name = $(this).data("name");
-            var cache;
-            _g.territoryCatalogue.forEach(function(t) {
-                if (t.name == name) {
-                    cache = t;
-                }
-            });
-            selectTerritory(cache)
-        });
-
-        windowContents.dialog({
-            title: "Territories",
-            modal: false,
-            closeOnEscape: false,
-            width: 600, // TODO base off of window width/user pref
-            height: 500,
-            buttons: {
-                "Minimize": function () {
-                    $(this).dialog("close");
-                }
-            }
-        })
-    }
-
-    function selectTerritory (t){
-        if (t.income === undefined) {
-            t.income = prompt("Income for " + t.name)
-        }
-        window.currentTerritory = t;
-    }
-
-    function territoryAtPoint(x, y) {
-        if (x > singleBoardWidth) {
-            x = x - singleBoardWidth;
-        }
-
-        // Temporarily make up for trimming border
-        x = x+20;
-        y = y+20;
-        for (var i=0; i<_g.territoryCatalogue.length; i++) {
-            var t = _g.territoryCatalogue[i];
-            if (t.x < x &&
-                t.y < y &&
-                t.x + t.width > x &&
-                t.y + t.height > y) {
-                return t;
-            }
-        }
-    }
     return {
         showBattle: showBattle,
         showPlacementWindow: showPlacementWindow,
         showRecruitmentWindow: showRecruitmentWindow,
-        createMap: createMap,
-        showTerritoryList: showTerritoryList,
-        selectableTerritories: selectableTerritories
+        initMap: initMap,
+        drawMap: drawMap
     }
 });
