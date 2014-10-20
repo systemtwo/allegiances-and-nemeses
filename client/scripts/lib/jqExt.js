@@ -3,11 +3,9 @@
  * jQuery UI Counter 1.11.2
  * http://jqueryui.com
  *
- * Copyright 2014 jQuery Foundation and other contributors
- * Released under the MIT license.
- * http://jquery.org/license
+ * Built by dschwarz off the counter widget
  *
- * http://api.jqueryui.com/counter/
+ * Makes an input that accepts numbers, max and min values, and can be incremented/decremented
  */
 
 
@@ -85,8 +83,8 @@ var counter = $.widget( "ui.counter", {
                 this._trigger( "change", event );
             }
         },
-        "mousedown .ui-spinner-button": function( event ) {
-            $( event.currentTarget ).hasClass( "ui-spinner-up" ) ? this.increment() : this.decrement();
+        "mousedown .ui-counter-button": function( event ) {
+            $( event.currentTarget ).hasClass( "ui-counter-up" ) ? this.increment() : this.decrement();
 			event.preventDefault();
             this._trigger( "change", event );
         }
@@ -94,15 +92,18 @@ var counter = $.widget( "ui.counter", {
 
     _draw: function() {
         var uiCounter = this.uiCounter = this.element
-            .addClass( "ui-spinner-input" )
+            .addClass( "ui-counter-input" )
             .attr( "autocomplete", "off" )
+            .css( "width", "25px" )
+            .css( "height", "100%" )
             .wrap( this._uiCounterHtml() )
             .parent()
                 // add buttons
-                .append( this._buttonHtml() );
+                .prepend( this._downButtonHtml() )
+                .append( this._upButtonHtml() );
 
         // button bindings
-        this.buttons = uiCounter.find( ".ui-spinner-button" )
+        this.buttons = uiCounter.find( ".ui-counter-button" )
             .attr( "tabIndex", -1 )
             .button()
             .removeClass( "ui-corner-all" );
@@ -138,18 +139,22 @@ var counter = $.widget( "ui.counter", {
     },
 
     _uiCounterHtml: function() {
-        return "<span class='ui-spinner ui-widget ui-widget-content ui-corner-all'></span>";
+        return "<div style='white-space: nowrap;'></div>";
     },
 
-    _buttonHtml: function() {
-        return "" +
-            "<a class='ui-spinner-button ui-spinner-up ui-corner-tr'>" +
-                "<span class='ui-icon " + this.options.icons.up + "'>&#9650;</span>" +
-            "</a>" +
-            "<a class='ui-spinner-button ui-spinner-down ui-corner-br'>" +
-                "<span class='ui-icon " + this.options.icons.down + "'>&#9660;</span>" +
-            "</a>";
-    },
+	_upButtonHtml: function() {
+		return "" +
+			"<a class='ui-counter-button ui-counter-up ui-corner-tr'>" +
+				"<span class='ui-icon " + this.options.icons.up + "'>&#9650;</span>" +
+			"</a>";
+	},
+
+	_downButtonHtml: function() {
+		return "" +
+			"<a class='ui-counter-button ui-counter-down ui-corner-br'>" +
+				"<span class='ui-icon " + this.options.icons.down + "'>&#9660;</span>" +
+			"</a>";
+	},
 
     _adjustValue: function( value ) {
         var options = this.options;
@@ -250,7 +255,7 @@ var counter = $.widget( "ui.counter", {
 
     _destroy: function() {
         this.element
-            .removeClass( "ui-spinner-input" )
+            .removeClass( "ui-counter-input" )
             .prop( "disabled", false )
             .removeAttr( "autocomplete" )
             .removeAttr( "role" )

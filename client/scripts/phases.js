@@ -3,6 +3,7 @@ define(["globals", "helpers", "render"], function(_g, _h, _r) {
 var BuyPhase = function() {
     _g.buyList = {};
     _r.showRecruitmentWindow(this);
+//    _r.showTerritoryList();
     return this;
 };
 

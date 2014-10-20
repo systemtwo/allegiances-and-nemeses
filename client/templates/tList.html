@@ -2,7 +2,7 @@
     <ul>
         {% for t in territories %}
             <li data-name="{{t.name}}">
-               {{t.name}}
+               {{t.name}} | Income: {{ t.income }}
             </li>
         {% endfor %}
     </ul>

@@ -32,6 +32,7 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
             modal: false,
             closeOnEscape: false,
             width: 600, // TODO base off of window width/user pref
+            height: 500, // TODO base off of window width/user pref
             buttons: {
                 "Ok": function () {
                     _g.currentPhase.nextPhase();
@@ -60,7 +61,6 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
     }
 
     function createMap() {
-        var secondClick = false, previous = {};
         var canvas = document.getElementById("board");
         var ctx = canvas.getContext("2d");
 //        canvas.width = Math.max(window.innerWidth*0.8, 400);
@@ -69,6 +69,7 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         canvas.height = _g.board.mapImage.height;
         ctx.drawImage(_g.board.mapImage, 0, 0);
 
+//        var secondClick = false, previous = {};
 //        canvas.onclick = function(e) {
 //            if (secondClick) {
 //                secondClick = false;
@@ -109,22 +110,39 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
 
             var t = territoryAtPoint(mousex, mousey);
 
-            if (t) {
+            if (t && territoryIsSelectable(t)) {
                 canvas.style.cursor = "pointer";
             } else {
                 canvas.style.cursor = "auto";
             }
         });
 
+        $(canvas).mousedown(function (e) {
+            var mousex = e.pageX - canvas.offsetLeft;
+            var mousey = e.pageY - canvas.offsetTop;
+
+            var t = territoryAtPoint(mousex, mousey);
+
+            if (t && territoryIsSelectable(t)) {
+                selectTerritory(t)
+            }
+        });
+
+        // test code
         window.globals = _g;
-        setTimeout(function(){
-        drawTNames();
-        }, 500)
+//        setTimeout(function(){
+//            drawTNames();
+//        }, 500)
+    }
+
+    function territoryIsSelectable() {
+        // return true if territory is in list of allowed
+        return true;
     }
 
     function drawTNames() {
         var canvas = document.getElementById("board");
-        canvas.width = canvas.width;
+        canvas.width = canvas.width; // Force redraw
         var ctx = canvas.getContext("2d");
         ctx.drawImage(_g.board.mapImage, 0, 0);
         _g.territoryCatalogue.forEach(function(t) {
@@ -137,16 +155,14 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         var windowContents = $(nj.render( "static/templates/tList.html", {territories: _g.territoryCatalogue}));
 
         windowContents.find("li").click(function(element) {
-            window.currentTerritory = $(this).data("name");
+            var name = $(this).data("name");
             var cache;
             _g.territoryCatalogue.forEach(function(t) {
-                if (t.name == window.currentTerritory) {
+                if (t.name == name) {
                     cache = t;
                 }
             });
-            if (cache.income === undefined) {
-                cache.income = prompt("Income for " + window.currentTerritory)
-            }
+            selectTerritory(cache)
         });
 
         windowContents.dialog({
@@ -154,11 +170,8 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
             modal: false,
             closeOnEscape: false,
             width: 600, // TODO base off of window width/user pref
+            height: 500,
             buttons: {
-                "Ok": function () {
-                    _g.currentPhase.nextPhase();
-                    $(this).dialog("close");
-                },
                 "Minimize": function () {
                     $(this).dialog("close");
                 }
@@ -166,8 +179,14 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         })
     }
 
+    function selectTerritory (t){
+        if (t.income === undefined) {
+            t.income = prompt("Income for " + t.name)
+        }
+        window.currentTerritory = t;
+    }
+
     function territoryAtPoint(x, y) {
-        console.log("Begin");
         for (var i=0; i<_g.territoryCatalogue.length; i++) {
             var t = _g.territoryCatalogue[i];
             if (t.x < x &&
@@ -177,7 +196,6 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
                 return t;
             }
         }
-        console.log("end")
     }
     return {
         showBattle: showBattle,
