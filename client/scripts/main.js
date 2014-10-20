@@ -49,7 +49,7 @@ function (_g, board, _p, _c, _r) {
     }
 
     var map = new Image();
-    map.src = "/static/css/images/defaultMap.jpg";
+    map.src = "/static/css/images/defaultMap2.jpg";
     map.onload = function() {
         initBoard(map);
     };

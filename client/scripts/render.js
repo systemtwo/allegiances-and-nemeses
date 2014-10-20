@@ -1,4 +1,11 @@
 define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
+    // Distance from edge of board top left to the top left corner of camera
+    var offset = {
+        x: 0,
+        y: 0
+    };
+    var singleBoardWidth = 2460;
+
     function showRecruitmentWindow(buyPhase) {
         var sum = $("<span>").text(0);
         var windowContents = $(nj.render("static/templates/window.html", {units: _g.unitCatalogue })).prepend(sum);
@@ -62,12 +69,23 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
 
     function createMap() {
         var canvas = document.getElementById("board");
-        var ctx = canvas.getContext("2d");
-//        canvas.width = Math.max(window.innerWidth*0.8, 400);
-//        canvas.height = Math.max(window.innerHeight*0.8, 360);
-        canvas.width = _g.board.mapImage.width;
-        canvas.height = _g.board.mapImage.height;
-        ctx.drawImage(_g.board.mapImage, 0, 0);
+        var dragging = false;
+        var previous = {
+            x: 0,
+            y: 0
+        };
+        singleBoardWidth = _g.board.mapImage.width/2;
+
+        function resizeBoard() {
+            canvas.width = Math.max(window.innerWidth*0.8, 400);
+            canvas.height = Math.max(window.innerHeight*0.8, 360);
+            drawTNames();
+        }
+
+        resizeBoard();
+        window.onresize = resizeBoard;
+//        canvas.width = _g.board.mapImage.width;
+//        canvas.height = _g.board.mapImage.height;
 
 //        var secondClick = false, previous = {};
 //        canvas.onclick = function(e) {
@@ -105,10 +123,23 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
 //        };
 
         $(canvas).mousemove(function (e) {
+            e.preventDefault();
             var mousex = e.pageX - canvas.offsetLeft;
             var mousey = e.pageY - canvas.offsetTop;
+            var boardCoord = {
+                x: mousex + offset.x,
+                y: mousey + offset.y
+            };
 
-            var t = territoryAtPoint(mousex, mousey);
+
+            if (dragging) {
+                offset.x -= e.pageX - previous.x;
+                offset.y -= e.pageY - previous.y;
+                previous.x = e.pageX;
+                previous.y = e.pageY;
+                drawTNames();
+            }
+            var t = territoryAtPoint(boardCoord.x, boardCoord.y);
 
             if (t && territoryIsSelectable(t)) {
                 canvas.style.cursor = "pointer";
@@ -118,21 +149,52 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         });
 
         $(canvas).mousedown(function (e) {
+            e.preventDefault();
             var mousex = e.pageX - canvas.offsetLeft;
             var mousey = e.pageY - canvas.offsetTop;
+            var boardCoord = {
+                x: mousex + offset.x,
+                y: mousey + offset.y
+            };
 
-            var t = territoryAtPoint(mousex, mousey);
+            var t = territoryAtPoint(boardCoord.x, boardCoord.y);
 
             if (t && territoryIsSelectable(t)) {
                 selectTerritory(t)
+            } else {
+                dragging = true;
+                previous.x = e.pageX;
+                previous.y = e.pageY;
             }
         });
 
+        $(document).mouseup(function (e) {
+            dragging = false;
+        });
         // test code
         window.globals = _g;
 //        setTimeout(function(){
 //            drawTNames();
 //        }, 500)
+    }
+
+    function adjustOffset() {
+        var canvas = document.getElementById("board");
+        if (offset.x < 0) {
+            console.log("less than");
+            offset.x += singleBoardWidth;
+        } else if (offset.x + canvas.width > 2*singleBoardWidth) {
+            console.log("x greater than");
+            offset.x -= singleBoardWidth;
+        }
+        if (offset.y < 0) {
+            offset.y = 0;
+            console.log("y less than");
+        } else if (offset.y + canvas.height > _g.board.mapImage.height) {
+            console.log("y greater than");
+            offset.y =  _g.board.mapImage.height - canvas.height;
+        }
+
     }
 
     function territoryIsSelectable() {
@@ -141,13 +203,14 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
     }
 
     function drawTNames() {
+        adjustOffset();
         var canvas = document.getElementById("board");
         canvas.width = canvas.width; // Force redraw
         var ctx = canvas.getContext("2d");
-        ctx.drawImage(_g.board.mapImage, 0, 0);
-        _g.territoryCatalogue.forEach(function(t) {
-            ctx.rect(t.x, t.y, t.width, t.height);
-        });
+        ctx.drawImage(_g.board.mapImage, -offset.x, -offset.y);
+//        _g.territoryCatalogue.forEach(function(t) {
+//            ctx.rect(t.x, t.y, t.width, t.height);
+//        });
         ctx.stroke();
     }
 
@@ -187,6 +250,13 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
     }
 
     function territoryAtPoint(x, y) {
+        if (x > singleBoardWidth) {
+            x = x - singleBoardWidth;
+        }
+
+        // Temporarily make up for trimming border
+        x = x+20;
+        y = y+20;
         for (var i=0; i<_g.territoryCatalogue.length; i++) {
             var t = _g.territoryCatalogue[i];
             if (t.x < x &&
