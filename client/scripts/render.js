@@ -4,6 +4,15 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         x: 0,
         y: 0
     };
+    // Previous mouse pageX and pageY
+    var previousMouse = {
+        x: 0,
+        y: 0
+    };
+
+    function phaseName(name) {
+        $("#phaseName").text("| " + name);
+    }
 
     function showRecruitmentWindow(buyPhase) {
         var sum = $("<span>").text(0);
@@ -58,6 +67,23 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
     function showPlacementWindow() {
 
     }
+
+    /**
+     * Shows the list of units that can be moved, and which territories they come from.
+     */
+    function showMoveWindow(enabledUnits, disabledUnits) {
+        disabledUnits = disabledUnits || []; // optional parameter
+
+        var territoryDict = {};
+        enabledUnits.concat(disabledUnits).forEach(function(u) {
+            if (u.territory in territoryDict) {
+                territoryDict[u.territory].push(u);
+            } else {
+                territoryDict[u.territory] = [u];
+            }
+        });
+    }
+
     function showBattle(conflict) {
 
     }
@@ -82,23 +108,17 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
 
     function listenToMap(canvas) {
         var dragging = false;
-        // Previous mouse pageX and pageY
-        var previous = {
-            x: 0,
-            y: 0
-        };
 
         $(canvas).mousemove(function (e) {
+            previousMouse.x = e.pageX;
+            previousMouse.y = e.pageY;
             e.preventDefault();
             var boardCoord = boardCoordinates(e);
 
             if (dragging) {
                 // Move the map
-                offset.x -= e.pageX - previous.x;
-                offset.y -= e.pageY - previous.y;
-                previous.x = e.pageX;
-                previous.y = e.pageY;
-                drawMap();
+                offset.x -= e.pageX - previousMouse.x;
+                offset.y -= e.pageY - previousMouse.y;
             }
             var t = _h.territoryAtPoint(boardCoord.x, boardCoord.y);
 
@@ -107,13 +127,19 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
             } else {
                 canvas.style.cursor = "auto";
             }
+
+            if (dragging || arrowOrigin) {
+                drawMap();
+            }
         });
 
         $(document).mouseup(function () {
             dragging = false;
         });
 
-        $(canvas).mousedown(function (e) {
+        $(canvas).mousedown(function onMapClick(e) {
+            previousMouse.x = e.pageX;
+            previousMouse.y = e.pageY;
             e.preventDefault();
             var boardCoord = boardCoordinates(e);
 
@@ -121,10 +147,14 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
 
             if (t && _h.territoryIsSelectable(t)) {
                 // pass to phase controller
+                if (_g.currentPhase && _g.currentPhase.onTerritorySelect) {
+                    _g.currentPhase.onTerritorySelect(t);
+                }
             } else {
+                if (_g.currentPhase && _g.currentPhase.clickNothing) {
+                    _g.currentPhase.clickNothing();
+                }
                 dragging = true;
-                previous.x = e.pageX;
-                previous.y = e.pageY;
             }
         });
     }
@@ -157,19 +187,55 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
 
     }
 
+    var arrowOrigin = null;
+    function showArrowFrom(t) {
+        arrowOrigin = t;
+        drawMap();
+    }
+    function hideArrow(t) {
+        arrowOrigin = null;
+        drawMap();
+    }
+
     function drawMap() {
+        var singleMapWidth = _g.board.mapImage.width/2;
         adjustOffset();
         var canvas = document.getElementById("board");
         canvas.width = canvas.width; // Force redraw
         var ctx = canvas.getContext("2d");
         ctx.drawImage(_g.board.mapImage, -offset.x, -offset.y);
+
+        if (arrowOrigin) {
+            var origin = {
+                x: arrowOrigin.x + arrowOrigin.width/2 - offset.x,
+                y: arrowOrigin.y + arrowOrigin.height/2 - offset.y
+            };
+
+            if (origin.x < 0) {
+                origin.x += singleMapWidth;
+            } else if (origin.x > canvas.width && origin.x > singleMapWidth) {
+                origin.x -= singleMapWidth;
+            }
+
+            // Needed until territory name locations are updated (off by 20px, 20px due to removing map border)
+            origin.x -= 20;
+            origin.y -= 20;
+            ctx.beginPath();
+            ctx.moveTo(origin.x, origin.y);
+            ctx.lineTo(previousMouse.x - canvas.offsetLeft, previousMouse.y - canvas.offsetTop);
+            ctx.stroke();
+        }
     }
 
     return {
+        phaseName: phaseName,
         showBattle: showBattle,
         showPlacementWindow: showPlacementWindow,
         showRecruitmentWindow: showRecruitmentWindow,
+        showMoveWindow: showMoveWindow,
         initMap: initMap,
-        drawMap: drawMap
+        drawMap: drawMap,
+        showArrowFrom: showArrowFrom,
+        hideArrow: hideArrow
     }
 });

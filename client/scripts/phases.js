@@ -1,6 +1,7 @@
 define(["globals", "helpers", "render"], function(_g, _h, _r) {
 
 var BuyPhase = function() {
+    _r.phaseName("Purchase Units");
     _g.buyList = {};
     _r.showRecruitmentWindow(this);
 //    _r.showTerritoryList();
@@ -34,6 +35,7 @@ BuyPhase.prototype.nextPhase = function() {
 // Move units into enemy (or friendly) territories
 // User selects start, then selects destination, then selects which units to send
 var MovementPhase = function() {
+    _r.phaseName("Combat Move");
     this.states = {
         START: "selectMoveStart",
         DEST: "selectMoveDest",
@@ -54,6 +56,8 @@ MovementPhase.prototype.onTerritorySelect = function(territory) {
         var controlledUnits = territory.countryUnits(_g.currentCountry);
         // Make selectable any territory that a unit currently in the clicked territory can move to
         _h.setSelectableTerritories(_h.territoriesInRange(controlledUnits, _g.currentCountry));
+
+        _r.showArrowFrom(territory);
 
     } else if (this.state == this.states.DEST) {
         this.destination = territory;
@@ -77,7 +81,7 @@ MovementPhase.prototype.showUnitSelectionWindow = function() {
         }
     });
 
-    // renderMoveWindow(able, unable);
+    _r.showMoveWindow(able, unable);
 };
 
 // Move a set of units to the destination territory
@@ -89,10 +93,18 @@ MovementPhase.prototype.moveUnits = function(units) {
     this.origin = null;
     this.destination = null;
     this.state = this.states.START;
+    _h.setSelectableTerritories(_h.countryTerritories(_g.currentCountry));
 };
+
+    MovementPhase.prototype.clickNothing = function() {
+        this.state = this.states.START;
+        _h.setSelectableTerritories(_h.countryTerritories(_g.currentCountry));
+        _r.hideArrow();
+    };
 
 // Resolve all attacks made during the movement phase
 var ResolvePhase = function() {
+    _r.phaseName("Resolve Conflicts");
     this.conflicts = this.getConflicts();
     this.showConflicts();
     this.currentConflict = null;

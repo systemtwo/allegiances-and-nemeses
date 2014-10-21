@@ -1,0 +1,20 @@
+<div>
+    <div class="territoryNames">
+        {{ for t in territories }}
+        <div>{{t.name}}</div>
+        {{ endfor }}
+    </div>
+    <div class="unitSection row">
+        <!-- Render columns -->
+        {{ for t in territories }}
+        <div class="units col-sm-{{columnWidth}}">
+            <!-- Render  rows -->
+            {{ for u in t.units }}
+             <span>
+                 {{ u.unitType }}
+             </span>
+            {{ endfor }}
+        </div>
+        {{ endfor }}
+    </div>
+</div>

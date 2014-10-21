@@ -47,7 +47,7 @@ define(["globals"], function(_g) {
             }
         });
 
-        return territories;
+        return Object.keys(territories);
     }
 
     function territoryAtPoint(x, y) {
