@@ -71,17 +71,44 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
     /**
      * Shows the list of units that can be moved, and which territories they come from.
      */
+    var moveWindow = null;
     function showMoveWindow(enabledUnits, disabledUnits) {
         disabledUnits = disabledUnits || []; // optional parameter
 
         var territoryDict = {};
         enabledUnits.concat(disabledUnits).forEach(function(u) {
-            if (u.territory in territoryDict) {
-                territoryDict[u.territory].push(u);
+            if (u.territory.name in territoryDict) {
+                territoryDict[u.territory.name].push(u);
             } else {
-                territoryDict[u.territory] = [u];
+                territoryDict[u.territory.name] = [u];
             }
         });
+
+        var territoryList = Object.keys(territoryDict).map(function(key) {
+           return {
+               name: key,
+               units: territoryDict[key]
+           };
+        });
+
+        var windowContents = $(nj.render("static/templates/moveUnits.html", {territories: territoryList}));
+
+
+        windowContents.dialog({
+            title: "Move Units",
+            modal: false,
+            width: 600, // TODO base off of window width/user pref
+            height: 500, // TODO base off of window width/user pref
+            buttons: {
+                "Move": function () {
+                    _g.currentPhase.nextPhase();
+                    $(this).dialog("close");
+                },
+                "Cancel": function () {
+                    $(this).dialog("close");
+                }
+            }
+        })
     }
 
     function showBattle(conflict) {

@@ -74,7 +74,7 @@ MovementPhase.prototype.showUnitSelectionWindow = function() {
     // Find the units currently in the origin territory that are ABLE to move to the destination territory
     // This can be improved by combining with the territoriesInRange check computed previously
     units.forEach(function(unit) {
-        if (_h.getPath(unit.originalTerritory, that.destination, unit).length < _h.unitInfo(unit).movement) {
+        if (_h.getPath(unit.originalTerritory, that.destination, unit).length < _h.unitInfo(unit.unitType).move) {
             able.push(unit);
         } else {
             unable.push(unit);
@@ -100,6 +100,10 @@ MovementPhase.prototype.moveUnits = function(units) {
         this.state = this.states.START;
         _h.setSelectableTerritories(_h.countryTerritories(_g.currentCountry));
         _r.hideArrow();
+    };
+
+    MovementPhase.prototype.nextPhase = function() {
+        console.warn("MOVEMENT NEXT PHASE - TODO")
     };
 
 // Resolve all attacks made during the movement phase

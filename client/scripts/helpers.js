@@ -22,24 +22,53 @@ define(["globals"], function(_g) {
     }
 
     function getPath(start, destination, unit) {
+        var frontier = [{
+                territory: start,
+                path: []
+            }];
+        var checkedNames = {};
+        while(frontier.length) {
+            // unqueue the first item
+            var current = frontier.shift();
+            if (current.territory === destination) {
+                // Found it!
+                return current;
+            }
+            checkedNames[current.territory.name] = true;
+            if (current.path.length < unitInfo(unit.unitType).move) {
+                current.territory.connections.forEach(function(c) {
+                    if (!(c.name in checkedNames)) {
+                        frontier.push({territory: c, path: current.path.concat(current.territory)})
+                    }
+                })
+            }
+        }
 
     }
 
     // finds all territories in range of a set of units
     function territoriesInRange(units) {
         // TODO - filter similar units
-        var territories = {};
+        var validNames = {}; // List of names in territory objects for quick look up
+        var territoryObjects = []; // List of territory objects. Should be unique.
         units.forEach(function(unit) {
-            var frontier = [unit.originalTerritory];
-            var checked = {};
+            var frontier = [
+                {
+                    territory: unit.originalTerritory,
+                    distance: 0
+                }];
+            var checkedNames = {};
             while(frontier.length) {
                 // unqueue the first item
                 var current = frontier.shift();
-                territories[current.territory] = true;
-                checked[current.territory] = true;
-                if (current.distance < unitInfo(unit.unitType).movement) {
+                if (!(current.territory.name in validNames)) {
+                    territoryObjects.push(current.territory);
+                    validNames[current.territory.name] = true;
+                }
+                checkedNames[current.territory.name] = true;
+                if (current.distance < unitInfo(unit.unitType).move) {
                     current.territory.connections.forEach(function(c) {
-                        if (!(c in checked)) {
+                        if (!(c.name in checkedNames)) {
                             frontier.push({territory: c, distance: current.distance+1})
                         }
                     })
@@ -47,7 +76,7 @@ define(["globals"], function(_g) {
             }
         });
 
-        return Object.keys(territories);
+        return territoryObjects;
     }
 
     function territoryAtPoint(x, y) {

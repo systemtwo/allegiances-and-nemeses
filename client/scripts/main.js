@@ -44,6 +44,9 @@ function (_g, board, _p, _c, _r) {
             _g.currentCountry.ipc = 100;
             _g.currentPhase = new _p.BuyPhase();
 
+            _g.board.addUnit("fighter", "Russia", "ussr");
+
+            _g.board.territories.filter(function(t) { return t.name == "Russia"; })[0].connections.push(_g.board.territories.filter(function(t) { return t.name == "United Kingdom"; })[0])
         });
     }
 
