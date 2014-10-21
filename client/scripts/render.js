@@ -90,7 +90,7 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
 
         $(canvas).mousemove(function (e) {
             e.preventDefault();
-            var boardCoord = boardCoordinates(event);
+            var boardCoord = boardCoordinates(e);
 
             if (dragging) {
                 // Move the map
