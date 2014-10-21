@@ -110,8 +110,6 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         var dragging = false;
 
         $(canvas).mousemove(function (e) {
-            previousMouse.x = e.pageX;
-            previousMouse.y = e.pageY;
             e.preventDefault();
             var boardCoord = boardCoordinates(e);
 
@@ -128,6 +126,8 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
                 canvas.style.cursor = "auto";
             }
 
+            previousMouse.x = e.pageX;
+            previousMouse.y = e.pageY;
             if (dragging || arrowOrigin) {
                 drawMap();
             }
@@ -138,8 +138,6 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         });
 
         $(canvas).mousedown(function onMapClick(e) {
-            previousMouse.x = e.pageX;
-            previousMouse.y = e.pageY;
             e.preventDefault();
             var boardCoord = boardCoordinates(e);
 
@@ -156,6 +154,8 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
                 }
                 dragging = true;
             }
+            previousMouse.x = e.pageX;
+            previousMouse.y = e.pageY;
         });
     }
 
