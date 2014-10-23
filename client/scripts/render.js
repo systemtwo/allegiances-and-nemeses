@@ -242,6 +242,9 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
                 x: previousMouse.x - canvas.offsetLeft + offset.x,
                 y: previousMouse.y - canvas.offsetTop + offset.y
             };
+            if (end.x > _g.board.mapImage.width/2) {
+                end.x -= _g.board.mapImage.width/2;
+            }
             drawLine(origin, end);
         }
     }

@@ -54,6 +54,33 @@ requirejs(["nunjucks", "globals", "render", "board", "helpers"], function(nj, _g
             $("#territoryButton").click(function(){
                 showTerritoryList();
             });
+            $("#printConnections").click(function(){
+                var textarea = $("<textarea>").val(getJSON().connections);
+                textarea.dialog({
+                    title: "Copy JSON",
+                    open: function(){ textarea.select(); },
+                    buttons: {
+                        "Close": function () {
+                            $(this).dialog("close");
+                        }
+                    }
+                });
+            });
+            $("#printTerritories").click(function(){
+                var textarea = $("<textarea>").val(getJSON().territories);
+                textarea.dialog({
+                    title: "Copy JSON",
+                    open: function(){ textarea.select(); },
+                    buttons: {
+                        "Close": function () {
+                            $(this).dialog("close");
+                        }
+                    }
+                });
+            });
+            $("#getJSONButton").click(function(){
+                console.log(getJSON());
+            });
         };
     }
 
@@ -240,9 +267,21 @@ requirejs(["nunjucks", "globals", "render", "board", "helpers"], function(nj, _g
             var onChange = function(){
                 // Save the territory
                 var array = $("#editTerritoryForm").serializeArray();
+                var type = "land";
                 array.forEach(function(attribute) {
+                    if (attribute.name == "type") {
+                        type = attribute.value;
+                        return;
+                    }
                     t[attribute.name] = attribute.value;
                 });
+
+                // 'type' checkbox does not appear in array if deselected, so must be land if 'type' not present
+                var changed = t.type !== type;
+                t.type = type;
+                if (changed) {
+                    setCurrentTerritory(t); // force rerender
+                }
             };
             contents.find("input").change(onChange);
             contents.find("select").change(onChange);
@@ -255,7 +294,17 @@ requirejs(["nunjucks", "globals", "render", "board", "helpers"], function(nj, _g
 
     function getJSON() {
         return {
-            territories: JSON.stringify(territoryCatalogue),
+            territories: JSON.stringify(territoryCatalogue.map(function(t) {
+                if (t.type == "sea") {
+                    var copiedTerritory = jQuery.extend({}, t);
+                    // sea zones don't produce and can't be owned
+                    delete copiedTerritory.country;
+                    delete copiedTerritory.income;
+                    return copiedTerritory;
+                } else {
+                    return t;
+                }
+            })),
             connections: JSON.stringify(connections.map(function (c) {return [c[0].name, c[1].name]}))
         };
     }
