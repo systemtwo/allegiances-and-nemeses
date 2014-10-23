@@ -76,7 +76,7 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         origin = origin || "Unknown";
         destination = destination || "Unknown";
         if (moveWindow) {
-            moveWindow.destroy();
+            moveWindow.dialog("destroy");
         }
         disabledUnits = disabledUnits || []; // optional parameter
 
