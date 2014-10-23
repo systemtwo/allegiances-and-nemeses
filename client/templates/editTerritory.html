@@ -1,0 +1,45 @@
+<form id="editTerritoryForm" class="form-horizontal" role="form">
+    <h1>Territory</h1>
+    <div class="form-group">
+        <label for="nameInput" class="col-sm-2 control-label">Name</label>
+        <div class="col-sm-10">
+            <input type="text" name="name" class="form-control" id="nameInput" value="{{territory.name}}">
+        </div>
+    </div>
+    {% if territory.type=='sea' %}
+    <div class="checkbox">
+        <label>
+            <input type="checkbox" checked>Sea Zone
+        </label>
+    </div>
+    {% else %}
+    <div class="form-group">
+        <label for="incomeInput" class="col-sm-2 control-label">Income</label>
+        <div class="col-sm-10">
+            <input type="number" name="income" class="form-control" id="incomeInput" value="{{territory.income}}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="countryInput" class="col-sm-2 control-label">Country</label>
+        <div class="col-sm-10">
+            <select name="country" class="form-control" id="countryInput">
+              <option></option>
+            {% for c in countries %}
+              <option value="{{c.name}}" {% if territory.country == c.name %} selected="selected" {% endif %}>{{c.name}}</option>
+            {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div class="checkbox">
+        <label>
+            <input type="checkbox" name="type" value="sea">Sea Zone
+        </label>
+    </div>
+    {% endif %}
+    {% if hasHitbox %}
+    <span>[({{territory.x}}, {{territory.y}}), ({{territory.x + territory.width}}, {{territory.y + territory.height}})]</span>
+    {% else %}
+    <span>NO HITBOX ASSIGNED</span>
+    {% endif %}
+    <button id="hitbox" class="btn btn-default" type="button">Define Hitbox</button>
+</form>

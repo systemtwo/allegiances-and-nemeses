@@ -1,3 +1,11 @@
 .ui-dialog-titlebar-close {
     display: none
 }
+
+#editTerritoryPanel {
+    background-color: #ffe45c;
+    float: right;
+    /* Map is 80% width */
+    width: 17%;
+    padding: 5px;
+}

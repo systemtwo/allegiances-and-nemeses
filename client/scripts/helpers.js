@@ -85,10 +85,7 @@ define(["globals"], function(_g) {
             x = x - singleBoardWidth;
         }
 
-        // Temporarily make up for trimming border
-        x = x+20;
-        y = y+20;
-        var territoryList = _g.getBoard().territories
+        var territoryList = _g.getBoard().territories;
         for (var i=0; i<territoryList.length; i++) {
             var t = territoryList[i];
             if (t.x < x &&

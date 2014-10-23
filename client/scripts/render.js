@@ -115,25 +115,26 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
 
     }
 
-    function initMap() {
+    function initMap(drawMapFunction) {
+        drawMapFunction = drawMapFunction || drawMap;
         var canvas = document.getElementById("board");
 
         function resizeBoard() {
             canvas.width = Math.max(window.innerWidth*0.8, 400);
             canvas.height = Math.max(window.innerHeight*0.8, 360);
-            drawMap();
+            drawMapFunction();
         }
 
         resizeBoard();
         window.onresize = resizeBoard;
 
-        listenToMap(canvas);
+        listenToMap(canvas, drawMapFunction);
 
         // test code
         window.globals = _g;
     }
 
-    function listenToMap(canvas) {
+    function listenToMap(canvas, drawMapFunction) {
         var dragging = false;
 
         $(canvas).mousemove(function (e) {
@@ -156,7 +157,7 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
             previousMouse.x = e.pageX;
             previousMouse.y = e.pageY;
             if (dragging || arrowOrigin) {
-                drawMap();
+                drawMapFunction();
             }
         });
 
@@ -179,7 +180,9 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
                 if (_g.currentPhase && _g.currentPhase.clickNothing) {
                     _g.currentPhase.clickNothing();
                 }
-                dragging = true;
+                if (e.shiftKey) {
+                    dragging = true;
+                }
             }
             previousMouse.x = e.pageX;
             previousMouse.y = e.pageY;
@@ -225,33 +228,62 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
     }
 
     function drawMap() {
-        var singleMapWidth = _g.board.mapImage.width/2;
         adjustOffset();
         var canvas = document.getElementById("board");
         canvas.width = canvas.width; // Force redraw
         var ctx = canvas.getContext("2d");
         ctx.drawImage(_g.board.mapImage, -offset.x, -offset.y);
-
         if (arrowOrigin) {
             var origin = {
-                x: arrowOrigin.x + arrowOrigin.width/2 - offset.x,
-                y: arrowOrigin.y + arrowOrigin.height/2 - offset.y
+                x: arrowOrigin.x + arrowOrigin.width/2,
+                y: arrowOrigin.y + arrowOrigin.height/2
             };
-
-            if (origin.x < 0) {
-                origin.x += singleMapWidth;
-            } else if (origin.x > canvas.width && origin.x > singleMapWidth) {
-                origin.x -= singleMapWidth;
-            }
-
-            // Needed until territory name locations are updated (off by 20px, 20px due to removing map border)
-            origin.x -= 20;
-            origin.y -= 20;
-            ctx.beginPath();
-            ctx.moveTo(origin.x, origin.y);
-            ctx.lineTo(previousMouse.x - canvas.offsetLeft, previousMouse.y - canvas.offsetTop);
-            ctx.stroke();
+            var end = {
+                x: previousMouse.x - canvas.offsetLeft + offset.x,
+                y: previousMouse.y - canvas.offsetTop + offset.y
+            };
+            drawLine(origin, end);
         }
+    }
+
+    // begin and end just need x and y in board coordinates
+    function drawLine(begin, end) {
+        var singleMapWidth = _g.board.mapImage.width/2;
+        var canvas = document.getElementById("board");
+        var ctx = canvas.getContext("2d");
+        var beginX = (begin.x + begin.width/2 || begin.x) - offset.x;
+        var beginY = (begin.y + begin.height/2 || begin.y) - offset.y;
+        var endX = (end.x + end.width/2 || end.x) - offset.x;
+        var endY = (end.y + end.height/2 || end.y) - offset.y;
+
+        // Make coordinates in drawable bounds, since map can wrap around
+        if (beginX < 0 && endX < 0) {
+            beginX += singleMapWidth;
+            endX += singleMapWidth;
+        } else if (beginX > canvas.width && endX > canvas.width) {
+            beginX -= singleMapWidth;
+            endX -= singleMapWidth;
+        }
+        ctx.beginPath();
+        ctx.moveTo(beginX, beginY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+    }
+
+    function drawRect(x, y, width, height) {
+        x -= offset.x;
+        y -= offset.y;
+        var canvas = document.getElementById("board");
+        var ctx = canvas.getContext("2d");
+        var singleMapWidth = _g.board.mapImage.width/2;
+
+        if (x + width < 0) {
+            x += singleMapWidth;
+        } else if (x > canvas.width && x > singleMapWidth) {
+            x -= singleMapWidth;
+        }
+
+        ctx.rect(x, y, width, height);
     }
 
     return {
@@ -262,6 +294,9 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         showMoveWindow: showMoveWindow,
         initMap: initMap,
         drawMap: drawMap,
+        drawRect: drawRect,
+        drawLine: drawLine,
+        offset: offset,
         showArrowFrom: showArrowFrom,
         hideArrow: hideArrow
     }

@@ -1,8 +1,15 @@
 <div>
+    <div class="row">
+        <span class="col-sm-6">Name</span>
+        <span class="col-sm-2">Income</span>
+        <span class="col-sm-4">Country</span>
+    </div>
     <ul>
         {% for t in territories %}
-            <li data-name="{{t.name}}">
-               {{t.name}} | Income: {{ t.income }}
+            <li data-name="{{t.name}}" class="row">
+                <span class="col-sm-6">{{t.name}}</span>
+                <span class="col-sm-2">{{ t.income }}</span>
+                <span class="col-sm-4">{{t.country}}</span>
             </li>
         {% endfor %}
     </ul>

@@ -22,6 +22,16 @@ class IndexHandler(tornado.web.RequestHandler):
 			self.write(f.read())
 
 
+class MapEditorHandler(tornado.web.RequestHandler):
+	def initialize(self, html_path):
+		self.HTML_PATH = html_path
+
+	def get(self):
+		# surely there's a better way of handling this
+		with open(os.path.join(self.HTML_PATH, "mapEditor.html")) as f:
+			self.write(f.read())
+
+
 class BoardHandler(tornado.web.RequestHandler):
 	def initialize(self):
 		pass
@@ -70,10 +80,11 @@ class Server:
 	def __init__(self, config):
 		self.app = tornado.web.Application([
 			(r"/", IndexHandler, dict(html_path=os.path.join(config.STATIC_CONTENT_PATH, "html"))),
-			(r"/boards/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ALL)), 
-			(r"/boards/new/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.NEW)), 
+			(r"/mapEditor", MapEditorHandler, dict(html_path=os.path.join(config.STATIC_CONTENT_PATH, "html"))),
+			(r"/boards/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ALL)),
+			(r"/boards/new/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.NEW)),
 			(r"/boards/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID)), #Consider using named regex here
-			(r"/shared/(.*)", utils.NoCacheStaticFileHandler, {"path": config.SHARED_CONTENT_PATH}), 
+			(r"/shared/(.*)", utils.NoCacheStaticFileHandler, {"path": config.SHARED_CONTENT_PATH}),
 			(r"/static/(.*)", utils.NoCacheStaticFileHandler, {"path": config.STATIC_CONTENT_PATH}) #This is not a great way of doing this TODO: Change this to be more intuative
 		])
 
@@ -81,6 +92,6 @@ class Server:
 		self.ioloop = tornado.ioloop.IOLoop.instance()
 
 	def start(self):
-		print "Starting Server"
+		print("Starting Server")
 		self.ioloop.start()
 

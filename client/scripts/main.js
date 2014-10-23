@@ -19,6 +19,7 @@ function (_g, board, _p, _c, _r) {
         _g.board = new board.Board(image);
         _r.initMap();
 
+        // TODO - only pull in unitlist, territories and country info should be pulled directly from Board on server
         var unitPromise = $.getJSON("/shared/UnitList.json");
         var tPromise = $.getJSON("/shared/TerritoryList.json");
         var cPromise = $.getJSON("/shared/CountryList.json");
