@@ -95,7 +95,7 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
                units: territoryDict[key]
            };
         });
-        var moveWindow = $(nj.render("static/templates/moveUnits.html", {territories: territoryList, origin: origin, destination: destination}));
+        moveWindow = $(nj.render("static/templates/moveUnits.html", {territories: territoryList, origin: origin, destination: destination}));
         moveWindow.dialog({
             title: "Move Units",
             modal: false,
@@ -115,20 +115,19 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         console.warn("TODO Show battle dialog")
     }
 
-    function initMap(drawMapFunction) {
-        drawMapFunction = drawMapFunction || drawMap;
+    function initMap() {
         var canvas = document.getElementById("board");
 
         function resizeBoard() {
             canvas.width = Math.max(window.innerWidth*0.8, 400);
             canvas.height = Math.max(window.innerHeight*0.8, 360);
-            drawMapFunction();
+            drawMap();
         }
 
         resizeBoard();
         window.onresize = resizeBoard;
 
-        listenToMap(canvas, drawMapFunction);
+        listenToMap(canvas);
 
         // test code
         window.globals = _g;
@@ -136,7 +135,7 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
 
 
     // Attaches mouse listeners to the canvas element
-    function listenToMap(canvas, drawMapFunction) {
+    function listenToMap(canvas) {
         var dragging = false;
 
         $(canvas).mousemove(function (e) {
@@ -159,7 +158,7 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
             previousMouse.x = e.pageX;
             previousMouse.y = e.pageY;
             if (dragging || arrowOrigin) {
-                drawMapFunction();
+                drawMap();
             }
         });
 
@@ -233,6 +232,11 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
     }
 
     // Draws the map image, and then any additional stuff on top
+    var showSkeleton;
+    function setShowSkeleton(bool) {
+        showSkeleton = bool;
+        drawMap();
+    }
     function drawMap() {
         adjustOffset();
         var canvas = document.getElementById("board");
@@ -255,9 +259,24 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
             }
             drawLine(origin, end);
         }
+        if (showSkeleton) {
+            _g.board.territories.forEach(function(t) {
+                drawRect(t.x, t.y, t.width, t.height);
+            });
+            ctx.stroke();
+
+            _g.connections.forEach(function (c) {
+                drawLine(c[0], c[1])
+            });
+        }
+
+        ctx.save();
+        ctx.globalAlpha = 0.3;
+        ctx.fillStyle = 'yellow';
         selectableTerritories.forEach(function(t) {
-            drawRect(t.x, t.y, t.width, t.height);
+            drawArc(t.x + t.width/2, t.y + t.height/2, t.width*1.2, t.height*1.2, true);
         });
+        ctx.restore();
         ctx.stroke();
     }
 
@@ -271,6 +290,7 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         var endX = (end.x + end.width/2 || end.x) - offset.x;
         var endY = (end.y + end.height/2 || end.y) - offset.y;
 
+        var crossBorder = Math.abs(beginX - endX) > singleMapWidth*3/4;
         // Make coordinates in drawable bounds, since map can wrap around
         if (beginX < 0 && endX < 0) {
             beginX += singleMapWidth;
@@ -278,6 +298,16 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         } else if (beginX > canvas.width && endX > canvas.width) {
             beginX -= singleMapWidth;
             endX -= singleMapWidth;
+        }
+
+        // Canvas draws crossBorder lines on the left board
+        // Find the point farthest to the left, move it one board to the right
+        if (crossBorder) {
+            if (beginX < endX) {
+                beginX += singleMapWidth;
+            } else {
+                endX += singleMapWidth;
+            }
         }
         ctx.beginPath();
         ctx.moveTo(beginX, beginY);
@@ -300,6 +330,33 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         }
 
         ctx.rect(x, y, width, height);
+    }
+
+    function drawArc(centerX, centerY, width, height, fill) {
+        fill = fill || false;
+        var ratio = height/width;
+        var singleMapWidth = _g.board.mapImage.width/2;
+        var canvas = document.getElementById("board");
+        var ctx = canvas.getContext("2d");
+        centerX -= offset.x;
+        centerY -= offset.y;
+
+        // Right side of circle past canvas left side
+        if (centerX + width/2 < 0) {
+            centerX += singleMapWidth;
+        } else if (centerX - width/2 > canvas.width) { // Left side past canvas right side
+            centerX -= singleMapWidth;
+        }
+        ctx.save();
+        ctx.scale(1, ratio); // Scale the height
+        ctx.beginPath();
+        ctx.arc(centerX,centerY/ratio,width/2,0,2*Math.PI);
+        if (fill) {
+            ctx.fill();
+        } else {
+            ctx.stroke();
+        }
+        ctx.restore();
     }
 
     var selectableTerritories = [];
@@ -342,6 +399,7 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         offset: offset,
         showArrowFrom: showArrowFrom,
         hideArrow: hideArrow,
+        showSkeleton: setShowSkeleton,
         setSelectableTerritories: setSelectableTerritories,
         territoryIsSelectable: territoryIsSelectable,
         territoryAtPoint: territoryAtPoint

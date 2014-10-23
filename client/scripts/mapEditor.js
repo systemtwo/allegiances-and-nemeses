@@ -15,8 +15,6 @@ requirejs.config({
 requirejs(["nunjucks", "globals", "render", "board", "helpers"], function(nj, _g, _r, board, _h) {
     // Local namespace
     var territoryCatalogue = [];
-    var connections = [];
-    window.connections = connections; // TODO remove after testing
     var currentTerritory;
     setCurrentTerritory(null);
     var modes = {
@@ -36,23 +34,30 @@ requirejs(["nunjucks", "globals", "render", "board", "helpers"], function(nj, _g
         map.src = "/static/css/images/defaultMap2.jpg";
         map.onload = function() {
             initBoard(map);
+            _r.showSkeleton(true);
 
             $("#createButton").click(function(){
                 _r.setSelectableTerritories([]);
                 currentMode = modes.CREATE;
                 setCurrentTerritory(null);
+                secondClick = false;
             });
             $("#connectButton").click(function(){
                 _r.setSelectableTerritories(territoryCatalogue);
                 currentMode = modes.CONNECT;
                 setCurrentTerritory(null);
+                connectionStart = null;
+                secondClick = false;
             });
             $("#browseButton").click(function(){
                 _r.setSelectableTerritories(territoryCatalogue);
                 currentMode = modes.BROWSE;
+                currentTerritory(null);
+                secondClick = false;
             });
             $("#territoryButton").click(function(){
                 showTerritoryList();
+                secondClick = false;
             });
             $("#printConnections").click(function(){
                 var textarea = $("<textarea>").val(getJSON().connections);
@@ -95,7 +100,7 @@ requirejs(["nunjucks", "globals", "render", "board", "helpers"], function(nj, _g
             _g.board.countries = countryResponse[0];
 
             _r.setSelectableTerritories(territoryCatalogue);
-            connections = connectionResponse[0].map(function(c) {
+            _g.connections = connectionResponse[0].map(function(c) {
                 var first, second = null;
                 territoryCatalogue.forEach(function(t) {
                     if (t.name == c[0]){
@@ -106,12 +111,12 @@ requirejs(["nunjucks", "globals", "render", "board", "helpers"], function(nj, _g
                 });
                 return [first, second];
             });
-            _r.initMap(drawMap);
+            _r.initMap();
             $("#board").mousedown(mapClick);
         });
     }
 
-    var secondClick = false, firstClick = {};
+    var secondClick = false, firstClick = {}, connectionStart = null;
     // Override the click handler on the canvas element with this function, when in map editor mode
     function mapClick(e) {
         if (e.shiftKey) {
@@ -126,16 +131,16 @@ requirejs(["nunjucks", "globals", "render", "board", "helpers"], function(nj, _g
             }
         } else if (currentMode == modes.CONNECT) {
             if (t) {
-                if (currentTerritory && currentTerritory!==t) {
-                    connections.push([currentTerritory, t]);
-                    setCurrentTerritory(null);
+                if (connectionStart && connectionStart!==t) {
+                    _g.connections.push([connectionStart, t]);
+                    connectionStart = null;
                     _r.hideArrow();
                 } else {
                     _r.showArrowFrom(t);
-                    setCurrentTerritory(t);
+                    connectionStart = t;
                 }
             } else {
-                setCurrentTerritory(null);
+                connectionStart = null;
                 _r.hideArrow();
             }
         } else if ((currentMode === modes.HITBOX) && t && _r.territoryIsSelectable(t)) {
@@ -170,7 +175,7 @@ requirejs(["nunjucks", "globals", "render", "board", "helpers"], function(nj, _g
                 secondClick = true;
             }
         }
-        drawMap();
+        _r.drawMap();
     }
 
     // Creates a rectangle based on pageX and pageY
@@ -207,25 +212,10 @@ requirejs(["nunjucks", "globals", "render", "board", "helpers"], function(nj, _g
         return rect;
     }
 
-    // Draws the map, with hit boxes on top
-    function drawMap() {
-        var canvas = document.getElementById("board");
-        var ctx = canvas.getContext("2d");
-        _r.drawMap();
-        territoryCatalogue.forEach(function(t) {
-            _r.drawRect(t.x, t.y, t.width, t.height);
-        });
-        ctx.stroke();
-
-        connections.forEach(function (c) {
-            _r.drawLine(c[0], c[1])
-        });
-    }
-
     function showTerritoryList() {
         var windowContents = $(nj.render( "static/templates/tList.html", {territories: territoryCatalogue}));
 
-        windowContents.find("li").click(function() {
+        windowContents.find(".territoryRow").click(function() {
             var name = $(this).data("name");
             var cache = undefined;
             territoryCatalogue.forEach(function(t) {
@@ -235,7 +225,7 @@ requirejs(["nunjucks", "globals", "render", "board", "helpers"], function(nj, _g
             });
             selectTerritory(cache);
             windowContents.dialog("close");
-        });
+        }).css("cursor", "pointer");
 
         windowContents.dialog({
             title: "Territories - Click to Edit",
@@ -252,7 +242,7 @@ requirejs(["nunjucks", "globals", "render", "board", "helpers"], function(nj, _g
 
     function selectTerritory (t){
         setCurrentTerritory(t);
-        currentMode = modes.HITBOX;
+        currentMode = modes.BROWSE;
         _r.setSelectableTerritories([]);
     }
 
@@ -305,7 +295,7 @@ requirejs(["nunjucks", "globals", "render", "board", "helpers"], function(nj, _g
                     return t;
                 }
             })),
-            connections: JSON.stringify(connections.map(function (c) {return [c[0].name, c[1].name]}))
+            connections: JSON.stringify(_g.connections.map(function (c) {return [c[0].name, c[1].name]}))
         };
     }
 

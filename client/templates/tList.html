@@ -4,13 +4,13 @@
         <span class="col-sm-2">Income</span>
         <span class="col-sm-4">Country</span>
     </div>
-    <ul>
+    <div>
         {% for t in territories %}
-            <li data-name="{{t.name}}" class="row">
+            <span data-name="{{t.name}}" class="row territoryRow">
                 <span class="col-sm-6">{{t.name}}</span>
                 <span class="col-sm-2">{{ t.income }}</span>
                 <span class="col-sm-4">{{t.country}}</span>
-            </li>
+            </span>
         {% endfor %}
-    </ul>
+    </div>
 </div>
