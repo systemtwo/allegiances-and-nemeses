@@ -38,17 +38,17 @@ requirejs(["nunjucks", "globals", "render", "board", "helpers"], function(nj, _g
             initBoard(map);
 
             $("#createButton").click(function(){
-                _h.setSelectableTerritories([]);
+                _r.setSelectableTerritories([]);
                 currentMode = modes.CREATE;
                 setCurrentTerritory(null);
             });
             $("#connectButton").click(function(){
-                _h.setSelectableTerritories(territoryCatalogue);
+                _r.setSelectableTerritories(territoryCatalogue);
                 currentMode = modes.CONNECT;
                 setCurrentTerritory(null);
             });
             $("#browseButton").click(function(){
-                _h.setSelectableTerritories(territoryCatalogue);
+                _r.setSelectableTerritories(territoryCatalogue);
                 currentMode = modes.BROWSE;
             });
             $("#territoryButton").click(function(){
@@ -94,7 +94,7 @@ requirejs(["nunjucks", "globals", "render", "board", "helpers"], function(nj, _g
             _g.board.territories = territoryCatalogue = territoryResponse[0];
             _g.board.countries = countryResponse[0];
 
-            _h.setSelectableTerritories(territoryCatalogue);
+            _r.setSelectableTerritories(territoryCatalogue);
             connections = connectionResponse[0].map(function(c) {
                 var first, second = null;
                 territoryCatalogue.forEach(function(t) {
@@ -118,7 +118,7 @@ requirejs(["nunjucks", "globals", "render", "board", "helpers"], function(nj, _g
             return; // DO NOTHING
         }
         var canvas = document.getElementById("board");
-        var t = _h.territoryAtPoint(e.pageX - canvas.offsetLeft + _r.offset.x, e.pageY - canvas.offsetTop + _r.offset.y);
+        var t = _r.territoryAtPoint(e.pageX - canvas.offsetLeft + _r.offset.x, e.pageY - canvas.offsetTop + _r.offset.y);
 
         if (currentMode == modes.BROWSE) {
             if (t) {
@@ -138,7 +138,7 @@ requirejs(["nunjucks", "globals", "render", "board", "helpers"], function(nj, _g
                 setCurrentTerritory(null);
                 _r.hideArrow();
             }
-        } else if ((currentMode === modes.HITBOX) && t && _h.territoryIsSelectable(t)) {
+        } else if ((currentMode === modes.HITBOX) && t && _r.territoryIsSelectable(t)) {
             selectTerritory(t);
         } else if (currentMode === modes.HITBOX && currentTerritory) {
             if (secondClick) {
@@ -151,7 +151,7 @@ requirejs(["nunjucks", "globals", "render", "board", "helpers"], function(nj, _g
                 // rerender side bar with new hitbox
                 setCurrentTerritory(currentTerritory);
                 currentMode = modes.BROWSE;
-                _h.setSelectableTerritories(territoryCatalogue);
+                _r.setSelectableTerritories(territoryCatalogue);
             } else {
                 firstClick.x = e.pageX;
                 firstClick.y = e.pageY;
@@ -253,7 +253,7 @@ requirejs(["nunjucks", "globals", "render", "board", "helpers"], function(nj, _g
     function selectTerritory (t){
         setCurrentTerritory(t);
         currentMode = modes.HITBOX;
-        _h.setSelectableTerritories([]);
+        _r.setSelectableTerritories([]);
     }
 
     function setCurrentTerritory(t) {
@@ -286,7 +286,7 @@ requirejs(["nunjucks", "globals", "render", "board", "helpers"], function(nj, _g
             contents.find("input").change(onChange);
             contents.find("select").change(onChange);
             $("#hitbox").click(function(){
-                _h.setSelectableTerritories([]);
+                _r.setSelectableTerritories([]);
                 currentMode = modes.HITBOX;
             });
         }

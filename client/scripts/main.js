@@ -23,8 +23,9 @@ function (_g, board, _p, _c, _r) {
         var unitPromise = $.getJSON("/shared/UnitList.json");
         var tPromise = $.getJSON("/shared/TerritoryList.json");
         var cPromise = $.getJSON("/shared/CountryList.json");
+        var connectiionPromise = $.getJSON("/shared/connections.json");
 
-        $.when(unitPromise, tPromise, cPromise).done(function(unitResponse, territoryResponse, countryResponse) {
+        $.when(unitPromise, tPromise, cPromise, connectiionPromise).done(function(unitResponse, territoryResponse, countryResponse, connectionResponse) {
             _g.unitCatalogue = unitResponse[0];
 
             _g.board.countries = countryResponse[0].map(function(c) {
@@ -47,7 +48,19 @@ function (_g, board, _p, _c, _r) {
 
             _g.board.addUnit("fighter", "Russia", "ussr");
 
-            _g.board.territories.filter(function(t) { return t.name == "Russia"; })[0].connections.push(_g.board.territories.filter(function(t) { return t.name == "United Kingdom"; })[0])
+            connectionResponse[0].map(function(c) {
+                var first = null,
+                    second = null;
+                _g.board.territories.forEach(function(t) {
+                    if (t.name == c[0]){
+                        first = t;
+                    } else if (t.name == c[1]) {
+                        second = t;
+                    }
+                });
+                first.connections.push(second);
+                second.connections.push(first);
+            });
         });
     }
 

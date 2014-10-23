@@ -39,9 +39,9 @@ var MovementPhase = function() {
     this.states = {
         START: "selectMoveStart",
         DEST: "selectMoveDest",
-        UNIT: "selectUnits"
+        SELECT_UNITS: "selectUnits"
     };
-    _h.setSelectableTerritories(_h.countryTerritories(_g.currentCountry));
+    _r.setSelectableTerritories(_h.countryTerritories(_g.currentCountry));
     this.state = this.states.START;
     this.selectedUnits = [];
     this.origin = null;
@@ -55,14 +55,22 @@ MovementPhase.prototype.onTerritorySelect = function(territory) {
         this.origin = territory;
         var controlledUnits = territory.countryUnits(_g.currentCountry);
         // Make selectable any territory that a unit currently in the clicked territory can move to
-        _h.setSelectableTerritories(_h.territoriesInRange(controlledUnits, _g.currentCountry));
+        _r.setSelectableTerritories(_h.territoriesInRange(controlledUnits, _g.currentCountry));
 
         _r.showArrowFrom(territory);
 
     } else if (this.state == this.states.DEST) {
         this.destination = territory;
         this.showUnitSelectionWindow();
-        this.state = this.states.UNIT;
+        this.state = this.states.SELECT_UNITS;
+    } else if (this.state == this.states.SELECT_UNITS) {
+        // clicked a new territory anyway instead of selecting units
+        // Treat as a cancel and reselect destination
+        if (this.origin) {
+            this.destination = territory;
+            // Open a new window
+            this.showUnitSelectionWindow();
+        }
     }
 };
 
@@ -81,7 +89,7 @@ MovementPhase.prototype.showUnitSelectionWindow = function() {
         }
     });
 
-    _r.showMoveWindow(able, unable);
+    _r.showMoveWindow(able, unable, this.origin.name, this.destination.name);
 };
 
 // Move a set of units to the destination territory
@@ -93,12 +101,12 @@ MovementPhase.prototype.moveUnits = function(units) {
     this.origin = null;
     this.destination = null;
     this.state = this.states.START;
-    _h.setSelectableTerritories(_h.countryTerritories(_g.currentCountry));
+    _r.setSelectableTerritories(_h.countryTerritories(_g.currentCountry));
 };
 
     MovementPhase.prototype.clickNothing = function() {
         this.state = this.states.START;
-        _h.setSelectableTerritories(_h.countryTerritories(_g.currentCountry));
+        _r.setSelectableTerritories(_h.countryTerritories(_g.currentCountry));
         _r.hideArrow();
     };
 
@@ -179,14 +187,14 @@ PlacementPhase.prototype.onUnitSelect = function(unitType) {
             (that.placed.length < t.income))
     });
 
-    _h.setSelectableTerritories(validTerritories);
+    _r.setSelectableTerritories(validTerritories);
     this.placingType = unitType;
 };
 
 PlacementPhase.prototype.cancelCurrentPlacement = function() {
     this.placingType = null;
     this.state = this.states.SELECT_UNIT;
-    _h.setSelectableTerritories([]);
+    _r.setSelectableTerritories([]);
 };
 
 PlacementPhase.prototype.onTerritorySelect = function(territory) {

@@ -10,17 +10,6 @@ define(["globals"], function(_g) {
         });
     }
 
-    window.countryT = countryTerritories;
-
-    var selectableTerritories = [];
-    function setSelectableTerritories(territories) {
-        selectableTerritories = territories;
-    }
-
-    function territoryIsSelectable(t) {
-        return selectableTerritories.indexOf(t) !== -1;
-    }
-
     function getPath(start, destination, unit) {
         var frontier = [{
                 territory: start,
@@ -43,7 +32,6 @@ define(["globals"], function(_g) {
                 })
             }
         }
-
     }
 
     // finds all territories in range of a set of units
@@ -79,33 +67,11 @@ define(["globals"], function(_g) {
         return territoryObjects;
     }
 
-    function territoryAtPoint(x, y) {
-        var singleBoardWidth = _g.board.mapImage.width/2;
-        if (x > singleBoardWidth) {
-            x = x - singleBoardWidth;
-        }
-
-        var territoryList = _g.getBoard().territories;
-        for (var i=0; i<territoryList.length; i++) {
-            var t = territoryList[i];
-            if (t.x < x &&
-                t.y < y &&
-                t.x + t.width > x &&
-                t.y + t.height > y) {
-                return t;
-            }
-        }
-    }
-
-
 return {
     unitInfo: unitInfo,
     countryTerritories: countryTerritories,
     getPath: getPath,
-    territoriesInRange: territoriesInRange,
-    setSelectableTerritories: setSelectableTerritories,
-    territoryIsSelectable: territoryIsSelectable,
-    territoryAtPoint: territoryAtPoint
+    territoriesInRange: territoriesInRange
 }
 
 });

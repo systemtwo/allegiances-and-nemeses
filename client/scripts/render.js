@@ -72,7 +72,12 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
      * Shows the list of units that can be moved, and which territories they come from.
      */
     var moveWindow = null;
-    function showMoveWindow(enabledUnits, disabledUnits) {
+    function showMoveWindow(enabledUnits, disabledUnits, origin, destination) {
+        origin = origin || "Unknown";
+        destination = destination || "Unknown";
+        if (moveWindow) {
+            moveWindow.destroy();
+        }
         disabledUnits = disabledUnits || []; // optional parameter
 
         var territoryDict = {};
@@ -90,15 +95,10 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
                units: territoryDict[key]
            };
         });
-
-        var windowContents = $(nj.render("static/templates/moveUnits.html", {territories: territoryList}));
-
-
-        windowContents.dialog({
+        var moveWindow = $(nj.render("static/templates/moveUnits.html", {territories: territoryList, origin: origin, destination: destination}));
+        moveWindow.dialog({
             title: "Move Units",
             modal: false,
-            width: 600, // TODO base off of window width/user pref
-            height: 500, // TODO base off of window width/user pref
             buttons: {
                 "Move": function () {
                     _g.currentPhase.nextPhase();
@@ -112,7 +112,7 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
     }
 
     function showBattle(conflict) {
-
+        console.warn("TODO Show battle dialog")
     }
 
     function initMap(drawMapFunction) {
@@ -134,6 +134,8 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         window.globals = _g;
     }
 
+
+    // Attaches mouse listeners to the canvas element
     function listenToMap(canvas, drawMapFunction) {
         var dragging = false;
 
@@ -146,9 +148,9 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
                 offset.x -= e.pageX - previousMouse.x;
                 offset.y -= e.pageY - previousMouse.y;
             }
-            var t = _h.territoryAtPoint(boardCoord.x, boardCoord.y);
+            var t = territoryAtPoint(boardCoord.x, boardCoord.y);
 
-            if (t && _h.territoryIsSelectable(t)) {
+            if (t && territoryIsSelectable(t)) {
                 canvas.style.cursor = "pointer";
             } else {
                 canvas.style.cursor = "auto";
@@ -167,11 +169,16 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
 
         $(canvas).mousedown(function onMapClick(e) {
             e.preventDefault();
+            // Don't do anything if dragging
+            if (e.shiftKey) {
+                dragging = true;
+                return;
+            }
             var boardCoord = boardCoordinates(e);
 
-            var t = _h.territoryAtPoint(boardCoord.x, boardCoord.y);
+            var t = territoryAtPoint(boardCoord.x, boardCoord.y);
 
-            if (t && _h.territoryIsSelectable(t)) {
+            if (t && territoryIsSelectable(t)) {
                 // pass to phase controller
                 if (_g.currentPhase && _g.currentPhase.onTerritorySelect) {
                     _g.currentPhase.onTerritorySelect(t);
@@ -179,9 +186,6 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
             } else {
                 if (_g.currentPhase && _g.currentPhase.clickNothing) {
                     _g.currentPhase.clickNothing();
-                }
-                if (e.shiftKey) {
-                    dragging = true;
                 }
             }
             previousMouse.x = e.pageX;
@@ -197,6 +201,7 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
             };
     }
 
+    // Keeps the offset within reasonable bounds
     function adjustOffset() {
         var singleBoardWidth = _g.board.mapImage.width/2;
         var canvas = document.getElementById("board");
@@ -227,12 +232,15 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         drawMap();
     }
 
+    // Draws the map image, and then any additional stuff on top
     function drawMap() {
         adjustOffset();
         var canvas = document.getElementById("board");
         canvas.width = canvas.width; // Force redraw
         var ctx = canvas.getContext("2d");
         ctx.drawImage(_g.board.mapImage, -offset.x, -offset.y);
+
+        // Draw a line from a territory to the mouse
         if (arrowOrigin) {
             var origin = {
                 x: arrowOrigin.x + arrowOrigin.width/2,
@@ -247,6 +255,10 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
             }
             drawLine(origin, end);
         }
+        selectableTerritories.forEach(function(t) {
+            drawRect(t.x, t.y, t.width, t.height);
+        });
+        ctx.stroke();
     }
 
     // begin and end just need x and y in board coordinates
@@ -273,6 +285,7 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         ctx.stroke();
     }
 
+    // Must call ctx.stroke() after all the calls to this function
     function drawRect(x, y, width, height) {
         x -= offset.x;
         y -= offset.y;
@@ -289,6 +302,33 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         ctx.rect(x, y, width, height);
     }
 
+    var selectableTerritories = [];
+    function setSelectableTerritories(territories) {
+        selectableTerritories = territories;
+        drawMap();
+    }
+
+    function territoryIsSelectable(t) {
+        return selectableTerritories.indexOf(t) !== -1;
+    }
+    function territoryAtPoint(x, y) {
+        var singleBoardWidth = _g.board.mapImage.width/2;
+        if (x > singleBoardWidth) {
+            x = x - singleBoardWidth;
+        }
+
+        var territoryList = _g.getBoard().territories;
+        for (var i=0; i<territoryList.length; i++) {
+            var t = territoryList[i];
+            if (t.x < x &&
+                t.y < y &&
+                t.x + t.width > x &&
+                t.y + t.height > y) {
+                return t;
+            }
+        }
+    }
+
     return {
         phaseName: phaseName,
         showBattle: showBattle,
@@ -301,6 +341,9 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         drawLine: drawLine,
         offset: offset,
         showArrowFrom: showArrowFrom,
-        hideArrow: hideArrow
+        hideArrow: hideArrow,
+        setSelectableTerritories: setSelectableTerritories,
+        territoryIsSelectable: territoryIsSelectable,
+        territoryAtPoint: territoryAtPoint
     }
 });
