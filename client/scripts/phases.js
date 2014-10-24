@@ -82,7 +82,7 @@ MovementPhase.prototype.showUnitSelectionWindow = function() {
     // Find the units currently in the origin territory that are ABLE to move to the destination territory
     // This can be improved by combining with the territoriesInRange check computed previously
     units.forEach(function(unit) {
-        if (_h.getPath(unit.originalTerritory, that.destination, unit).length < _h.unitInfo(unit.unitType).move) {
+        if (_h.getPath(unit.originalTerritory, that.destination, unit).length <= _h.unitInfo(unit.unitType).move) {
             able.push(unit);
         } else {
             unable.push(unit);
@@ -92,7 +92,7 @@ MovementPhase.prototype.showUnitSelectionWindow = function() {
     _r.showMoveWindow(able, unable, this.origin.name, this.destination.name);
 };
 
-// Move a set of units to the destination territory
+// Move a set of units to the destination territory. Triggered by the move window, when it's submitted
 MovementPhase.prototype.moveUnits = function(units) {
     var that = this;
     units.forEach(function(u) {
@@ -101,6 +101,7 @@ MovementPhase.prototype.moveUnits = function(units) {
     this.origin = null;
     this.destination = null;
     this.state = this.states.START;
+    _r.hideArrow();
     _r.setSelectableTerritories(_h.countryTerritories(_g.currentCountry));
 };
 

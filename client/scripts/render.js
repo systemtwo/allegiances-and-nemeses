@@ -80,28 +80,43 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         }
         disabledUnits = disabledUnits || []; // optional parameter
 
+        // Sort into buckets territory->enabled/disabled->unitType->amount
         var territoryDict = {};
-        enabledUnits.concat(disabledUnits).forEach(function(u) {
+        enabledUnits.forEach(function(u) {
             if (u.territory.name in territoryDict) {
-                territoryDict[u.territory.name].push(u);
+                var number = territoryDict[u.territory.name].enabled[u.unitType];
+                territoryDict[u.territory.name].enabled[u.unitType] = number ? number+1 : 1;
             } else {
-                territoryDict[u.territory.name] = [u];
+                var temp = {};
+                temp[u.unitType] = 1;
+                territoryDict[u.territory.name] = {enabled: temp};
             }
         });
-
-        var territoryList = Object.keys(territoryDict).map(function(key) {
-           return {
-               name: key,
-               units: territoryDict[key]
-           };
+        disabledUnits.forEach(function(u) {
+            if (u.territory.name in territoryDict) {
+                if (!territoryDict[u.territory.name].disabled) {
+                    territoryDict[u.territory.name].disabled = {};
+                }
+                var number = territoryDict[u.territory.name].disabled[u.unitType];
+                territoryDict[u.territory.name].disabled[u.unitType] = number ? number+1 : 1;
+            } else {
+                territoryDict[u.territory.name] = {disabled: {}};
+                territoryDict[u.territory.name].disabled[u.unitType] = 1;
+            }
         });
-        moveWindow = $(nj.render("static/templates/moveUnits.html", {territories: territoryList, origin: origin, destination: destination}));
+        moveWindow = $(nj.render("static/templates/moveUnits.html", {
+            territories: territoryDict,
+            origin: origin,
+            destination: destination,
+            columnWidth: Math.floor(12/Object.keys(territoryDict).length)
+        }));
         moveWindow.dialog({
             title: "Move Units",
             modal: false,
             buttons: {
                 "Move": function () {
-                    _g.currentPhase.nextPhase();
+                    var selectedUnits = []; // TODO
+                    _g.currentPhase.moveUnits(selectedUnits);
                     $(this).dialog("close");
                 },
                 "Cancel": function () {
@@ -226,7 +241,7 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         arrowOrigin = t;
         drawMap();
     }
-    function hideArrow(t) {
+    function hideArrow() {
         arrowOrigin = null;
         drawMap();
     }

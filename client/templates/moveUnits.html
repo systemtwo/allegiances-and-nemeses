@@ -1,19 +1,27 @@
 <div>
     <h5>From {{origin}} to {{destination}}</h5>
     <div class="territoryNames">
-        {% for t in territories %}
-        <div>{{t.name}}</div>
+        {% for name, units in territories %}
+        <div class="col-sm-{{columnWidth}}">{{name}}</div>
         {% endfor %}
     </div>
     <div class="unitSection row">
         <!-- Render columns -->
-        {% for t in territories %}
+        {% for name, units in territories %}
         <div class="units col-sm-{{columnWidth}}">
             <!-- Render  rows -->
-            {% for u in t.units %}
-             <span>
-                 {{ u.unitType }}
-             </span>
+            <h3>Enabled</h3>
+            {% for unitType, amount in units.enabled %}
+             <div>
+                 {{ unitType }}({{amount}})
+             </div>
+            {% endfor %}
+            <h3>Disabled</h3>
+            {{t.disabled}}
+            {% for unitType, amount in units.disabled %}
+             <div>
+                 {{ unitType }}({{amount}})
+             </div>
             {% endfor %}
         </div>
         {% endfor %}

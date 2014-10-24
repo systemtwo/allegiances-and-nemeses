@@ -21,17 +21,16 @@ define(["globals"], function(_g) {
             var current = frontier.shift();
             if (current.territory === destination) {
                 // Found it!
-                return current;
+                return current.path;
             }
             checkedNames[current.territory.name] = true;
-            if (current.path.length < unitInfo(unit.unitType).move) {
-                current.territory.connections.forEach(function(c) {
-                    if (!(c.name in checkedNames)) {
-                        frontier.push({territory: c, path: current.path.concat(current.territory)})
-                    }
-                })
-            }
+            current.territory.connections.forEach(function(c) {
+                if (!(c.name in checkedNames)) {
+                    frontier.push({territory: c, path: current.path.concat(current.territory)})
+                }
+            });
         }
+        // throw error, path not found?
     }
 
     // finds all territories in range of a set of units

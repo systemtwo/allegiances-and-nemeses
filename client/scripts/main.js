@@ -46,7 +46,14 @@ function (_g, board, _p, _c, _r) {
             _g.currentCountry.ipc = 100;
             _g.currentPhase = new _p.BuyPhase();
 
+
+            // ADD TEST UNITS
             _g.board.addUnit("fighter", "Russia", "ussr");
+            _g.board.addUnit("infantry", "Russia", "ussr");
+            _g.board.addUnit("tank", "Russia", "ussr");
+            _g.board.addUnit("tank", "Archangel", "ussr");
+            _g.board.addUnit("bomber", "Evenki", "ussr");
+            _g.board.addUnit("infantry", "Yakut", "ussr");
 
             connectionResponse[0].map(function(c) {
                 var first = null,
