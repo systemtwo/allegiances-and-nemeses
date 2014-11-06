@@ -2,6 +2,7 @@ server/game/.idea/*
 server/game/__pycache__/*
 client/.idea/*
 .idea/*
+ENV/*
 
 *~
 *.swp

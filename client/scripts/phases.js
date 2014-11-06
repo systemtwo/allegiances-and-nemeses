@@ -8,7 +8,7 @@ var BuyPhase = function() {
     return this;
 };
 
-    // Updates the amount of a certain unit to buy
+// Updates the amount of a certain unit to buy
 BuyPhase.prototype.buyUnits = function(unitType, amount) {
     var info = _h.unitInfo(unitType);
     _g.buyList[unitType] = {
@@ -135,7 +135,7 @@ ResolvePhase.prototype.retreat = function() {
     this.currentConflict.attackers.forEach(function(unit) {
         unit.territory = unit.originalTerritory;
     });
-    // Notify the server about retreat. Move logic to server.
+    // Notify the server about retreat. Move above logic to server. Only send request, then update game state from response.
 };
 
 ResolvePhase.prototype.battle = function() {
@@ -145,7 +145,7 @@ ResolvePhase.prototype.battle = function() {
 };
 
 // Another movement phase, with restrictions on movement.
-// Anyone who has moved cannot move again, and territories cannot be attacked
+// Anyone who has moved cannot move again (unless it's a plane), and territories cannot be attacked (can only move into friendly territories)
 
 var PlacementPhase = function() {
     this.states = {
@@ -156,7 +156,9 @@ var PlacementPhase = function() {
 
     this.toPlace = _g.buyList.slice(); // copy to work with
     this.state = this.states.SELECT_UNIT;
-    showPlacementWindow();
+    showPlacementWindow(); // TODO implement placement window and logic.
+    // Server validation per unit placement? So that others can view in realtime.
+    // Or send to server at end of phase
     return this;
 };
 
@@ -169,7 +171,9 @@ PlacementPhase.prototype.validUnitType = function(unitType) {
     return false;
 };
 
+    // Begin placing unit of unitType
 PlacementPhase.prototype.onUnitSelect = function(unitType) {
+    // Called by render.js, or other ui related file
     if (!this.validUnitType(unitType)) return false;
 
     var that = this;

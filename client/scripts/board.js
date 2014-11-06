@@ -1,13 +1,27 @@
 define(["components"], function(_c) {
-    var Board = function(image) {
+    var Board = function() {
         this.players = [];
         this.units = [];
         this.territories = [];
         this.countries = [];
-        this.mapImage = image;
+        this.mapImage = new Image();
+        this.wrapsHorizontally = false;
         return this;
     };
 
+    Board.prototype.setImage = function(srcImagePath, onloadFunction) {
+        this.mapImage = this.mapImage || new Image();
+        this.mapImage.src = srcImagePath;
+        this.mapImage.onload = onloadFunction;
+    };
+
+    Board.prototype.getMapWidth = function() {
+        if (this.wrapsHorizontally) {
+            return this.mapImage.width/2;
+        } else {
+            return this.mapImage.width
+        }
+    };
     Board.prototype.addUnit = function(unitType, territory, country) {
         if (typeof territory === "string") {
             for (var i=0; i < this.territories.length; i++) {

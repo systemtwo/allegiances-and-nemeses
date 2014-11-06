@@ -6,7 +6,8 @@
         "y":140,
         "width":82,
         "height":11,
-        "income":"2"
+        "income":"2",
+        "type":"land"
     },
     {
         "name":"Belorussia",
@@ -95,7 +96,8 @@
         "y":148,
         "width":61,
         "height":12,
-        "income":"2"
+        "income":"2",
+        "type":"land"
     },
     {
         "name":"Russia",
@@ -104,7 +106,8 @@
         "y":223,
         "width":41,
         "height":13,
-        "income":"8"
+        "income":"8",
+        "type":"land"
     },
     {
         "name":"Eastern Canada",
@@ -133,7 +136,8 @@
         "y":507,
         "width":59,
         "height":11,
-        "income":"4"
+        "income":"4",
+        "type":"land"
     },
     {
         "name":"Kazakh",
@@ -142,7 +146,8 @@
         "y":507,
         "width":85,
         "height":10,
-        "income":"2"
+        "income":"2",
+        "type":"land"
     },
     {
         "name":"Novosibirsk",
@@ -151,7 +156,8 @@
         "y":335,
         "width":67,
         "height":11,
-        "income":"2"
+        "income":"2",
+        "type":"land"
     },
     {
         "name":"Evenki",
@@ -160,7 +166,8 @@
         "y":131,
         "width":126,
         "height":13,
-        "income":"1"
+        "income":"1",
+        "type":"land"
     },
     {
         "name":"Yakut",
@@ -169,7 +176,8 @@
         "y":106,
         "width":75,
         "height":15,
-        "income":"1"
+        "income":"1",
+        "type":"land"
     },
     {
         "name":"Soviet Far East",
@@ -178,7 +186,8 @@
         "y":88,
         "width":87,
         "height":12,
-        "income":"1"
+        "income":"1",
+        "type":"land"
     },
     {
         "name":"Buryatia",
@@ -187,7 +196,8 @@
         "y":226,
         "width":91,
         "height":13,
-        "income":"1"
+        "income":"1",
+        "type":"land"
     },
     {
         "name":"Manchuria",

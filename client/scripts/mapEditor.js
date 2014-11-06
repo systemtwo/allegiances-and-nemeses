@@ -30,78 +30,96 @@ requirejs(["nunjucks", "globals", "render", "board", "helpers"], function(nj, _g
     };
 
     function initialize() {
-        var map = new Image();
-        map.src = "/static/css/images/defaultMap2.jpg";
-        map.onload = function() {
-            initBoard(map);
-            _r.showSkeleton(true);
+        var moduleSelect = $("#moduleSelect");
+        $.ajax("/modules", {
+            success: function(response) {
+               JSON.parse(response).map(function(m) {
+                   moduleSelect.append($("<option>" + m + "</option>"))
+               });
+            }
+        });
 
-            $("#createButton").click(function(){
-                _r.setSelectableTerritories([]);
-                currentMode = modes.CREATE;
-                setCurrentTerritory(null);
-                secondClick = false;
-            });
-            $("#connectButton").click(function(){
-                _r.setSelectableTerritories(territoryCatalogue);
-                currentMode = modes.CONNECT;
-                setCurrentTerritory(null);
-                connectionStart = null;
-                secondClick = false;
-            });
-            $("#browseButton").click(function(){
-                _r.setSelectableTerritories(territoryCatalogue);
-                currentMode = modes.BROWSE;
-                currentTerritory(null);
-                secondClick = false;
-            });
-            $("#territoryButton").click(function(){
-                showTerritoryList();
-                secondClick = false;
-            });
-            $("#printConnections").click(function(){
-                var textarea = $("<textarea>").val(getJSON().connections);
-                textarea.dialog({
-                    title: "Copy JSON",
-                    open: function(){ textarea.select(); },
-                    buttons: {
-                        "Close": function () {
-                            $(this).dialog("close");
-                        }
+        $("#moduleLoad").click(function() {
+            var moduleName = moduleSelect.val();
+            if (moduleName) {
+                initBoard(moduleName);
+            }
+        });
+        $("#createModule").click(function() {
+            $.ajax("/modules/create", {data: {
+                moduleName: prompt("Module Name")
+            }}).always(function() {
+//                window.location.reload();
+            })
+        });
+        _r.showSkeleton(true);
+
+        $("#createButton").click(function(){
+            _r.setSelectableTerritories([]);
+            currentMode = modes.CREATE;
+            setCurrentTerritory(null);
+            secondClick = false;
+        });
+        $("#connectButton").click(function(){
+            _r.setSelectableTerritories(territoryCatalogue);
+            currentMode = modes.CONNECT;
+            setCurrentTerritory(null);
+            connectionStart = null;
+            secondClick = false;
+        });
+        $("#browseButton").click(function(){
+            _r.setSelectableTerritories(territoryCatalogue);
+            currentMode = modes.BROWSE;
+            setCurrentTerritory(null);
+            secondClick = false;
+        });
+        $("#territoryButton").click(function(){
+            showTerritoryList();
+            secondClick = false;
+        });
+        $("#printConnections").click(function(){
+            var textarea = $("<textarea>").val(getJSON().connections);
+            textarea.dialog({
+                title: "Copy JSON",
+                open: function(){ textarea.select(); },
+                buttons: {
+                    "Close": function () {
+                        $(this).dialog("close");
                     }
-                });
+                }
             });
-            $("#printTerritories").click(function(){
-                var textarea = $("<textarea>").val(getJSON().territories);
-                textarea.dialog({
-                    title: "Copy JSON",
-                    open: function(){ textarea.select(); },
-                    buttons: {
-                        "Close": function () {
-                            $(this).dialog("close");
-                        }
+        });
+        $("#printTerritories").click(function(){
+            var textarea = $("<textarea>").val(getJSON().territories);
+            textarea.dialog({
+                title: "Copy JSON",
+                open: function(){ textarea.select(); },
+                buttons: {
+                    "Close": function () {
+                        $(this).dialog("close");
                     }
-                });
+                }
             });
-            $("#getJSONButton").click(function(){
-                console.log(getJSON());
-            });
-        };
+        });
+        $("#getJSONButton").click(function(){
+            console.log(getJSON());
+        });
     }
 
-    function initBoard(image) {
-        _g.board = new board.Board(image);
-        var tPromise = $.getJSON("/shared/TerritoryList.json");
-        var cPromise = $.getJSON("/shared/CountryList.json");
-        var connectionPromise = $.getJSON("/shared/connections.json");
+    function initBoard(moduleName) {
+        _g.board = new board.Board();
 
-        $.when(tPromise, cPromise, connectionPromise).done(function(territoryResponse, countryResponse, connectionResponse) {
-            _g.board.territories = territoryCatalogue = territoryResponse[0];
-            _g.board.countries = countryResponse[0];
+        $.getJSON("/modules/" + moduleName).done(function(moduleInfo) {
+            // NOTE - territories and countries are stored as plain objects for the map editor,
+            // and do NOT use the Territory and Country class
+            _g.board.wrapsHorizontally = moduleInfo.wrapsHorizontally;
+            _g.board.territories = territoryCatalogue = JSON.parse(moduleInfo.territories);
+            _g.board.countries = JSON.parse(moduleInfo.countries);
 
             _r.setSelectableTerritories(territoryCatalogue);
-            _g.connections = connectionResponse[0].map(function(c) {
-                var first, second = null;
+            _g.connections = JSON.parse(moduleInfo.connections).map(function(c) {
+                var first = null,
+                    second = null;
                 territoryCatalogue.forEach(function(t) {
                     if (t.name == c[0]){
                         first = t;
@@ -111,8 +129,11 @@ requirejs(["nunjucks", "globals", "render", "board", "helpers"], function(nj, _g
                 });
                 return [first, second];
             });
-            _r.initMap();
-            $("#board").mousedown(mapClick);
+
+            _g.board.setImage("/moduleFiles/" + moduleName +"/mapImage.jpg", function() {
+                _r.initMap();
+                $("#board").mousedown(mapClick);
+            });
         });
     }
 
@@ -194,7 +215,7 @@ requirejs(["nunjucks", "globals", "render", "board", "helpers"], function(nj, _g
             begin.y = end.y;
             end.y = tempY;
         }
-        var singleBoardWidth = _g.board.mapImage.width/2;
+        var singleBoardWidth = _g.board.getMapWidth();
         if (begin.x > singleBoardWidth) {
             begin.x -= singleBoardWidth;
             end.x -= singleBoardWidth;
@@ -217,13 +238,14 @@ requirejs(["nunjucks", "globals", "render", "board", "helpers"], function(nj, _g
 
         windowContents.find(".territoryRow").click(function() {
             var name = $(this).data("name");
-            var cache = undefined;
+            var matchingTerritory = undefined;
             territoryCatalogue.forEach(function(t) {
                 if (t.name == name) {
-                    cache = t;
+                    matchingTerritory = t;
                 }
             });
-            selectTerritory(cache);
+            selectTerritory(matchingTerritory);
+            _r.setSelectableTerritories(territoryCatalogue);
             windowContents.dialog("close");
         }).css("cursor", "pointer");
 

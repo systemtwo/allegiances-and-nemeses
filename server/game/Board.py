@@ -1,33 +1,58 @@
 import json
+from UniqueId import getUniqueId
 from Country import Country
 from Phases import BuyPhase
-from Territory import Territory
+from Territory import LandTerritory, SeaTerritory
 from Unit import UnitInfo
+import Util
 
 
 class Board:
-    def __init__(self, units, countries, unitFileName, territoryFileName):
+    def __init__(self, moduleName):
+        self.id = getUniqueId()
         self.players = []
-        self.units = units
-        self.countries = countries
-        for c in countries:
-            c.board = self
-        self.currentCountry = Country("Russia")
-        self.currentPhase = BuyPhase(self.currentCountry.ipc, self)
+        self.units = []
         self.attackMoveList = []
         self.buyList = []
+        self.moduleName = moduleName
 
-        with open(unitFileName) as unitInfo:
-            self.unitCatalog = json.load(unitInfo)
-        with open(territoryFileName) as territoryInfo:
+        # load json from module
+        with open(Util.filePath(moduleName, "info.json")) as file:
+            self.moduleInfo = json.load(file)
+
+        with open(Util.countryFileName(moduleName)) as countryInfo:
+            self.countries = [Country(c["name"], c["team"], self) for c in json.load(countryInfo)]
+
+        with open(Util.unitFileName(moduleName)) as unitInfo:
+            self.unitCatalogue = json.load(unitInfo)
+
+        with open(Util.territoryFileName(moduleName)) as territoryInfo:
             self.territoryInfo = json.load(territoryInfo)
+
         self.territories = []
         for info in self.territoryInfo:
-            print(info)
-            startingCountry = self.getStartingCountry(info)
-            self.territories.append(Territory(info["name"], info["income"], startingCountry))
+            if info["type"] == "land":
+                startingCountry = self.getStartingCountry(info)
+                self.territories.append(LandTerritory(info["name"], info["income"], startingCountry))
+            elif info["type"] == "sea":
+                self.territories.append(SeaTerritory(info["name"]))
+            else:
+                print("Territory info does not have valid type")
+                print(info)
+
+        with open(Util.connectionFileName(moduleName)) as connections:
+            self.connections = json.load(connections)
+            # add connections to territories
+
+        # begin
+        self.currentCountry = self.countries[0]
+        self.currentPhase = BuyPhase(self.currentCountry.ipc, self)
 
     def getStartingCountry(self, terInfo):
+        if "country" not in terInfo:
+            print("No country set for territory\n")
+            print(terInfo)
+            return
         for c in self.countries:
             if c.name == terInfo["country"]:
                 return c
@@ -35,6 +60,19 @@ class Board:
     def addPlayer(self):
         pass
 
+    def toJSON(self):
+        return json.dumps({
+            "countries": [c.toJSON() for c in self.countries],
+            "territoryInfo": self.territoryInfo,  # doesn't have CURRENT territory owners, only initial
+            "connections": self.connections,
+            "players": self.players,
+            "units": self.units,
+            "unitCatalogue": self.unitCatalogue,
+            "wrapsHorizontally": self.moduleInfo["wrapsHorizontally"],
+            "moduleName": self.moduleName
+        })
+
+    # Proceed to the next country's turn. This is different than advancing a phase (1/6th of a turn)
     def nextTurn(self):
         self.countries = []
         nextIndex = self.countries.index(self.currentCountry) + 1
@@ -65,7 +103,7 @@ class Board:
             if currentTerritory is goal:
                 return path + [currentTerritory]
 
-            if canMoveThrough(unit, currentTerritory):
+            if Util.canMoveThrough(unit, currentTerritory):
                 newPath = path[:]
                 newPath.append(currentTerritory)
                 for t in currentTerritory.connections:
@@ -76,38 +114,8 @@ class Board:
         return None
 
     def unitInfo(self, unitType):
-        if unitType not in self.unitCatalog:
+        if unitType not in self.unitCatalogue:
             return None
 
-        unit_dict = self.unitCatalog[unitType]
+        unit_dict = self.unitCatalogue[unitType]
         return UnitInfo(unit_dict)
-
-
-# Checks if a unit can move through a territory
-def canMoveThrough(unit, territory):
-    unitType = unit.type
-    if allied(territory.country, unit.country):
-        return True
-
-    if isFlying(unitType):
-        return True
-
-    if unitType == "sub":
-        # can move if no destroyers present
-        if territory.containsUnitType("destroyer") == 0:
-            return True
-
-    if unitType == "tank":
-        if len(territory.units()):
-            return True
-
-    return False
-
-
-def isFlying(unitType):
-    if unitType == "fighter" or unitType == "bomber":
-        return True
-
-
-def allied(a, b):
-    return a.team == b.team

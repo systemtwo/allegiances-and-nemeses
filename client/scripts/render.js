@@ -134,8 +134,8 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         var canvas = document.getElementById("board");
 
         function resizeBoard() {
-            canvas.width = Math.max(window.innerWidth*0.8, 400);
-            canvas.height = Math.max(window.innerHeight*0.8, 360);
+            canvas.width = Math.min(window.innerWidth*0.8, _g.board.getMapWidth());
+            canvas.height = Math.min(window.innerHeight*0.8, _g.board.mapImage.height);
             drawMap();
         }
 
@@ -217,14 +217,24 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
 
     // Keeps the offset within reasonable bounds
     function adjustOffset() {
-        var singleBoardWidth = _g.board.mapImage.width/2;
+        var singleBoardWidth = _g.board.getMapWidth();
         var canvas = document.getElementById("board");
-        if (offset.x < 0) {
-            console.log("less than");
-            offset.x += singleBoardWidth;
-        } else if (offset.x + canvas.width > 2*singleBoardWidth) {
-            console.log("x greater than");
-            offset.x -= singleBoardWidth;
+        if (_g.board.wrapsHorizontally) {
+            if (offset.x < 0) {
+                console.log("less than");
+                offset.x += singleBoardWidth;
+            } else if (offset.x + canvas.width > 2 * singleBoardWidth) {
+                console.log("x greater than");
+                offset.x -= singleBoardWidth;
+            }
+        }  else {
+            if (offset.x < 0) {
+                console.log("less than");
+                offset.x = 0;
+            } else if (offset.x + canvas.width > singleBoardWidth) {
+                console.log("x greater than");
+                offset.x = singleBoardWidth - canvas.width;
+            }
         }
         if (offset.y < 0) {
             offset.y = 0;
@@ -250,7 +260,6 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
     var showSkeleton;
     function setShowSkeleton(bool) {
         showSkeleton = bool;
-        drawMap();
     }
     function drawMap() {
         adjustOffset();
@@ -356,11 +365,13 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         centerX -= offset.x;
         centerY -= offset.y;
 
-        // Right side of circle past canvas left side
-        if (centerX + width/2 < 0) {
-            centerX += singleMapWidth;
-        } else if (centerX - width/2 > canvas.width) { // Left side past canvas right side
-            centerX -= singleMapWidth;
+        if (_g.board.wrapsHorizontally) {
+            // Right side of circle past canvas left side
+            if (centerX + width/2 < 0) {
+                centerX += singleMapWidth;
+            } else if (centerX - width/2 > canvas.width) { // Left side past canvas right side
+                centerX -= singleMapWidth;
+            }
         }
         ctx.save();
         ctx.scale(1, ratio); // Scale the height
@@ -384,9 +395,11 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         return selectableTerritories.indexOf(t) !== -1;
     }
     function territoryAtPoint(x, y) {
-        var singleBoardWidth = _g.board.mapImage.width/2;
-        if (x > singleBoardWidth) {
-            x = x - singleBoardWidth;
+        var singleBoardWidth = _g.board.getMapWidth();
+        if (_g.board.wrapsHorizontally) {
+            if (x > singleBoardWidth) {
+                x = x - singleBoardWidth;
+            }
         }
 
         var territoryList = _g.getBoard().territories;
