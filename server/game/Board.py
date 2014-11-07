@@ -61,14 +61,21 @@ class Board:
         pass
 
     def toJSON(self):
+        # TODO config variablize this when possible
+        imagePath = "/static/css/images/defaultMap.jpg"
+        if "imageName" in self.moduleInfo:
+            imagePath = "/shared/mods/" + self.moduleName + "/" + self.moduleInfo["imageName"]
         return json.dumps({
             "countries": [c.toJSON() for c in self.countries],
             "territoryInfo": self.territoryInfo,  # doesn't have CURRENT territory owners, only initial
             "connections": self.connections,
             "players": self.players,
             "units": self.units,
+
+            # Module info
             "unitCatalogue": self.unitCatalogue,
             "wrapsHorizontally": self.moduleInfo["wrapsHorizontally"],
+            "imagePath": imagePath,
             "moduleName": self.moduleName
         })
 

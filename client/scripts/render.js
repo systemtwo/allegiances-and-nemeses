@@ -221,26 +221,20 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         var canvas = document.getElementById("board");
         if (_g.board.wrapsHorizontally) {
             if (offset.x < 0) {
-                console.log("less than");
                 offset.x += singleBoardWidth;
             } else if (offset.x + canvas.width > 2 * singleBoardWidth) {
-                console.log("x greater than");
                 offset.x -= singleBoardWidth;
             }
         }  else {
             if (offset.x < 0) {
-                console.log("less than");
                 offset.x = 0;
             } else if (offset.x + canvas.width > singleBoardWidth) {
-                console.log("x greater than");
                 offset.x = singleBoardWidth - canvas.width;
             }
         }
         if (offset.y < 0) {
             offset.y = 0;
-            console.log("y less than");
         } else if (offset.y + canvas.height > _g.board.mapImage.height) {
-            console.log("y greater than");
             offset.y =  _g.board.mapImage.height - canvas.height;
         }
 

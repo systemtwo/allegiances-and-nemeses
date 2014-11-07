@@ -19,7 +19,7 @@ function (_g, board, _p, _c, _r) {
     $.getJSON("/boards/" + prompt("Board number (1 or 2)")).done(function(boardInfo) {
         _g.board.wrapsHorizontally = boardInfo.wrapsHorizontally;
         // TODO find a more elegant way of fetching the image for the module
-        _g.board.setImage("/moduleFiles/" + boardInfo.moduleName + "/mapImage.jpg", function onMapLoad() {
+        _g.board.setImage(boardInfo.imagePath, function onMapLoad() {
             _r.initMap();
         });
         _g.unitCatalogue = boardInfo.unitCatalogue;

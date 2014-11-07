@@ -130,7 +130,7 @@ requirejs(["nunjucks", "globals", "render", "board", "helpers"], function(nj, _g
                 return [first, second];
             });
 
-            _g.board.setImage("/moduleFiles/" + moduleName +"/mapImage.jpg", function() {
+            _g.board.setImage(moduleInfo.imagePath, function() {
                 _r.initMap();
                 $("#board").mousedown(mapClick);
             });

@@ -1,6 +1,6 @@
 import random
-import Board
 from Unit import Unit
+import Util
 
 
 """
@@ -66,7 +66,7 @@ class AttackPhase(BaseMovePhase):
     def nextPhase(self, board):
         conflicts = {}  # list of territories being attacked, and the attacking units
         for (unit, start, dest) in self.moveList:
-            if not Board.allied(dest.country, unit.country):
+            if not Util.allied(dest.country, unit.country):
                 if dest not in conflicts:
                     conflicts[dest] = [unit]
                 else:
@@ -186,6 +186,10 @@ class ResolvePhase:
                         break
         return BattleReport(attackers, defenders, deadA, deadD)
 
+    def retreat(self, conflictTerritory):
+        # send all attacking units back to the closest territory they came from
+        pass
+
     def nextPhase(self, board):
         if len(self.unresolvedConflicts) > 0:
             return None
@@ -206,7 +210,7 @@ class MovementPhase(BaseMovePhase):
     # can move units that haven't moved in the attack phase, or planes that need to land
     # can't move into enemy territories
     def canMove(self, unit, destination):
-        if not Board.allied(destination.country, unit.country):
+        if not Util.allied(destination.country, unit.country):
             return False
 
         if unit not in self.board.attackMoveList:

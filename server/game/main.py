@@ -4,22 +4,26 @@ from Territory import LandTerritory, SeaTerritory
 from Country import Country
 from Unit import Unit
 board = Board("default")
+board.units.append(Unit("infantry", board.countries[0], board.territories[0]))
 
-buy = BuyPhase(40, board)
-buy.buyUnit("infantry")
-buy.buyUnit("tank")
-buy.buyUnit("fighter")
-print(buy.buyList)
-buy.buyUnit("battleship")
-buy.buyUnit("factory")
-buy.buyUnit("bomber")
-print(buy.buyList)
-buy.cancel("infantry")
-print(buy.buyList)
-buy.cancel("fighter")
-print(buy.buyList)
-buy.cancel("tank")
-print(buy.buyList)
+buyPhase = BuyPhase(30, board)
+buyPhase.buyUnit("infantry")
+buyPhase.buyUnit("infantry")
+buyPhase.buyUnit("tank")
+buyPhase.buyUnit("fighter")
+# exceeds price limit
+buyPhase.buyUnit("battleship")
+buyPhase.buyUnit("factory")
+buyPhase.buyUnit("bomber")
+# cancel
+buyPhase.cancel("fighter")
+# factory is now affordable
+buyPhase.buyUnit("factory")
+buyPhase.cancel("infantry")
+# should be 1 infantry, 1 tank, 1 factory
+
+attackPhase = buyPhase.nextPhase(board)
+
 
 print(board.toJSON())
 print(board.id)

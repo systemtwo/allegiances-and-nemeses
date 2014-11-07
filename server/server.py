@@ -36,7 +36,7 @@ class MapEditorHandler(tornado.web.RequestHandler):
             with open(os.path.join(self.HTML_PATH, "mapEditor.html")) as f:
                 self.write(f.read())
         elif self.action == self.actions.MODULES:
-            moduleNames = os.listdir("server/game/mods/")
+            moduleNames = os.listdir("shared/mods/")
             self.write(json.dumps(moduleNames))
         elif self.action == self.actions.MODULE_INFO:
             returnObject = {}
@@ -56,12 +56,16 @@ class MapEditorHandler(tornado.web.RequestHandler):
             with open(game.Util.filePath(moduleName, "info.json")) as file:
                 info = json.load(file)
                 returnObject["wrapsHorizontally"] = info["wrapsHorizontally"]
+                if "imageName" in info:
+                    returnObject["imagePath"] = "/shared/mods/" + moduleName + "/" + info["imageName"]
+                else:
+                    returnObject["imagePath"] = "/static/css/images/defaultMap.jpg"  # convert to config var when convenient
 
             self.write(json.dumps(returnObject))
         elif self.action == self.actions.CREATE:
             moduleName = self.get_argument("moduleName")
-            if not os.path.exists("server/game/mods/" + moduleName):
-                os.makedirs("server/game/mods/" + moduleName)
+            if not os.path.exists("shared/mods/" + moduleName):
+                os.makedirs("shared/mods/" + moduleName)
                 with open(game.Util.countryFileName(moduleName), 'w') as f:
                     f.write("[]")
                 with open(game.Util.unitFileName(moduleName), 'w') as f:
@@ -70,6 +74,10 @@ class MapEditorHandler(tornado.web.RequestHandler):
                     f.write("[]")
                 with open(game.Util.connectionFileName(moduleName), 'w') as f:
                     f.write("[]")
+                with open(game.Util.filePath(moduleName, "info.json"), "w") as file:
+                    file.write(json.dumps({
+                        "wrapsHorizontally": False
+                    }))
 
 class BoardHandler(tornado.web.RequestHandler):
     def initialize(self):
@@ -142,7 +150,6 @@ class Server:
             (r"/boards/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID)), #Consider using named regex here
             (r"/shared/(.*)", utils.NoCacheStaticFileHandler, {"path": config.SHARED_CONTENT_PATH}),
             (r"/static/(.*)", utils.NoCacheStaticFileHandler, {"path": config.STATIC_CONTENT_PATH}), #This is not a great way of doing this TODO: Change this to be more intuative
-            (r"/moduleFiles/(.*)", utils.NoCacheStaticFileHandler, {"path": os.path.join("server/game/mods")}) # make entire module folder so image can be fetched
         ], debug=True)
 
         self.app.listen(8888)

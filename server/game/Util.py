@@ -15,7 +15,7 @@ def connectionFileName(moduleName):
 
 
 def filePath(moduleName, fileName):
-    return "server/game/mods/" + moduleName + "/" + fileName
+    return "shared/mods/" + moduleName + "/" + fileName
 
 
 def isFlying(unitType):
