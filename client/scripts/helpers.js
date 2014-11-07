@@ -4,9 +4,24 @@ define(["globals"], function(_g) {
         return _g.unitCatalogue[unitType];
     }
 
+    function territoryByName(name) {
+        var territories = _g.getBoard().territories
+        for (var i=0; i< territories.length; i++) {
+            if (territories[i].name === name) {
+                return territories[i];
+            }
+        }
+    }
+
     function countryTerritories(country) {
         return _g.getBoard().territories.filter(function(t) {
             return t.country == country;
+        });
+    }
+
+    function countryUnits(country) {
+        return _g.getBoard().units.filter(function(u) {
+            return u.country == country;
         });
     }
 
@@ -41,7 +56,7 @@ define(["globals"], function(_g) {
         units.forEach(function(unit) {
             var frontier = [
                 {
-                    territory: unit.originalTerritory,
+                    territory: unit.beginningOfPhaseTerritory,
                     distance: 0
                 }];
             var checkedNames = {};
@@ -68,7 +83,9 @@ define(["globals"], function(_g) {
 
 return {
     unitInfo: unitInfo,
+    territoryByName: territoryByName,
     countryTerritories: countryTerritories,
+    countryUnits: countryUnits,
     getPath: getPath,
     territoriesInRange: territoriesInRange
 }

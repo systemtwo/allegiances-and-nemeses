@@ -41,13 +41,29 @@ var MovementPhase = function() {
         DEST: "selectMoveDest",
         SELECT_UNITS: "selectUnits"
     };
-    _r.setSelectableTerritories(_h.countryTerritories(_g.currentCountry));
+    _h.countryUnits(_g.currentCountry).forEach(function(u) {
+        u.beginningOfPhaseTerritory = u.territory;
+        u.beginningOfTurnTerritory = u.territory;
+    });
+    setTerritoriesWithUnitsSelectable();
     this.state = this.states.START;
     this.selectedUnits = [];
     this.origin = null;
     this.destination = null;
     return this;
 };
+function setTerritoriesWithUnitsSelectable(){
+    //unique list of all the territories the current country has units in
+    var territories = [];
+    var territoryNames = {};
+    _h.countryUnits(_g.currentCountry).forEach(function(u) {
+        if (!(u.territory.name in territoryNames)) {
+            territoryNames[u.territory.name] = true;
+            territories.push(u.territory)
+        }
+    });
+    _r.setSelectableTerritories(territories);
+}
 
 MovementPhase.prototype.onTerritorySelect = function(territory) {
     if (this.state == this.states.START) {
@@ -82,7 +98,10 @@ MovementPhase.prototype.showUnitSelectionWindow = function() {
     // Find the units currently in the origin territory that are ABLE to move to the destination territory
     // This can be improved by combining with the territoriesInRange check computed previously
     units.forEach(function(unit) {
-        if (_h.getPath(unit.originalTerritory, that.destination, unit).length <= _h.unitInfo(unit.unitType).move) {
+        var distanceToCurrent = _h.getPath(unit.beginningOfPhaseTerritory, unit.beginningOfTurnTerritory, unit).length;
+        var distanceToDest = _h.getPath(unit.beginningOfPhaseTerritory, that.destination, unit).length;
+        console.log(distanceToCurrent, distanceToDest);
+        if (distanceToCurrent + distanceToDest <= _h.unitInfo(unit.unitType).move) {
             able.push(unit);
         } else {
             unable.push(unit);
@@ -93,27 +112,35 @@ MovementPhase.prototype.showUnitSelectionWindow = function() {
 };
 
 // Move a set of units to the destination territory. Triggered by the move window, when it's submitted
-MovementPhase.prototype.moveUnits = function(units) {
+// Given a list of unitType, territory, and amount
+MovementPhase.prototype.moveUnits = function(moveList) {
     var that = this;
-    units.forEach(function(u) {
-        u.territory = that.destination;
+    moveList.forEach(function(info) {
+        var amount = info.amount;
+        var t = _h.territoryByName(info.currentTerritory);
+        t.units().forEach(function(u) {
+            if (amount > 0 && u.unitType === info.unitType) {
+                amount -= 1;
+                u.territory = that.destination;
+            }
+        });
     });
     this.origin = null;
     this.destination = null;
     this.state = this.states.START;
     _r.hideArrow();
-    _r.setSelectableTerritories(_h.countryTerritories(_g.currentCountry));
+    setTerritoriesWithUnitsSelectable();
 };
 
-    MovementPhase.prototype.clickNothing = function() {
-        this.state = this.states.START;
-        _r.setSelectableTerritories(_h.countryTerritories(_g.currentCountry));
-        _r.hideArrow();
-    };
+MovementPhase.prototype.clickNothing = function() {
+    this.state = this.states.START;
+    setTerritoriesWithUnitsSelectable();
+    _r.hideArrow();
+};
 
-    MovementPhase.prototype.nextPhase = function() {
-        console.warn("MOVEMENT NEXT PHASE - TODO")
-    };
+MovementPhase.prototype.nextPhase = function() {
+    console.warn("MOVEMENT NEXT PHASE - TODO")
+};
 
 // Resolve all attacks made during the movement phase
 var ResolvePhase = function() {
@@ -133,7 +160,7 @@ ResolvePhase.prototype.showConflicts = function() {
 
 ResolvePhase.prototype.retreat = function() {
     this.currentConflict.attackers.forEach(function(unit) {
-        unit.territory = unit.originalTerritory;
+        // Perhaps use AaA rules - can retreat all units to one neighbouring territory
     });
     // Notify the server about retreat. Move above logic to server. Only send request, then update game state from response.
 };

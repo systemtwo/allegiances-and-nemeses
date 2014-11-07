@@ -110,12 +110,33 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
             destination: destination,
             columnWidth: Math.floor(12/Object.keys(territoryDict).length)
         }));
+        // attach listeners to enabled units
+        moveWindow.find(".unitRow").mousedown(function onUnitClick(e) {
+            e.preventDefault();
+            var row = $(e.currentTarget);
+            var amountElement = row.find(".selectedAmount");
+            console.assert(!isNaN(parseInt(amountElement.text())), "Amount selected is NaN");
+            var newVal = (parseInt(amountElement.text()) || 0) + 1; // increment by one
+            if (newVal > parseInt(row.data("max"))) {
+                newVal = 0; // cycle back to 0
+            }
+            amountElement.text(newVal);
+        });
+
         moveWindow.dialog({
             title: "Move Units",
             modal: false,
             buttons: {
                 "Move": function () {
                     var selectedUnits = []; // TODO send actual selected unit list
+                    moveWindow.find(".unitRow").each(function() {
+                        var row = $(this)
+                        selectedUnits.push({
+                            unitType: row.data("type"),
+                            currentTerritory: row.data("territory").toString(),
+                            amount: parseInt(row.find(".selectedAmount").text())
+                        })
+                    });
                     _g.currentPhase.moveUnits(selectedUnits);
                     $(this).dialog("close");
                 },
@@ -152,6 +173,7 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
     // Attaches mouse listeners to the canvas element
     function listenToMap(canvas) {
         var dragging = false;
+        var blockContextMenu = false; // flag to block menu ONCE
 
         $(canvas).mousemove(function (e) {
             e.preventDefault();
@@ -181,8 +203,11 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
             dragging = false;
         });
 
-        $(canvas).on("contextmenu", function(e) {
-            e.preventDefault();
+        $(document).on("contextmenu", function(e) {
+            if (blockContextMenu) {
+                e.preventDefault();
+                blockContextMenu = false;
+            }
         });
 
         $(canvas).mousedown(function onMapClick(e) {
@@ -190,6 +215,7 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
             // Don't do anything if dragging
             if (e.button == "2") {
                 dragging = true;
+                blockContextMenu = true;
 
                 previousMouse.x = e.pageX;
                 previousMouse.y = e.pageY;

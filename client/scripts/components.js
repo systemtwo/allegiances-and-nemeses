@@ -4,8 +4,6 @@ define(["globals"], function(_g) {
         this.unitType = unitType;
         this.country = country;
         this.territory = territory;
-        // Territory they started from at the beginning of the turn
-        this.originalTerritory = territory;
     };
 
 
