@@ -42,7 +42,20 @@ class Board:
 
         with open(Util.connectionFileName(moduleName)) as connections:
             self.connections = json.load(connections)
-            # add connections to territories
+            for c in self.connections:
+                first = None
+                second = None
+                for t in self.territories:
+                    if t.name == c[0]:
+                        first = t
+                    elif t.name == c[1]:
+                        second = t
+                if first and second:
+                    first.connections.append(second)
+                    second.connections.append(first)
+                else:
+                    raise Exception("Could not find territories for connection: " + json.dumps(c))
+
 
         # begin
         self.currentCountry = self.countries[0]
@@ -66,7 +79,7 @@ class Board:
             "territoryInfo": self.territoryInfo,  # doesn't have CURRENT territory owners, only initial
             "connections": self.connections,
             "players": self.players,
-            "units": self.units,
+            "units": [u.toJSON() for u in self.units],
 
             # Module info
             "unitCatalogue": self.unitCatalogue,

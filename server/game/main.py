@@ -1,10 +1,15 @@
+import json
 from Board import Board
 from Phases import BuyPhase
 from Territory import LandTerritory, SeaTerritory
 from Country import Country
 from Unit import Unit
+
 board = Board("default")
-board.units.append(Unit("infantry", board.countries[0], board.territories[0]))
+russian_territories = [x for x in board.territories if hasattr(x, "country") and x.country.name == "ussr"]
+assert board.countries[0].name == "ussr"
+infantry = Unit("infantry", board.countries[0], russian_territories[0])
+board.units.append(infantry)
 
 buyPhase = BuyPhase(30, board)
 buyPhase.buyUnit("infantry")
@@ -23,7 +28,8 @@ buyPhase.cancel("infantry")
 # should be 1 infantry, 1 tank, 1 factory
 
 attackPhase = buyPhase.nextPhase(board)
-
-
-print(board.toJSON())
-print(board.id)
+assert attackPhase.move(infantry, infantry.territory.connections[0])
+assert attackPhase.move(infantry, infantry.territory.connections[1])
+assert len(attackPhase.moveList) == 1
+assert attackPhase.moveList[infantry][0] == infantry.territory
+assert attackPhase.moveList[infantry][1] == infantry.territory.connections[1]
