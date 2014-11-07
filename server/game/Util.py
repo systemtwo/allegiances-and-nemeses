@@ -1,3 +1,6 @@
+import os
+import config
+
 def unitFileName(moduleName):
     return filePath(moduleName, "UnitList.json")
 
@@ -15,7 +18,7 @@ def connectionFileName(moduleName):
 
 
 def filePath(moduleName, fileName):
-    return "shared/mods/" + moduleName + "/" + fileName  # find a way to use config for this
+    return os.path.join(config.ABS_MODS_PATH, moduleName, fileName)
 
 
 def isFlying(unitType):

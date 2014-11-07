@@ -1,3 +1,6 @@
+import json
+
+
 class Unit:
     def __init__(self, unitType, country, territory):
         self.type = unitType
@@ -10,6 +13,13 @@ class Unit:
 
     def isLand(self):
         return self.type != "fighter" and self.type != "bomber"
+
+    def toJSON(self):
+        return json.dumps({
+            "type": self.type,
+            "territory": self.territory.name,
+            "country": self.country.name
+        })
 
 
 class UnitInfo:

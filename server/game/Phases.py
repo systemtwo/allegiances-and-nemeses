@@ -50,14 +50,17 @@ class BuyPhase:
 class BaseMovePhase:
     def __init__(self, board):
         self.board = board
-        self.moveList = []
+        self.moveList = {}
 
     def move(self, unit, destination):
         if self.canMove(unit, destination):
-            self.moveList.append((unit, unit.territory, destination))
+            self.moveList[unit] = (unit.territory, destination)
+            return True
+        else:
+            return False
 
     def canMove(self, unit, destination):
-        return self.board.getPath(unit.territory, destination, unit) <= self.board.unitInfo(unit.type).movement
+        return len(self.board.getPath(unit.territory, destination, unit)) <= self.board.unitInfo(unit.type).movement + 1
 
 
 # Units are added to a moveList, but unit.territory does not get modified if they are attacking a territory.
