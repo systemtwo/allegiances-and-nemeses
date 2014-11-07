@@ -115,7 +115,7 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
             modal: false,
             buttons: {
                 "Move": function () {
-                    var selectedUnits = []; // TODO
+                    var selectedUnits = []; // TODO send actual selected unit list
                     _g.currentPhase.moveUnits(selectedUnits);
                     $(this).dialog("close");
                 },
@@ -181,12 +181,19 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
             dragging = false;
         });
 
+        $(canvas).on("contextmenu", function(e) {
+            e.preventDefault();
+        });
+
         $(canvas).mousedown(function onMapClick(e) {
             e.preventDefault();
             // Don't do anything if dragging
-            if (e.shiftKey) {
+            if (e.button == "2") {
                 dragging = true;
-                return;
+
+                previousMouse.x = e.pageX;
+                previousMouse.y = e.pageY;
+                return false;
             }
             var boardCoord = boardCoordinates(e);
 

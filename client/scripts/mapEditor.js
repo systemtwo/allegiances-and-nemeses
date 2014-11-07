@@ -140,7 +140,7 @@ requirejs(["nunjucks", "globals", "render", "board", "helpers"], function(nj, _g
     var secondClick = false, firstClick = {}, connectionStart = null;
     // Override the click handler on the canvas element with this function, when in map editor mode
     function mapClick(e) {
-        if (e.shiftKey) {
+        if (e.button == "2") {
             return; // DO NOTHING
         }
         var canvas = document.getElementById("board");
