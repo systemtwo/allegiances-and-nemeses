@@ -60,12 +60,8 @@ class Board:
     def addPlayer(self):
         pass
 
-    def toJSON(self):
-        # TODO config variablize this when possible
-        imagePath = "/static/css/images/defaultMap.jpg"
-        if "imageName" in self.moduleInfo:
-            imagePath = "/shared/mods/" + self.moduleName + "/" + self.moduleInfo["imageName"]
-        return json.dumps({
+    def toDict(self):
+        return {
             "countries": [c.toJSON() for c in self.countries],
             "territoryInfo": self.territoryInfo,  # doesn't have CURRENT territory owners, only initial
             "connections": self.connections,
@@ -75,9 +71,9 @@ class Board:
             # Module info
             "unitCatalogue": self.unitCatalogue,
             "wrapsHorizontally": self.moduleInfo["wrapsHorizontally"],
-            "imagePath": imagePath,
+            "imageName": self.moduleInfo["imageName"],
             "moduleName": self.moduleName
-        })
+        }
 
     # Proceed to the next country's turn. This is different than advancing a phase (1/6th of a turn)
     def nextTurn(self):

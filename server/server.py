@@ -26,9 +26,10 @@ class IndexHandler(tornado.web.RequestHandler):
 class MapEditorHandler(tornado.web.RequestHandler):
     actions = utils.Enum(["PAGE", "MODULES", "MODULE_INFO", "CREATE"])
 
-    def initialize(self, action, html_path=""):
+    def initialize(self, action, config, html_path=""):
         self.HTML_PATH = html_path
         self.action = action
+        self.config = config
 
     def get(self, **params):
         if self.action == self.actions.PAGE:
@@ -36,7 +37,7 @@ class MapEditorHandler(tornado.web.RequestHandler):
             with open(os.path.join(self.HTML_PATH, "mapEditor.html")) as f:
                 self.write(f.read())
         elif self.action == self.actions.MODULES:
-            moduleNames = os.listdir("shared/mods/")
+            moduleNames = os.listdir(self.config.MODS_PATH)
             self.write(json.dumps(moduleNames))
         elif self.action == self.actions.MODULE_INFO:
             returnObject = {}
@@ -57,15 +58,15 @@ class MapEditorHandler(tornado.web.RequestHandler):
                 info = json.load(file)
                 returnObject["wrapsHorizontally"] = info["wrapsHorizontally"]
                 if "imageName" in info:
-                    returnObject["imagePath"] = "/shared/mods/" + moduleName + "/" + info["imageName"]
+                    returnObject["imagePath"] = os.path.join(self.config.MODS_PATH, moduleName, info["imageName"])
                 else:
-                    returnObject["imagePath"] = "/static/css/images/defaultMap.jpg"  # convert to config var when convenient
+                    returnObject["imagePath"] = self.config.DEFAULT_IMAGE_PATH  # convert to config var when convenient
 
             self.write(json.dumps(returnObject))
         elif self.action == self.actions.CREATE:
             moduleName = self.get_argument("moduleName")
-            if not os.path.exists("shared/mods/" + moduleName):
-                os.makedirs("shared/mods/" + moduleName)
+            if not os.path.exists(os.path.join(self.config.MODS_PATH, moduleName)):
+                os.makedirs(os.path.join(self.config.MODS_PATH, moduleName))
                 with open(game.Util.countryFileName(moduleName), 'w') as f:
                     f.write("[]")
                 with open(game.Util.unitFileName(moduleName), 'w') as f:
@@ -114,7 +115,9 @@ class BoardsHandler(tornado.web.RequestHandler):
             #Return info about board with id boardId
             board = self.getBoard(params["boardId"])
             # Return the board info as json
-            self.write(board.toJSON())
+            boardInfo = board.toDict()
+            boardInfo["imagePath"] = os.path.join(self.config.MODS_PATH, boardInfo["moduleName"], boardInfo["imageName"])
+            self.write(json.dumps(boardInfo))
 
     def post(self, **params):
         if self.action == self.actions.ID:
@@ -141,10 +144,10 @@ class Server:
         html_path = os.path.join(config.STATIC_CONTENT_PATH, "html")
         self.app = tornado.web.Application([
             (r"/", IndexHandler, dict(html_path=html_path)),
-            (r"/mapEditor", MapEditorHandler, dict(action=MapEditorHandler.actions.PAGE, html_path=html_path)),
-            (r"/modules", MapEditorHandler, dict(action=MapEditorHandler.actions.MODULES)),
-            (r"/modules/create/?", MapEditorHandler, dict(action=MapEditorHandler.actions.CREATE)),
-            (r"/modules/(?P<moduleName>[A-z]+)", MapEditorHandler, dict(action=MapEditorHandler.actions.MODULE_INFO)),
+            (r"/mapEditor", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.PAGE, html_path=html_path)),
+            (r"/modules", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.MODULES)),
+            (r"/modules/create/?", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.CREATE)),
+            (r"/modules/(?P<moduleName>[A-z]+)", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.MODULE_INFO)),
             (r"/boards/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ALL)),
             (r"/boards/new/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.NEW)),
             (r"/boards/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID)), #Consider using named regex here
