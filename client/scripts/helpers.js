@@ -57,7 +57,7 @@ define(["globals"], function(_g) {
             var frontier = [
                 {
                     territory: unit.beginningOfPhaseTerritory,
-                    distance: 0
+                    distance: getPath(unit.beginningOfTurnTerritory, unit.beginningOfPhaseTerritory, unit).length
                 }];
             var checkedNames = {};
             while(frontier.length) {

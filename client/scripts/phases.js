@@ -1,245 +1,266 @@
 define(["globals", "helpers", "render"], function(_g, _h, _r) {
 
-var BuyPhase = function() {
-    _r.phaseName("Purchase Units");
-    _g.buyList = {};
-    _r.showRecruitmentWindow(this);
-//    _r.showTerritoryList();
-    return this;
-};
-
-// Updates the amount of a certain unit to buy
-BuyPhase.prototype.buyUnits = function(unitType, amount) {
-    var info = _h.unitInfo(unitType);
-    _g.buyList[unitType] = {
-        unitType: unitType,
-        cost: info.cost,
-        amount: amount
+    var BuyPhase = function() {
+        _r.phaseName("Purchase Units");
+        _g.buyList = {};
+        _r.showRecruitmentWindow(this);
+        _h.countryUnits(_g.currentCountry).forEach(function(u) {
+            u.beginningOfTurnTerritory = u.territory;
+        });
+    //    _r.showTerritoryList();
+        return this;
     };
-    // Notify server
-};
 
-BuyPhase.prototype.money = function() {
-    return Object.keys(_g.buyList).reduce(function(total, key) {
-        var data = _g.buyList[key];
-        return total + data.cost*data.amount
-    }, 0);
-};
-
-BuyPhase.prototype.nextPhase = function() {
-    _g.currentPhase = new MovementPhase(_g.board);
-    return _g.currentPhase
-};
-
-
-// Move units into enemy (or friendly) territories
-// User selects start, then selects destination, then selects which units to send
-var MovementPhase = function() {
-    _r.phaseName("Combat Move");
-    this.states = {
-        START: "selectMoveStart",
-        DEST: "selectMoveDest",
-        SELECT_UNITS: "selectUnits"
+    // Updates the amount of a certain unit to buy
+    BuyPhase.prototype.buyUnits = function(unitType, amount) {
+        var info = _h.unitInfo(unitType);
+        _g.buyList[unitType] = {
+            unitType: unitType,
+            cost: info.cost,
+            amount: amount
+        };
+        // Notify server
     };
-    _h.countryUnits(_g.currentCountry).forEach(function(u) {
-        u.beginningOfPhaseTerritory = u.territory;
-        u.beginningOfTurnTerritory = u.territory;
-    });
-    setTerritoriesWithUnitsSelectable();
-    this.state = this.states.START;
-    this.selectedUnits = [];
-    this.origin = null;
-    this.destination = null;
-    return this;
-};
-function setTerritoriesWithUnitsSelectable(){
-    //unique list of all the territories the current country has units in
-    var territories = [];
-    var territoryNames = {};
-    _h.countryUnits(_g.currentCountry).forEach(function(u) {
-        if (!(u.territory.name in territoryNames)) {
-            territoryNames[u.territory.name] = true;
-            territories.push(u.territory)
-        }
-    });
-    _r.setSelectableTerritories(territories);
-}
 
-MovementPhase.prototype.onTerritorySelect = function(territory) {
-    if (this.state == this.states.START) {
-        this.state = this.states.DEST;
-        this.origin = territory;
-        var controlledUnits = territory.countryUnits(_g.currentCountry);
-        // Make selectable any territory that a unit currently in the clicked territory can move to
-        _r.setSelectableTerritories(_h.territoriesInRange(controlledUnits, _g.currentCountry));
+    BuyPhase.prototype.money = function() {
+        return Object.keys(_g.buyList).reduce(function(total, key) {
+            var data = _g.buyList[key];
+            return total + data.cost*data.amount
+        }, 0);
+    };
 
-        _r.showArrowFrom(territory);
+    BuyPhase.prototype.nextPhase = function() {
+        _g.currentPhase = new AttackMovePhase();
+    };
 
-    } else if (this.state == this.states.DEST) {
-        this.destination = territory;
-        this.showUnitSelectionWindow();
-        this.state = this.states.SELECT_UNITS;
-    } else if (this.state == this.states.SELECT_UNITS) {
-        // clicked a new territory anyway instead of selecting units
-        // Treat as a cancel and reselect destination
-        if (this.origin) {
+
+    // Move units into enemy (or friendly) territories
+    // User selects start, then selects destination, then selects which units to send
+    var AttackMovePhase = function() {
+        _r.phaseName("Combat Move");
+        this.states = {
+            START: "selectMoveStart",
+            DEST: "selectMoveDest",
+            SELECT_UNITS: "selectUnits"
+        };
+        _h.countryUnits(_g.currentCountry).forEach(function(u) {
+            u.beginningOfPhaseTerritory = u.territory;
+        });
+        this.setSelectableOriginTerritories();
+        this.state = this.states.START;
+        this.selectedUnits = [];
+        this.origin = null;
+        this.destination = null;
+        return this;
+    };
+
+    AttackMovePhase.prototype.filterMovable = function() {
+        return true; // Every unit belonging to a country is movable
+    };
+
+    AttackMovePhase.prototype.setSelectableOriginTerritories = function() {
+        _r.setTerritoriesWithUnitsSelectable(_h.countryUnits(_g.currentCountry).filter(this.filterMovable));
+    };
+
+    AttackMovePhase.prototype.setSelectableDestinationTerritories = function(originTerritory) {
+            var controlledUnits = originTerritory.countryUnits(_g.currentCountry).filter(this.filterMovable);
+            // Make selectable any territory that a unit currently in the clicked territory can move to
+            _r.setSelectableTerritories(_h.territoriesInRange(controlledUnits, _g.currentCountry));
+    };
+
+    AttackMovePhase.prototype.onTerritorySelect = function(territory) {
+        if (this.state == this.states.START) {
+            this.state = this.states.DEST;
+            this.origin = territory;
+            this.setSelectableDestinationTerritories(territory);
+
+            _r.showArrowFrom(territory);
+
+        } else if (this.state == this.states.DEST) {
             this.destination = territory;
-            // Open a new window
             this.showUnitSelectionWindow();
+            this.state = this.states.SELECT_UNITS;
+        } else if (this.state == this.states.SELECT_UNITS) {
+            // clicked a new territory anyway instead of selecting units
+            // Treat as a cancel and reselect destination
+            if (this.origin) {
+                this.destination = territory;
+                // Open a new window
+                this.showUnitSelectionWindow();
+            }
         }
-    }
-};
+    };
 
-MovementPhase.prototype.showUnitSelectionWindow = function() {
-    var that = this;
-    var units = this.origin.units();
-    var able = [];
-    var unable = [];
-    // Find the units currently in the origin territory that are ABLE to move to the destination territory
-    // This can be improved by combining with the territoriesInRange check computed previously
-    units.forEach(function(unit) {
-        var distanceToCurrent = _h.getPath(unit.beginningOfPhaseTerritory, unit.beginningOfTurnTerritory, unit).length;
-        var distanceToDest = _h.getPath(unit.beginningOfPhaseTerritory, that.destination, unit).length;
-        console.log(distanceToCurrent, distanceToDest);
-        if (distanceToCurrent + distanceToDest <= _h.unitInfo(unit.unitType).move) {
-            able.push(unit);
-        } else {
-            unable.push(unit);
-        }
-    });
-
-    _r.showMoveWindow(able, unable, this.origin.name, this.destination.name);
-};
-
-// Move a set of units to the destination territory. Triggered by the move window, when it's submitted
-// Given a list of unitType, territory, and amount
-MovementPhase.prototype.moveUnits = function(moveList) {
-    var that = this;
-    moveList.forEach(function(info) {
-        var amount = info.amount;
-        var t = _h.territoryByName(info.currentTerritory);
-        t.units().forEach(function(u) {
-            if (amount > 0 && u.unitType === info.unitType) {
-                amount -= 1;
-                u.territory = that.destination;
+    AttackMovePhase.prototype.showUnitSelectionWindow = function() {
+        var that = this;
+        var units = this.origin.units().filter(this.filterMovable);
+        var able = [];
+        var unable = [];
+        // Find the units currently in the origin territory that are ABLE to move to the destination territory
+        // This can be improved by combining with the territoriesInRange check computed previously
+        units.forEach(function(unit) {
+            var distanceToCurrent = _h.getPath(unit.beginningOfPhaseTerritory, unit.beginningOfTurnTerritory, unit).length;
+            var distanceToDest = _h.getPath(unit.beginningOfPhaseTerritory, that.destination, unit).length;
+            console.log(distanceToCurrent, distanceToDest);
+            if (distanceToCurrent + distanceToDest <= _h.unitInfo(unit.unitType).move) {
+                able.push(unit);
+            } else {
+                unable.push(unit);
             }
         });
-    });
-    this.origin = null;
-    this.destination = null;
-    this.state = this.states.START;
-    _r.hideArrow();
-    setTerritoriesWithUnitsSelectable();
-};
 
-MovementPhase.prototype.clickNothing = function() {
-    this.state = this.states.START;
-    setTerritoriesWithUnitsSelectable();
-    _r.hideArrow();
-};
-
-MovementPhase.prototype.nextPhase = function() {
-    console.warn("MOVEMENT NEXT PHASE - TODO")
-};
-
-// Resolve all attacks made during the movement phase
-var ResolvePhase = function() {
-    _r.phaseName("Resolve Conflicts");
-    this.conflicts = this.getConflicts();
-    this.showConflicts();
-    this.currentConflict = null;
-};
-
-ResolvePhase.prototype.getConflicts = function() {
-    // Fetch from server
-};
-
-ResolvePhase.prototype.showConflicts = function() {
-    // render a window
-};
-
-ResolvePhase.prototype.retreat = function() {
-    this.currentConflict.attackers.forEach(function(unit) {
-        // Perhaps use AaA rules - can retreat all units to one neighbouring territory
-    });
-    // Notify the server about retreat. Move above logic to server. Only send request, then update game state from response.
-};
-
-ResolvePhase.prototype.battle = function() {
-    // send battle request to server
-    // Get result
-    // Update conflict with matching territory
-};
-
-// Another movement phase, with restrictions on movement.
-// Anyone who has moved cannot move again (unless it's a plane), and territories cannot be attacked (can only move into friendly territories)
-
-var PlacementPhase = function() {
-    this.states = {
-        SELECT_UNIT: "selectUnit",
-        SELECT_TERRITORY: "selectTerritory"
+        _r.showMoveWindow(able, unable, this.origin.name, this.destination.name);
     };
-    this.placed = [];
 
-    this.toPlace = _g.buyList.slice(); // copy to work with
-    this.state = this.states.SELECT_UNIT;
-    showPlacementWindow(); // TODO implement placement window and logic.
-    // Server validation per unit placement? So that others can view in realtime.
-    // Or send to server at end of phase
-    return this;
-};
+    // Move a set of units to the destination territory. Triggered by the move window, when it's submitted
+    // Given a list of unitType, territory, and amount
+    AttackMovePhase.prototype.moveUnits = function(moveList) {
+        var that = this;
+        moveList.forEach(function(info) {
+            var amount = info.amount;
+            var t = _h.territoryByName(info.currentTerritory);
+            t.units().forEach(function(u) {
+                if (amount > 0 && u.unitType === info.unitType) {
+                    amount -= 1;
+                    u.territory = that.destination;
+                }
+            });
+        });
+        this.origin = null;
+        this.destination = null;
+        this.state = this.states.START;
+        _r.hideArrow();
+        this.setSelectableOriginTerritories();
+    };
 
-PlacementPhase.prototype.validUnitType = function(unitType) {
-    for(var i=0; i<this.toPlace.length; i++) {
-        if (this.toPlace[i] == unitType) {
-            return true;
+    AttackMovePhase.prototype.clickNothing = function() {
+        this.state = this.states.START;
+        this.setSelectableOriginTerritories();
+        _r.hideArrow();
+    };
+
+    AttackMovePhase.prototype.nextPhase = function() {
+        console.warn("MOVEMENT NEXT PHASE - TODO");
+
+        // temp (should actually send request to server, then proceed)
+        _g.currentPhase = ResolvePhase();
+    };
+
+    // Resolve all attacks made during the movement phase
+    var ResolvePhase = function() {
+        _r.phaseName("Resolve Conflicts");
+        this.conflicts = this.getConflicts();
+        this.showConflicts();
+        this.currentConflict = null;
+    };
+
+    ResolvePhase.prototype.getConflicts = function() {
+        // Fetch from server
+
+        // temp for testing
+        return [{
+            territory: _h.territoryByName("Russia")
+        }]
+    };
+
+    ResolvePhase.prototype.showConflicts = function() {
+        // render a window
+    };
+
+    ResolvePhase.prototype.retreat = function() {
+        // Notify the server about retreat. Only send request, then update game state from response.
+    };
+
+    ResolvePhase.prototype.battle = function() {
+        // send battle request to server
+        // Get result
+        // Update conflict with matching territory
+    };
+
+    ResolvePhase.prototype.autoresolve = function(territory) {
+        // Battle to the death in a conflict territory
+        // send request to server
+        // Get result
+        // Show summary of all battle reports
+    };
+
+    // Another movement phase, with restrictions on movement.
+    // Anyone who has moved cannot move again (unless it's a plane), and territories cannot be attacked (can only move into friendly territories)
+    var NeutralMovePhase = function() {
+        AttackMovePhase.call(this);
+    };
+    NeutralMovePhase.prototype = Object.create(AttackMovePhase.prototype);
+    NeutralMovePhase.prototype.filterMovable = function(unit) {
+        return unit.isFlying() || unit.hasNotMoved()
+    };
+    NeutralMovePhase.prototype.constructor = NeutralMovePhase;
+
+    var PlacementPhase = function() {
+        this.states = {
+            SELECT_UNIT: "selectUnit",
+            SELECT_TERRITORY: "selectTerritory"
+        };
+        this.placed = [];
+
+        this.toPlace = _g.buyList.slice(); // copy to work with
+        this.state = this.states.SELECT_UNIT;
+        showPlacementWindow(); // TODO implement placement window and logic.
+        // Server validation per unit placement? So that others can view in realtime.
+        // Or send to server at end of phase
+        return this;
+    };
+
+    PlacementPhase.prototype.validUnitType = function(unitType) {
+        for(var i=0; i<this.toPlace.length; i++) {
+            if (this.toPlace[i] == unitType) {
+                return true;
+            }
         }
+        return false;
+    };
+
+        // Begin placing unit of unitType
+    PlacementPhase.prototype.onUnitSelect = function(unitType) {
+        // Called by render.js, or other ui related file
+        if (!this.validUnitType(unitType)) return false;
+
+        var that = this;
+        this.state = this.states.SELECT_TERRITORY;
+        // Find all territories with:
+        // a) A factory (or if placing a factory, doesn't have a factory)
+        // b) Controlled since beginning of turn
+        // c) Units placed < income of territory
+        // d) Units placed < factory limit [optional, expansion only]
+        var validTerritories = _h.countryTerritories(_g.currentCountry).filter(function(t) {
+            var hasFactory = t.hasFactory();
+            // ugly XOR
+            return ((unitType == "factory" && !hasFactory ||
+                unitType != "factory" && hasFactory) &&
+                (t.previousOwner != _g.currentCountry) &&
+                (that.placed.length < t.income))
+        });
+
+        _r.setSelectableTerritories(validTerritories);
+        this.placingType = unitType;
+    };
+
+    PlacementPhase.prototype.cancelCurrentPlacement = function() {
+        this.placingType = null;
+        this.state = this.states.SELECT_UNIT;
+        _r.setSelectableTerritories([]);
+    };
+
+    PlacementPhase.prototype.onTerritorySelect = function(territory) {
+        _g.board.addUnit(this.placingType, territory, _g.currentCountry);
+        this.placed.push(this.placingType);
+        // push to server? or wait for end of phase?
+    };
+
+    return {
+        BuyPhase: BuyPhase,
+        MovementPhase: AttackMovePhase,
+        ResolvePhase: ResolvePhase,
+        PlacementPhase: PlacementPhase
     }
-    return false;
-};
-
-    // Begin placing unit of unitType
-PlacementPhase.prototype.onUnitSelect = function(unitType) {
-    // Called by render.js, or other ui related file
-    if (!this.validUnitType(unitType)) return false;
-
-    var that = this;
-    this.state = this.states.SELECT_TERRITORY;
-    // Find all territories with:
-    // a) A factory (or if placing a factory, doesn't have a factory)
-    // b) Controlled since beginning of turn
-    // c) Units placed < income of territory
-    // d) Units placed < factory limit [optional, expansion only]
-    var validTerritories = _h.countryTerritories(_g.currentCountry).filter(function(t) {
-        var hasFactory = t.hasFactory();
-        // ugly XOR
-        return ((unitType == "factory" && !hasFactory ||
-            unitType != "factory" && hasFactory) &&
-            (t.previousOwner != _g.currentCountry) &&
-            (that.placed.length < t.income))
-    });
-
-    _r.setSelectableTerritories(validTerritories);
-    this.placingType = unitType;
-};
-
-PlacementPhase.prototype.cancelCurrentPlacement = function() {
-    this.placingType = null;
-    this.state = this.states.SELECT_UNIT;
-    _r.setSelectableTerritories([]);
-};
-
-PlacementPhase.prototype.onTerritorySelect = function(territory) {
-    _g.board.addUnit(this.placingType, territory, _g.currentCountry);
-    this.placed.push(this.placingType);
-    // push to server? or wait for end of phase?
-};
-
-return {
-    BuyPhase: BuyPhase,
-    MovementPhase: MovementPhase,
-    ResolvePhase: ResolvePhase,
-    PlacementPhase: PlacementPhase
-}
 
 });

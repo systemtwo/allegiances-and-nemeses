@@ -417,6 +417,18 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         selectableTerritories = territories;
         drawMap();
     }
+    function setTerritoriesWithUnitsSelectable(units) {
+        //unique list of all the territories the current country has units in
+        var territories = [];
+        var territoryNames = {};
+        units.forEach(function(u) {
+            if (!(u.territory.name in territoryNames)) {
+                territoryNames[u.territory.name] = true;
+                territories.push(u.territory)
+            }
+        });
+        setSelectableTerritories(territories);
+    }
 
     function territoryIsSelectable(t) {
         return selectableTerritories.indexOf(t) !== -1;
@@ -456,6 +468,7 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         hideArrow: hideArrow,
         showSkeleton: setShowSkeleton,
         setSelectableTerritories: setSelectableTerritories,
+        setTerritoriesWithUnitsSelectable: setTerritoriesWithUnitsSelectable,
         territoryIsSelectable: territoryIsSelectable,
         territoryAtPoint: territoryAtPoint
     }

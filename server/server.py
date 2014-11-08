@@ -56,15 +56,12 @@ class BoardsHandler(tornado.web.RequestHandler):
             #settings = json.loads(self.request.body)
 
             #TODO: Configure map (module), number of players here
-			
 
             #Create and add the board to the working list of boards
-            BoardsHandler.boards[BoardsHandler.nextBoardId] = game.Board("default")
-            #Prepare the next boardId to use
-            BoardsHandler.nextBoardId += 1
-			
+            newBoard = game.Board("default")
+            BoardsHandler.boards[newBoard.id] = newBoard
             #Tell the client the id of the newly created board
-            self.write(json.dumps({"boardId": len(self.boards) - 1}))
+            self.write(json.dumps({"boardId": newBoard.id}))
         elif self.action == self.actions.ID:
             #Return info about board with id boardId
 
@@ -79,10 +76,9 @@ class BoardsHandler(tornado.web.RequestHandler):
             boardInfo["imagePath"] = os.path.join(self.config.MODS_PATH, boardInfo["moduleName"], boardInfo["imageName"])
             self.write(json.dumps(boardInfo))
 
-
     def post(self, **params):
         if self.action == self.actions.ID:
-            if getBoard(params["boardId"]): #Make sure this is a valid board
+            if self.getBoard(params["boardId"]): #Make sure this is a valid board
                 #Make sure there is a body
                 if len(req.body) == 0:
                     self.set_status(400)
@@ -96,13 +92,11 @@ class BoardsHandler(tornado.web.RequestHandler):
                     return
 
                 req = json.loads(req.body)
-				
 
         else:
             self.set_status(405)
             self.write("Method Not Allowed")
         return
-
 
     def getBoard(self, boardId):
         #We use ints for the id, so we force the boardId to be an int
