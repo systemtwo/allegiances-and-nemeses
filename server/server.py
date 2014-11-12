@@ -10,8 +10,8 @@ import utils
 
 
 import random
-
-
+import BoardCollection
+from ActionHandler import ActionHandler
 
 
 class IndexHandler(tornado.web.RequestHandler):
@@ -38,8 +38,6 @@ class BoardHandler(tornado.web.RequestHandler):
 class BoardsHandler(tornado.web.RequestHandler):
     #TODO: Consider spliting this class to handle the different scenarios
     actions = utils.Enum(["ALL", "NEW", "ID"])
-    boards = {} #We use a map here so we can easily delete boards
-    nextBoardId = 0
 
     def initialize(self, config, action):
         self.config = config
@@ -59,13 +57,13 @@ class BoardsHandler(tornado.web.RequestHandler):
 
             #Create and add the board to the working list of boards
             newBoard = game.Board("default")
-            BoardsHandler.boards[newBoard.id] = newBoard
+            BoardCollection.addBoard(newBoard)
             #Tell the client the id of the newly created board
             self.write(json.dumps({"boardId": newBoard.id}))
         elif self.action == self.actions.ID:
             #Return info about board with id boardId
 
-            board = self.getBoard(params["boardId"])
+            board = BoardCollection.getBoard(params["boardId"])
             if not board:
                 self.set_status(404)
                 self.write("Board not found")
@@ -78,7 +76,7 @@ class BoardsHandler(tornado.web.RequestHandler):
 
     def post(self, **params):
         if self.action == self.actions.ID:
-            if self.getBoard(params["boardId"]): #Make sure this is a valid board
+            if BoardCollection.getBoard(params["boardId"]): #Make sure this is a valid board
                 #Make sure there is a body
                 if len(req.body) == 0:
                     self.set_status(400)
@@ -98,13 +96,6 @@ class BoardsHandler(tornado.web.RequestHandler):
             self.write("Method Not Allowed")
         return
 
-    def getBoard(self, boardId):
-        #We use ints for the id, so we force the boardId to be an int
-        normalizedBoardId = int(boardId)
-        if normalizedBoardId in BoardsHandler.boards:
-            return BoardsHandler.boards[normalizedBoardId]
-        return None
-
 
 
 
@@ -114,18 +105,19 @@ class Server:
         self.app = tornado.web.Application([
             (r"/", IndexHandler, dict(html_path=html_path)),
 
-			#Map editor (Consider moving into a sub-list in MapEditorHandler)
+            #Map editor (Consider moving into a sub-list in MapEditorHandler)
             (r"/mapEditor", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.PAGE, html_path=html_path)),
             (r"/modules", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.MODULES)),
             (r"/modules/create/?", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.CREATE)),
             (r"/modules/(?P<moduleName>[A-z]+)", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.MODULE_INFO)),
 
-			#Board control
+            #Board control
             (r"/boards/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ALL)),
             (r"/boards/new/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.NEW)),
             (r"/boards/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID)), #Consider using named regex here
+            (r"/boards/(?P<boardId>[0-9]+)/action/?", ActionHandler),
 
-			#Static files
+            #Static files
             (r"/shared/(.*)", utils.NoCacheStaticFileHandler, {"path": config.SHARED_CONTENT_PATH}),
             (r"/static/(.*)", utils.NoCacheStaticFileHandler, {"path": config.STATIC_CONTENT_PATH}), #This is not a great way of doing this TODO: Change this to be more intuative
         ], debug=True)

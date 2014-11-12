@@ -66,9 +66,9 @@ define(["globals"], function(_g) {
         this.territory = territory;
     };
 
-    var Country = function(name, team) {
+    var Country = function(name, team, ipc) {
         this.name = name;
-        this.ipc = 0;
+        this.ipc = ipc;
         this.team = team;
         return this;
     };

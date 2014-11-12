@@ -12,12 +12,12 @@ requirejs.config({
 });
 
 // Start the main app logic.
-requirejs(["globals", 'board', "phases", "components", "render"],
-function (_g, board, _p, _c, _r) {
+requirejs(["globals", 'board', "phases", "components", "render", "router"],
+function (_g, board, _p, _c, _r, _router) {
     _g.board = new board.Board();
 
     var boardId = "1";
-    $.getJSON("/boards/" + boardId).done(function(boardInfo) {
+    _router.fetchBoard(boardId, function(boardInfo) {
         _g.board.wrapsHorizontally = boardInfo.wrapsHorizontally;
         console.time("Map Load");
         _g.board.setImage(boardInfo.imagePath, function onMapLoad() {
@@ -28,7 +28,7 @@ function (_g, board, _p, _c, _r) {
 
         _g.board.countries = boardInfo.countries.map(function(c) {
             var countryInfo = JSON.parse(c);
-            return new _c.Country(countryInfo.name, countryInfo.team)
+            return new _c.Country(countryInfo.name, countryInfo.team, countryInfo.ipc)
         });
 
         console.table(_g.board.countries);
@@ -44,8 +44,6 @@ function (_g, board, _p, _c, _r) {
         });
 
         _g.currentCountry = _g.board.countries[0];
-        _g.currentCountry.ipc = 100;
-
 
         // ADD TEST UNITS
         _g.board.addUnit("fighter", "Russia", "ussr");
@@ -54,7 +52,10 @@ function (_g, board, _p, _c, _r) {
         _g.board.addUnit("tank", "Archangel", "ussr");
         _g.board.addUnit("bomber", "Evenki", "ussr");
         _g.board.addUnit("infantry", "Yakut", "ussr");
-        _g.currentPhase = new _p.MovementPhase();
+
+        // current phase is the class name of the phase
+        var phaseClass = _p[boardInfo.currentPhase];
+        _g.currentPhase = new phaseClass();
 
         boardInfo.connections.map(function(c) {
             var first = null,

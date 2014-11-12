@@ -17,17 +17,36 @@ Neutral Move -> Planes must land, units that haven't moved can move to friendly 
 Placement -> Place the units bought at the beginning of the turn
 Collect Income -> Collect income from all the territories owned (including conquered territories)
 """
+
+
 class BuyPhase:
     def __init__(self, ipc, board):
         # List[(unitType, cost)]
         self.buyList = []
         self.moneyCap = ipc
         self.board = board
+        self.name = "BuyPhase"
 
     def buyUnit(self, unitType):
         info = self.board.unitInfo(unitType)
         if self.money() + info.cost <= self.moneyCap:
             self.buyList.append((unitType, info.cost))
+
+    def setBuyList(self, buyList):
+        sumCost = 0
+        unitList = []
+        # buyList is of type [{unitType: String, amount: int}]
+        for buyInfo in buyList:
+            unitInfo = self.board.unitInfo(buyInfo["unitType"])
+            sumCost += buyInfo["amount"] * unitInfo.cost
+            for _ in range(buyInfo["amount"]):
+                unitList.append((buyInfo["unitType"], unitInfo.cost))
+
+        if sumCost <= self.moneyCap:
+            self.buyList = unitList
+            return True
+        else:
+            return False
 
     def cancel(self, unitType):
         for x in self.buyList:
@@ -41,7 +60,8 @@ class BuyPhase:
             total += cost
         return total
 
-    def nextPhase(self, board):
+    def nextPhase(self):
+        board = self.board
         board.buyList = [unitType for (unitType, cost) in self.buyList]
         board.currentPhase = AttackPhase(board)
         return board.currentPhase
@@ -66,6 +86,10 @@ class BaseMovePhase:
 # Units are added to a moveList, but unit.territory does not get modified if they are attacking a territory.
 # when they win, unit.territory is updated, and unit.previousTerritory is set
 class AttackPhase(BaseMovePhase):
+    def __init__(self, board):
+        super().__init__(board)
+        self.name = "AttackPhase"
+
     def nextPhase(self, board):
         conflicts = {}  # list of territories being attacked, and the attacking units
         for (unit, start, dest) in self.moveList:
@@ -90,6 +114,7 @@ class ResolvePhase:
         self.unresolvedConflicts = conflicts
         self.resolvedConflicts = []
         self.board = board
+        self.name = "ResolvePhase"
 
     # attacks until either defenders or attackers are all dead
     def autoResolve(self, territory):
@@ -146,13 +171,13 @@ class ResolvePhase:
         # Calculate hits. Chance for a hit is attack/6 for attackers, defence/6 for defenders
         for u in attackers:
             info = self.board.unitInfo(u.type)
-            sumAttackers += 1.0/info.attack
+            sumAttackers += 1.0 / info.attack
             if random.randint(1, 6) <= info.attack:
                 defendingCasualties += 1
 
         for u in defenders:
             info = self.board.unitInfo(u.type)
-            sumDefenders += 1.0/info.defence
+            sumDefenders += 1.0 / info.defence
             if random.randint(1, 6) <= info.defence:
                 attackingCasualties += 1
 
@@ -165,11 +190,11 @@ class ResolvePhase:
         while defendingCasualties > 0:
             defendingCasualties -= 1
             runningTotal = 0
-            rand = random.random()*sumDefenders
+            rand = random.random() * sumDefenders
             for d in defenders:
                 defence = self.board.unitInfo(d).defence
                 if defence > 0:
-                    runningTotal += 1.0/defence
+                    runningTotal += 1.0 / defence
                     if runningTotal >= rand:
                         deadD.append(d)
                         defenders.remove(d)
@@ -178,11 +203,11 @@ class ResolvePhase:
         while attackingCasualties > 0:
             attackingCasualties -= 1
             runningTotal = 0
-            rand = random.random()*sumAttackers
+            rand = random.random() * sumAttackers
             for a in attackers:
                 attack = self.board.unitInfo(a).attack
                 if attack > 0:
-                    runningTotal += 1.0/attack
+                    runningTotal += 1.0 / attack
                     if runningTotal >= rand:
                         deadA.append(a)
                         attackers.remove(a)
@@ -210,6 +235,10 @@ class BattleReport:
 
 
 class MovementPhase(BaseMovePhase):
+    def __init__(self, board):
+        super().__init__(board)
+        self.name = "MovementPhase"
+
     # can move units that haven't moved in the attack phase, or planes that need to land
     # can't move into enemy territories
     def canMove(self, unit, destination):
@@ -233,6 +262,7 @@ class PlacementPhase:
     def __init__(self, units):
         self.unitList = units
         self.placeList = []
+        self.name = "PlacementPhase"
 
     def place(self, unitType, territory, board):
         if unitType in self.unitList and territory.hasFactory():

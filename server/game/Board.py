@@ -56,7 +56,6 @@ class Board:
                 else:
                     raise Exception("Could not find territories for connection: " + json.dumps(c))
 
-
         # begin
         self.currentCountry = self.countries[0]
         self.currentPhase = BuyPhase(self.currentCountry.ipc, self)
@@ -80,6 +79,7 @@ class Board:
             "connections": self.connections,
             "players": self.players,
             "units": [u.toJSON() for u in self.units],
+            "currentPhase": self.currentPhase.name,
 
             # Module info
             "unitCatalogue": self.unitCatalogue,
