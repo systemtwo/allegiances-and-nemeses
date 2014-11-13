@@ -7,8 +7,9 @@ import os.path
 import json
 
 import game
-from MapEditorHandler import MapEditorHandler
 import utils
+from MapEditorHandler import MapEditorHandler
+import BoardsManager
 
 
 import random
@@ -23,32 +24,6 @@ class IndexHandler(tornado.web.RequestHandler):
     def get(self):
         with open(os.path.join(self.HTML_PATH, "index.html")) as f:
             self.write(f.read())
-
-
-"""A class to manage game boards"""
-class BoardsManager():
-    def __init__(self):
-        self.boards = {}
-        self.lastId = 0
-    
-    def getBoard(self, boardId):
-        if boardId in self.boards:
-            return self.boards[boardId]
-        else:
-            return None
-
-    def newBoard(self, module):
-        self.lastId += 1
-        self.boards[self.lastId] = game.Board(module)
-        return self.lastId
-
-    def listBoards(self):
-        #Have this return a more lightweight representation instead, like board 
-        #title and ids
-        return self.boards
-
-    
-
 
 
 class BoardsHandler(tornado.web.RequestHandler):
@@ -176,7 +151,7 @@ class Server:
     def __init__(self, config):
         html_path = os.path.join(config.STATIC_CONTENT_PATH, "html")
 
-        self.boardsManager = BoardsManager()
+        self.boardsManager = BoardsManager.BoardsManager()
 
         self.app = tornado.web.Application([
             (r"/", IndexHandler, dict(html_path=html_path)),
