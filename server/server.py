@@ -1,6 +1,8 @@
 import tornado.ioloop
 import tornado.web
 
+from voluptuous import Schema, Required, All, Range
+
 import os.path
 import json
 
@@ -71,19 +73,6 @@ class BoardsHandler(tornado.web.RequestHandler):
             self.write(json.dumps(boardsList))
             return
 
-        elif self.action == self.actions.NEW:
-            #Make a new board
-
-            #Grab settings from request
-            #settings = json.loads(self.request.body)
-
-            #TODO: Configure map (module), number of players here
-			
-            #Create and add the board to the working list of boards
-            createdId = self.boardsManager.newBoard("default")
-			
-            #Tell the client the id of the newly created board
-            self.write(json.dumps({"boardId": createdId}))
 
         elif self.action == self.actions.ID:
             #Return info about board with id boardId
@@ -101,14 +90,55 @@ class BoardsHandler(tornado.web.RequestHandler):
 
 
     def post(self, **params):
+        #TODO: Add validation with voluptuous here!
         if self.action == self.actions.ID:
-            if getBoard(int(params["boardId"])): #Make sure this is a valid board
-                if not validMoveRequest(req.body):
+            if self.boardsManager.getBoard(int(params["boardId"])): #Make sure this is a valid board
+                try:
+                    schema = Schema({
+                        Required("action"): unicode
+                    })
+
+                    
+                    schema(json.loads(self.request.body))
+
+                except:
                     self.set_status(400) #400 Bad Request
                     return
-                    
-                req = json.loads(req.body)
+
+
+                print req
+
 				
+        elif self.action == self.actions.NEW:
+            #Make a new board
+
+            #Validate settings from request
+            try:
+                schema = Schema({
+                    Required("module", default="default"): unicode,
+                    Required("players", default=2): All(int, Range(min=2, max=5))
+                })
+
+                print json.loads(self.request.body)
+                settings = schema(json.loads(self.request.body))
+
+            except:
+                self.set_status(400) #400 Bad Request
+                return
+
+            
+			
+
+            #Create and add the board to the working list of boards
+            createdId = self.boardsManager.newBoard(settings["module"])
+
+            #TODO: Configure map (module), number of players here
+            for i in xrange(settings["players"]):
+                self.boardsManager.getBoard(createdId).addPlayer()
+
+			
+            #Tell the client the id of the newly created board
+            self.write(json.dumps({"boardId": createdId}))
 
         else:
             self.set_status(405)
