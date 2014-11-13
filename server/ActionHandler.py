@@ -32,36 +32,36 @@ class ActionHandler(tornado.web.RequestHandler):
 
         if "nextPhase" == action:
             # TODO improve error handling
-            self.assertPhase(requestData.currentPhase, board)
+            self.assertPhase(requestData["currentPhase"], board)
             board.currentPhase.nextPhase()
 
         elif "buy" == action:
             # buy units, with validation
             self.assertPhase("BuyPhase", board)
-            if board.currentPhase.setBuyList(requestData.boughtUnits):
+            if board.currentPhase.setBuyList(requestData["boughtUnits"]):
                 board.currentPhase.nextPhase()
             self.write(json.dumps({"success": success}))
 
         elif "selectConflict" == action:
             self.assertPhase("ResolvePhase", board)
-            territory = board.territoryByName(requestData.territory)
+            territory = board.territoryByName(requestData["territory"])
             board.currentPhase.selectConflict(territory)
             
         elif "battleTick" == action:
             self.assertPhase("ResolvePhase", board)
-            territory = board.territoryByName(requestData.territory)
+            territory = board.territoryByName(requestData["territory"])
             assert(territory == board.currentPhase.currentConflict)
 
         elif "retreat" == action:
             self.assertPhase("ResolvePhase", board)
-            fromTerritory = board.territoryByName(requestData.from)
-            toTerritory = board.territoryByName(requestData.to)
+            fromTerritory = board.territoryByName(requestData["from"])
+            toTerritory = board.territoryByName(requestData["to"])
             assert(fromTerritory == board.currentPhase.currentConflict)
             board.currentPhase.retreat(fromTerritory, toTerritory)
 
         elif "autoResolve" == action:
             self.assertPhase("ResolvePhase", board)
-            territory = board.territoryByName(requestData.territory)
+            territory = board.territoryByName(requestData["territory"])
             board.currentPhase.autoResolve(territory)
 
         elif "autoResolveAll" == action:
@@ -70,7 +70,7 @@ class ActionHandler(tornado.web.RequestHandler):
 
         elif "placeUnit" == action:
             self.assertPhase("PlacementPhase", board)
-            board.currentPhase.place(requestData.unitType, requestData.territory)
+            board.currentPhase.place(requestData["unitType"], requestData["territory"])
 
         elif "getEventLog" == action:
             pass # TODO
