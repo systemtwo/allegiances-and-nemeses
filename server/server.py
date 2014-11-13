@@ -110,32 +110,6 @@ class BoardsHandler(BaseAuthHandler):
         return
 
 
-    """Checks to see if a move request body is valid"""
-    def validMoveRequest(self, body):
-        #We check to see if the body is validJSON
-        if len(req.body) == 0:
-            return False
-
-        try:
-            json.loads(body)
-        except ValueError:
-            return False
-
-        return True
-
-
-
-    """Get the board with a specific id"""
-    def getBoard(self, boardId):
-        #We use ints for the id, so we force the boardId to be an int
-        normalizedBoardId = int(boardId)
-        if normalizedBoardId in BoardsHandler.boards:
-            return BoardsHandler.boards[normalizedBoardId]
-        return None
-
-
-
-
 class Server:
     def __init__(self, config):
         html_path = os.path.join(config.STATIC_CONTENT_PATH, "html")
