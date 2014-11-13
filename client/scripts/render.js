@@ -1,4 +1,4 @@
-define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
+define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _router) {
     // Distance from edge of board top left to the top left corner of camera
     var offset = {
         x: 0,
@@ -19,13 +19,20 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         windowContents.dialog({
             title: "Boards",
             buttons: {
+                "New Board": function() {
+                    _router.newBoard().done(function(response) {
+                        response = JSON.parse(response);
+                        // Add it to the list
+                        // Important update this when updating boardList.html
+                        windowContents.find("#boardSelect").append($('<option>').val(response.boardId).text(response.name))
+                    });
+                },
                 "Load": function() {
                     var boardId = windowContents.find("#boardSelect").val();
                     onSelect(boardId, function closeBoardList() {
-                            windowContents.close();
+                            windowContents.dialog("close");
                         }
                     );
-
                 }
             }
         })

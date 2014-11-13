@@ -87,7 +87,7 @@ class BaseMovePhase:
 # when they win, unit.territory is updated, and unit.previousTerritory is set
 class AttackPhase(BaseMovePhase):
     def __init__(self, board):
-        super().__init__(board)
+        BaseMovePhase.__init__(self, board)  # dirty super
         self.name = "AttackPhase"
 
     def nextPhase(self):
@@ -255,7 +255,7 @@ class BattleReport:
 
 class MovementPhase(BaseMovePhase):
     def __init__(self, board):
-        super().__init__(board)
+        BaseMovePhase.__init__(self, board)  # dirty super
         self.name = "MovementPhase"
 
     # can move units that haven't moved in the attack phase, or planes that need to land

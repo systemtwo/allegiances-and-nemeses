@@ -7,24 +7,25 @@ import json
 
 
 class ActionHandler(tornado.web.RequestHandler):
-    def __init__(self):
+    def initialize(self, boardsManager):
         self.boardsManager = boardsManager
 
-    def get(self, **params):
-        if not (self.boardsManager.getBoard(int(params["boardId"]))):
+    def post(self, **params):
+        board = self.boardsManager.getBoard(int(params["boardId"]))
+        if not board:
             self.send_error(404)
             return
 
-        try:
-            schema = Schema({
-                Required("action"): unicode,
-            })
+        # try:
+        schema = Schema({
+            Required("action"): unicode,
+        }, extra=True)
 
-            requestData = schema(json.loads(self.request.body))
+        requestData = schema(json.loads(self.request.body))
 
-        except:
-            self.send_error(400)
-            return 
+        # except:
+        #     self.send_error(400)
+        #     return
 
         #We are safe to do this, because we return in the except call (thereby eliminating the 
         #case where requestData is not set
@@ -38,7 +39,8 @@ class ActionHandler(tornado.web.RequestHandler):
         elif "buy" == action:
             # buy units, with validation
             self.assertPhase("BuyPhase", board)
-            if board.currentPhase.setBuyList(requestData["boughtUnits"]):
+            success = board.currentPhase.setBuyList(requestData["boughtUnits"])
+            if success:
                 board.currentPhase.nextPhase()
             self.write(json.dumps({"success": success}))
 

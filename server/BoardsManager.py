@@ -13,13 +13,12 @@ class BoardsManager():
         else:
             return None
 
-    def newBoard(self, module):
+    def newBoard(self, boardName, module):
         self.lastId += 1
-        self.boards[self.lastId] = game.Board(module)
+        self.boards[self.lastId] = game.Board(boardName, module)
         return self.lastId
 
     def listBoards(self):
         #Have this return a more lightweight representation instead, like board 
         #title and ids
-        return [boardId for boardId in self.boards]
-        return self.boards
+        return [{"id": boardId, "name": self.boards[boardId].name} for boardId in self.boards]

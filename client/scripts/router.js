@@ -1,8 +1,15 @@
 define(["globals"], function(_g) {
     // All router functions return the request object, which can then have done and fail handlers added to it
-    function sendToServer(data) {
+    function sendAction(data) {
         return $.ajax("/boards/" + _g.board.id + "/action", {
-            data: data
+            method: "POST",
+            data: JSON.stringify(data),
+            contentType: 'application/json'
+        });
+    }
+    function newBoard() {
+        return $.ajax("boards/new", {
+            method: "POST"
         });
     }
     // Tell the server what you think the current phase is, and ask it to advance to the next. Ask it politely.
@@ -10,15 +17,15 @@ define(["globals"], function(_g) {
     // Buy Phase ends with "endBuyPhase"
     // Resolve phase ends when there are no more conflicts
     function nextPhase(onSuccess) {
-        sendToServer({
+        sendAction({
             action: "nextPhase",
             currentPhase: _g.currentPhase.constructor.name // get the class name
         }).done(onSuccess);
     }
     function endBuyPhase(boughtUnits) {
-        return sendToServer({
+        return sendAction({
             action: "buy",
-            boughtUnits: JSON.stringify(boughtUnits)
+            boughtUnits: boughtUnits
         }).done(function() {
             console.log(arguments)
         })
@@ -34,15 +41,15 @@ define(["globals"], function(_g) {
         var unitIds = units.map(function(u) {
             return u.id
         });
-        return sendToServer({
+        return sendAction({
             action: "move",
             from: start,
             to: end,
-            unitList: JSON.stringify(unitIds)
+            unitList: unitIds
         }).fail(onfail)
     }
     function selectConflict(territoryName, onFail) {
-        return sendToServer({
+        return sendAction({
             action: "selectConflict",
             territory: territoryName
         }).fail(onFail);
@@ -51,7 +58,7 @@ define(["globals"], function(_g) {
         // Perform one tick of a battle
         // Success will return a BattleReport
         // Will fail if battling in the non-current conflict
-        return sendToServer({
+        return sendAction({
             action: "battleTick",
             territory: territoryName
         })
@@ -62,7 +69,7 @@ define(["globals"], function(_g) {
     function retreat(conflictTerritory, destination, onSuccess, onFail) {
         // Success will return a BattleReport
         // Will fail if battling in the non-current conflict
-        return sendToServer({
+        return sendAction({
             action: "retreat",
             from: conflictTerritory,
             to: destination
@@ -74,7 +81,7 @@ define(["globals"], function(_g) {
         // NO RETREAT. TO THE DEATH, BROTHERS!
         // Success will return a BattleReport
         // Will fail if battling in the non-current conflict
-        return sendToServer({
+        return sendAction({
             action: "autoResolve",
             territory: territoryName
         })
@@ -85,7 +92,7 @@ define(["globals"], function(_g) {
         // NO RETREAT. TO THE DEATH, BROTHERS!
         // Success will return a BattleReport
         // Will fail if battling in the non-current conflict
-        var request = sendToServer({
+        var request = sendAction({
             action: "autoResolveAll"
         });
         request.done(onSuccess);
@@ -94,18 +101,19 @@ define(["globals"], function(_g) {
         });
     }
     function placeUnit(territoryName, unitType, onFail) {
-        return sendToServer({
+        return sendAction({
             action: "placeUnit",
             territory: territoryName,
             unitType: unitType
         }).fail(onFail);
     }
     function getEventLog() {
-        return sendToServer({
+        return sendAction({
             action: "getEventLog"
         });
     }
     return {
+        newBoard: newBoard,
         endBuyPhase: endBuyPhase,
         fetchBoard: fetchBoard,
         fetchBoards: fetchBoards,

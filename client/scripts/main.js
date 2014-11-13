@@ -20,7 +20,7 @@ function (_g, board, _p, _c, _r, _router) {
 
     function onBoardSelect(boardId, onSucess) {
         _router.fetchBoard(boardId, function(boardInfo) {
-            _g.board = new board.Board(boardInfo.id);
+            _g.board = new board.Board(boardId);
             _g.board.wrapsHorizontally = boardInfo.wrapsHorizontally;
             console.time("Map Load");
             _g.board.setImage(boardInfo.imagePath, function onMapLoad() {

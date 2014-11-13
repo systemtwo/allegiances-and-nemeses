@@ -39,12 +39,7 @@ class BoardsHandler(tornado.web.RequestHandler):
         if self.action == self.actions.ALL:
             #Return list of active boards
             boards = self.boardsManager.listBoards()
-            boardsList = []
-
-            for boardId in boards:
-                boardsList.append(boardId)
-
-            self.write(json.dumps(boardsList))
+            self.write(json.dumps(boards))
             return
 
         elif self.action == self.actions.ID:
@@ -79,29 +74,29 @@ class BoardsHandler(tornado.web.RequestHandler):
             #Make a new board
 
             #Validate settings from request
-            try:
-                schema = Schema({
-                    Required("module", default="default"): unicode,
-                    Required("players", default=2): All(int, Range(min=2, max=5))
-                })
+            schema = Schema({
+                Required("module", default="default"): unicode,
+                Required("boardName", default="Unnamed Board"): unicode,
+                Required("players", default=2): All(int, Range(min=2, max=5))
+            })
 
-                request = self.request.body or "{}"
-                settings = schema(json.loads(request))
+            request = self.request.body or "{}"
+            settings = schema(json.loads(request))
 
-            except:
-                self.set_status(400) #400 Bad Request
-                return
+            # except:
+            #     self.set_status(400) #400 Bad Request
+            #     return
 
             #Create and add the board to the working list of boards
-            createdId = self.boardsManager.newBoard(settings["module"])
+            createdId = self.boardsManager.newBoard(settings["boardName"], settings["module"])
 
             #TODO: Configure map (module), number of players here
             for i in xrange(settings["players"]):
                 self.boardsManager.getBoard(createdId).addPlayer()
 
-			
             #Tell the client the id of the newly created board
-            self.write(json.dumps({"boardId": createdId}))
+            # ideally, I want to get the name from the board object itself
+            self.write(json.dumps({"boardId": createdId, "name": settings["boardName"]}))
 
         else:
             self.set_status(405)
@@ -139,19 +134,19 @@ class Server:
         self.app = tornado.web.Application([
             (r"/", IndexHandler, dict(html_path=html_path)),
 
-			#Map editor (Consider moving into a sub-list in MapEditorHandler)
+            #Map editor (Consider moving into a sub-list in MapEditorHandler)
             (r"/mapEditor", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.PAGE, html_path=html_path)),
             (r"/modules", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.MODULES)),
             (r"/modules/create/?", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.CREATE)),
             (r"/modules/(?P<moduleName>[A-z]+)", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.MODULE_INFO)),
 
-			#Board control
+            #Board control
             (r"/boards/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ALL, boardsManager=self.boardsManager)),
             (r"/boards/new/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.NEW, boardsManager=self.boardsManager)),
             (r"/boards/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID, boardsManager=self.boardsManager)), #Consider using named regex here
-            (r"/boards/(?P<boardId>[0-9]+)/action/?", ActionHandler, dict(config=config, boardsManager=self.boardsManager)), 
+            (r"/boards/(?P<boardId>[0-9]+)/action/?", ActionHandler, dict(boardsManager=self.boardsManager)),
 
-			#Static files
+            #Static files
             (r"/shared/(.*)", utils.NoCacheStaticFileHandler, {"path": config.SHARED_CONTENT_PATH}),
             (r"/static/(.*)", utils.NoCacheStaticFileHandler, {"path": config.STATIC_CONTENT_PATH}), #This is not a great way of doing this TODO: Change this to be more intuative
         ], debug=True)
@@ -162,4 +157,3 @@ class Server:
     def start(self):
         print("Starting Server")
         self.ioloop.start()
-

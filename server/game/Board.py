@@ -90,7 +90,6 @@ class Board:
 
     def info(self):
         return {
-            "id": self.id.hex,
             "name": self.name,
             "moduleName": self.moduleName
         }
