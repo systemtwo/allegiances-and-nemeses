@@ -9,6 +9,7 @@ import json
 import game
 import utils
 from MapEditorHandler import MapEditorHandler
+from ActionHandler import ActionHandler
 import BoardsManager
 
 
@@ -166,6 +167,7 @@ class Server:
             (r"/boards/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ALL, boardsManager=self.boardsManager)),
             (r"/boards/new/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.NEW, boardsManager=self.boardsManager)),
             (r"/boards/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID, boardsManager=self.boardsManager)), #Consider using named regex here
+            (r"/boards/(?P<boardId>[0-9]+)/action/?", ActionHandler, dict(config=config, boardsManager=self.boardsManager)), 
 
 			#Static files
             (r"/shared/(.*)", utils.NoCacheStaticFileHandler, {"path": config.SHARED_CONTENT_PATH}),

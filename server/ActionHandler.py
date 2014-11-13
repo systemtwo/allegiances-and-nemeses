@@ -1,13 +1,17 @@
-import json
 import tornado.web
-from server import BoardCollection
+
+import json
+
 
 
 class ActionHandler(tornado.web.RequestHandler):
+    def __init__(self):
+        self.boardsManager = boardsManager
+
     def get(self, **params):
         try:
             require(["boardId"], params)
-            board = BoardCollection.getBoard(params["boardId"])
+            board = self.boardsManager.getBoard(params["boardId"])
 
             action = self.get_argument("action")
             if "buy" == action:
