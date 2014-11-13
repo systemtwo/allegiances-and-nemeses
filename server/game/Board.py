@@ -72,7 +72,6 @@ class Board:
 
     def toDict(self):
         return {
-            "id": self.id.hex,
             "countries": [c.toJSON() for c in self.countries],
             "territoryInfo": self.territoryInfo,  # doesn't have CURRENT territory owners, only initial
             "connections": self.connections,
