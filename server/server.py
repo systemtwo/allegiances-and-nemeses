@@ -1,17 +1,19 @@
 import tornado.ioloop
 import tornado.web
 
+from voluptuous import Schema, Required, All, Range
+
 import os.path
 import json
 
 import game
-from MapEditorHandler import MapEditorHandler
 import utils
+from MapEditorHandler import MapEditorHandler
+from ActionHandler import ActionHandler
+import BoardsManager
 
 
 import random
-import BoardCollection
-from ActionHandler import ActionHandler
 
 
 class IndexHandler(tornado.web.RequestHandler):
@@ -23,48 +25,32 @@ class IndexHandler(tornado.web.RequestHandler):
             self.write(f.read())
 
 
-
-class BoardHandler(tornado.web.RequestHandler):
-    def initialize(self):
-        pass
-
-    def get(self):
-        pass
-
-    def post(self):
-        pass
-
-
 class BoardsHandler(tornado.web.RequestHandler):
     #TODO: Consider spliting this class to handle the different scenarios
     actions = utils.Enum(["ALL", "NEW", "ID"])
+    nextBoardId = 0
 
-    def initialize(self, config, action):
+    def initialize(self, config, action, boardsManager):
         self.config = config
         self.action = action
+        self.boardsManager = boardsManager
 
     def get(self, **params):
         if self.action == self.actions.ALL:
             #Return list of active boards
-            self.write(json.dumps(BoardCollection.getBoards()))
-        elif self.action == self.actions.NEW:
-            #Make a new board
+            boards = self.boardsManager.listBoards()
+            boardsList = []
 
-            #Grab settings from request
-            #settings = json.loads(self.request.body)
+            for boardId in boards:
+                boardsList.append(boardId)
 
-            #TODO: Configure map (module), number of players here
+            self.write(json.dumps(boardsList))
+            return
 
-            #Create and add the board to the working list of boards
-            newBoard = game.Board("Default name plz update code", "default")
-            # newBoard = game.Board(self.get_argument("name"), self.get_argument("module"))
-            BoardCollection.addBoard(newBoard)
-            #Tell the client the id of the newly created board
-            self.write(json.dumps({"boardId": newBoard.id.hex}))
         elif self.action == self.actions.ID:
             #Return info about board with id boardId
+            board = self.boardsManager.getBoard(int(params["boardId"]))
 
-            board = BoardCollection.getBoard(params["boardId"])
             if not board:
                 self.set_status(404)
                 self.write("Board not found")
@@ -76,49 +62,96 @@ class BoardsHandler(tornado.web.RequestHandler):
             self.write(json.dumps(boardInfo))
 
     def post(self, **params):
+        #TODO: Add validation with voluptuous here!
         if self.action == self.actions.ID:
-            if BoardCollection.getBoard(params["boardId"]): #Make sure this is a valid board
-                #Make sure there is a body
-                if len(req.body) == 0:
-                    self.set_status(400)
-                    return
-
-                #Make sure there is a valid body
+            if self.boardsManager.getBoard(int(params["boardId"])): #Make sure this is a valid board
                 try:
-                    json.loads(req.body)
-                except ValueError:
-                    self.set_status(400)
+                    schema = Schema({
+                        Required("action"): unicode
+                    })
+                    schema(json.loads(self.request.body))
+                except:
+                    self.set_status(400) #400 Bad Request
                     return
+                print(req)
 
-                req = json.loads(req.body)
+        elif self.action == self.actions.NEW:
+            #Make a new board
+
+            #Validate settings from request
+            try:
+                schema = Schema({
+                    Required("module", default="default"): unicode,
+                    Required("players", default=2): All(int, Range(min=2, max=5))
+                })
+
+                print(json.loads(self.request.body))
+                settings = schema(json.loads(self.request.body))
+
+            except:
+                self.set_status(400) #400 Bad Request
+                return
+
+            #Create and add the board to the working list of boards
+            createdId = self.boardsManager.newBoard(settings["module"])
+
+            #TODO: Configure map (module), number of players here
+            for i in xrange(settings["players"]):
+                self.boardsManager.getBoard(createdId).addPlayer()
+
+			
+            #Tell the client the id of the newly created board
+            self.write(json.dumps({"boardId": createdId}))
 
         else:
             self.set_status(405)
             self.write("Method Not Allowed")
         return
 
+    """Checks to see if a move request body is valid"""
+    def validMoveRequest(self, body):
+        #We check to see if the body is validJSON
+        if len(req.body) == 0:
+            return False
 
+        try:
+            json.loads(body)
+        except ValueError:
+            return False
+
+        return True
+
+    """Get the board with a specific id"""
+    def getBoard(self, boardId):
+        #We use ints for the id, so we force the boardId to be an int
+        normalizedBoardId = int(boardId)
+        if normalizedBoardId in BoardsHandler.boards:
+            return BoardsHandler.boards[normalizedBoardId]
+        return None
 
 
 class Server:
     def __init__(self, config):
         html_path = os.path.join(config.STATIC_CONTENT_PATH, "html")
+
+        self.boardsManager = BoardsManager.BoardsManager()
+
         self.app = tornado.web.Application([
             (r"/", IndexHandler, dict(html_path=html_path)),
 
-            #Map editor (Consider moving into a sub-list in MapEditorHandler)
+			#Map editor (Consider moving into a sub-list in MapEditorHandler)
             (r"/mapEditor", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.PAGE, html_path=html_path)),
             (r"/modules", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.MODULES)),
             (r"/modules/create/?", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.CREATE)),
             (r"/modules/(?P<moduleName>[A-z]+)", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.MODULE_INFO)),
 
-            #Board control
-            (r"/boards/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ALL)),
-            (r"/boards/new/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.NEW)),
-            (r"/boards/(?P<boardId>[0-9A-z]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID)), #Consider using named regex here
-            (r"/boards/(?P<boardId>[0-9A-z]+)/action/?", ActionHandler),
+			#Board control
+            (r"/boards/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ALL, boardsManager=self.boardsManager)),
+            (r"/boards/new/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.NEW, boardsManager=self.boardsManager)),
+            (r"/boards/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID, boardsManager=self.boardsManager)), #Consider using named regex here
+            (r"/boards/(?P<boardId>[0-9]+)/action/?", ActionHandler, dict(config=config, boardsManager=self.boardsManager)), 
 
-            #Static files
+			#Static files
             (r"/shared/(.*)", utils.NoCacheStaticFileHandler, {"path": config.SHARED_CONTENT_PATH}),
             (r"/static/(.*)", utils.NoCacheStaticFileHandler, {"path": config.STATIC_CONTENT_PATH}), #This is not a great way of doing this TODO: Change this to be more intuative
         ], debug=True)

@@ -1,5 +1,4 @@
 import json
-from UniqueId import getUniqueId
 from Country import Country
 from Phases import BuyPhase
 from Territory import LandTerritory, SeaTerritory
@@ -9,7 +8,6 @@ import Util
 
 class Board:
     def __init__(self, boardName, moduleName):
-        self.id = getUniqueId()
         self.name = boardName
         self.players = []
         self.units = []
