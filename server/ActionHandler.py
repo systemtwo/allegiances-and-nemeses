@@ -10,6 +10,7 @@ class ActionHandler(tornado.web.RequestHandler):
     def __init__(self):
         self.boardsManager = boardsManager
 
+    @tornado.web.authenticated
     def get(self, **params):
         if not (self.boardsManager.getBoard(int(params["boardId"]))):
             self.send_error(404)
