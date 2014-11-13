@@ -13,3 +13,6 @@ DEFAULT_IMAGE_PATH = "/static/css/images/defaultMap.jpg"
 
 COOKIE_SECRET = "some_secret_value"
 
+
+#Debugging
+USER_AUTH = False

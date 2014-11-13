@@ -2,16 +2,22 @@ import tornado.web
 
 from voluptuous import Schema, Required, All, Range
 
+from AuthHandlers import BaseAuthHandler
+
 import json
 
 
 
-class ActionHandler(tornado.web.RequestHandler):
+class ActionHandler(BaseAuthHandler):
     def __init__(self):
         self.boardsManager = boardsManager
 
+
+    def initialize(self, config):
+        super(ActionHandler, self).initialize(config=config)
+
     @tornado.web.authenticated
-    def get(self, **params):
+    def post(self, **params):
         if not (self.boardsManager.getBoard(int(params["boardId"]))):
             self.send_error(404)
             return

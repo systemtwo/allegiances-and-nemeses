@@ -19,7 +19,7 @@ from AuthHandlers import LoginHandler, LogoutHandler, BaseAuthHandler
 
 
 
-class IndexHandler(BaseAuthHandler):
+class IndexHandler(tornado.web.RequestHandler):
     def initialize(self, html_path):
         self.HTML_PATH = html_path
 
@@ -34,9 +34,12 @@ class BoardsHandler(BaseAuthHandler):
     nextBoardId = 0
 
     def initialize(self, config, action, boardsManager):
+        super(BoardsHandler, self).initialize(config=config)
         self.config = config
         self.action = action
         self.boardsManager = boardsManager
+        
+        self.setAuthenticateUser = config.USER_AUTH
 
     @tornado.web.authenticated
     def get(self, **params):
@@ -94,7 +97,8 @@ class BoardsHandler(BaseAuthHandler):
 
             #TODO: Configure map (module), number of players here
             for i in xrange(settings["players"]):
-                self.boardsManager.getBoard(createdId).addPlayer()
+                #self.boardsManager.getBoard(createdId).addPlayer()
+                pass
 
 			
             #Tell the client the id of the newly created board
