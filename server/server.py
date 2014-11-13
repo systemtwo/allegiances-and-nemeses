@@ -95,8 +95,8 @@ class BoardsHandler(tornado.web.RequestHandler):
                     Required("players", default=2): All(int, Range(min=2, max=5))
                 })
 
-                print json.loads(self.request.body)
-                settings = schema(json.loads(self.request.body))
+                request = self.request.body or "{}"
+                settings = schema(json.loads(request))
 
             except:
                 self.set_status(400) #400 Bad Request
