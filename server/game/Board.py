@@ -8,8 +8,9 @@ import Util
 
 
 class Board:
-    def __init__(self, moduleName):
+    def __init__(self, boardName, moduleName):
         self.id = getUniqueId()
+        self.name = boardName
         self.players = []
         self.units = []
         self.attackMoveList = []
@@ -75,6 +76,7 @@ class Board:
     def toDict(self):
         return {
             "id": self.id.hex,
+            "name": self.name,
             "countries": [c.toJSON() for c in self.countries],
             "territoryInfo": self.territoryInfo,  # doesn't have CURRENT territory owners, only initial
             "connections": self.connections,
@@ -86,6 +88,13 @@ class Board:
             "unitCatalogue": self.unitCatalogue,
             "wrapsHorizontally": self.moduleInfo["wrapsHorizontally"],
             "imageName": self.moduleInfo["imageName"],
+            "moduleName": self.moduleName
+        }
+
+    def info(self):
+        return {
+            "id": self.id.hex,
+            "name": self.name,
             "moduleName": self.moduleName
         }
 

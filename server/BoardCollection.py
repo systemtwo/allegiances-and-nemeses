@@ -21,8 +21,8 @@ def getBoard(boardId):
         return None
 
 
-def getBoardIds():
-    return [k.hex for k in boards.keys()]
+def getBoards():
+    return [boards[boardId].info() for boardId in boards]
 
 # TODO remove test code
-addBoard(Board("default"))
+addBoard(Board("first board", "default"))

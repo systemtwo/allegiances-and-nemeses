@@ -27,6 +27,9 @@ define(["globals"], function(_g) {
         console.assert(boardId !== null, "Board Id not set");
         return $.getJSON("/boards/" + boardId).done(onSuccess);
     }
+    function fetchBoards(onSuccess) {
+        return $.getJSON("/boards").done(onSuccess);
+    }
     function validateMove(start, end, units, onfail) {
         var unitIds = units.map(function(u) {
             return u.id
@@ -105,6 +108,7 @@ define(["globals"], function(_g) {
     return {
         endBuyPhase: endBuyPhase,
         fetchBoard: fetchBoard,
+        fetchBoards: fetchBoards,
         validateMove: validateMove,
         selectConflict: selectConflict,
         battle: battle,

@@ -1,0 +1,7 @@
+<form id="editTerritoryForm" class="form-horizontal" role="form">
+    <select id="boardSelect">
+        {% for b in boards %}
+            <option value="{{b.id}}">{{ b.name }} ({{ b.moduleName }})</option>
+        {% endfor %}
+    </select>
+</form>

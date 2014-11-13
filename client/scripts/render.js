@@ -14,9 +14,26 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         $("#phaseName").text("| " + name);
     }
 
+    function showBoardList(boards, onSelect) {
+        var windowContents = $(nj.render("static/templates/boardList.html", {boards: boards}));
+        windowContents.dialog({
+            title: "Boards",
+            buttons: {
+                "Load": function() {
+                    var boardId = windowContents.find("#boardSelect").val();
+                    onSelect(boardId, function closeBoardList() {
+                            windowContents.close();
+                        }
+                    );
+
+                }
+            }
+        })
+    }
+
     function showRecruitmentWindow(buyPhase) {
         var sum = $("<span>").text(0);
-        var windowContents = $(nj.render("static/templates/window.html", {units: _g.unitCatalogue })).prepend(sum);
+        var windowContents = $(nj.render("static/templates/recruitment.html", {units: _g.unitCatalogue })).prepend(sum);
 
         windowContents.find(".buyAmount").each(function(index, input) {
             input = $(input);
@@ -47,11 +64,11 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
             modal: false,
             closeOnEscape: false,
             width: 600, // TODO base off of window width/user pref
-            height: 500, // TODO base off of window width/user pref
+            height: Math.min(500, window.innerHeight), // TODO base off of window width/user pref
             buttons: {
                 "Ok": function () {
                     _g.currentPhase.nextPhase(function() {
-                        $(this).dialog("close");
+                        windowContents.dialog("close");
                     });
                 },
                 "Minimize": function () {
@@ -456,6 +473,7 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
 
     return {
         phaseName: phaseName,
+        showBoardList: showBoardList,
         showBattle: showBattle,
         showPlacementWindow: showPlacementWindow,
         showRecruitmentWindow: showRecruitmentWindow,

@@ -46,7 +46,7 @@ class BoardsHandler(tornado.web.RequestHandler):
     def get(self, **params):
         if self.action == self.actions.ALL:
             #Return list of active boards
-            self.write(BoardCollection.getBoardIds())
+            self.write(json.dumps(BoardCollection.getBoards()))
         elif self.action == self.actions.NEW:
             #Make a new board
 
@@ -56,7 +56,8 @@ class BoardsHandler(tornado.web.RequestHandler):
             #TODO: Configure map (module), number of players here
 
             #Create and add the board to the working list of boards
-            newBoard = game.Board("default")
+            newBoard = game.Board("Default name plz update code", "default")
+            # newBoard = game.Board(self.get_argument("name"), self.get_argument("module"))
             BoardCollection.addBoard(newBoard)
             #Tell the client the id of the newly created board
             self.write(json.dumps({"boardId": newBoard.id.hex}))

@@ -5,7 +5,7 @@ from Territory import LandTerritory, SeaTerritory
 from Country import Country
 from Unit import Unit
 
-board = Board("default")
+board = Board("Test Board", "default")
 russian_territories = [x for x in board.territories if hasattr(x, "country") and x.country.name == "ussr"]
 assert board.countries[0].name == "ussr"
 infantry = Unit("infantry", board.countries[0], russian_territories[0])
