@@ -23,32 +23,54 @@ class IndexHandler(tornado.web.RequestHandler):
             self.write(f.read())
 
 
+"""A class to manage game boards"""
+class BoardsManager():
+    def __init__(self):
+        self.boards = {}
+        self.lastId = 0
+    
+    def getBoard(self, boardId):
+        if boardId in self.boards:
+            return self.boards[boardId]
+        else:
+            return None
 
-class BoardHandler(tornado.web.RequestHandler):
-    def initialize(self):
-        pass
+    def newBoard(self, module):
+        self.lastId += 1
+        self.boards[self.lastId] = game.Board(module)
+        return self.lastId
 
-    def get(self):
-        pass
+    def listBoards(self):
+        #Have this return a more lightweight representation instead, like board 
+        #title and ids
+        return self.boards
 
-    def post(self):
-        pass
+    
+
 
 
 class BoardsHandler(tornado.web.RequestHandler):
     #TODO: Consider spliting this class to handle the different scenarios
     actions = utils.Enum(["ALL", "NEW", "ID"])
-    boards = {} #We use a map here so we can easily delete boards
     nextBoardId = 0
 
-    def initialize(self, config, action):
+    def initialize(self, config, action, boardsManager):
         self.config = config
         self.action = action
+        self.boardsManager = boardsManager
 
     def get(self, **params):
         if self.action == self.actions.ALL:
             #Return list of active boards
-            self.write("All")
+            boards = self.boardsManager.listBoards()
+            boardsList = []
+
+            for boardId in boards:
+                boardsList.append(boardId)
+
+            self.write(json.dumps(boardsList))
+            return
+
         elif self.action == self.actions.NEW:
             #Make a new board
 
@@ -57,18 +79,16 @@ class BoardsHandler(tornado.web.RequestHandler):
 
             #TODO: Configure map (module), number of players here
 			
-
             #Create and add the board to the working list of boards
-            BoardsHandler.boards[BoardsHandler.nextBoardId] = game.Board("default")
-            #Prepare the next boardId to use
-            BoardsHandler.nextBoardId += 1
+            createdId = self.boardsManager.newBoard("default")
 			
             #Tell the client the id of the newly created board
-            self.write(json.dumps({"boardId": len(self.boards) - 1}))
+            self.write(json.dumps({"boardId": createdId}))
+
         elif self.action == self.actions.ID:
             #Return info about board with id boardId
+            board = self.boardsManager.getBoard(int(params["boardId"]))
 
-            board = self.getBoard(params["boardId"])
             if not board:
                 self.set_status(404)
                 self.write("Board not found")
@@ -82,19 +102,11 @@ class BoardsHandler(tornado.web.RequestHandler):
 
     def post(self, **params):
         if self.action == self.actions.ID:
-            if getBoard(params["boardId"]): #Make sure this is a valid board
-                #Make sure there is a body
-                if len(req.body) == 0:
-                    self.set_status(400)
+            if getBoard(int(params["boardId"])): #Make sure this is a valid board
+                if not validMoveRequest(req.body):
+                    self.set_status(400) #400 Bad Request
                     return
-
-                #Make sure there is a valid body
-                try:
-                    json.loads(req.body)
-                except ValueError:
-                    self.set_status(400)
-                    return
-
+                    
                 req = json.loads(req.body)
 				
 
@@ -104,6 +116,22 @@ class BoardsHandler(tornado.web.RequestHandler):
         return
 
 
+    """Checks to see if a move request body is valid"""
+    def validMoveRequest(self, body):
+        #We check to see if the body is validJSON
+        if len(req.body) == 0:
+            return False
+
+        try:
+            json.loads(body)
+        except ValueError:
+            return False
+
+        return True
+
+
+
+    """Get the board with a specific id"""
     def getBoard(self, boardId):
         #We use ints for the id, so we force the boardId to be an int
         normalizedBoardId = int(boardId)
@@ -117,6 +145,9 @@ class BoardsHandler(tornado.web.RequestHandler):
 class Server:
     def __init__(self, config):
         html_path = os.path.join(config.STATIC_CONTENT_PATH, "html")
+
+        self.boardsManager = BoardsManager()
+
         self.app = tornado.web.Application([
             (r"/", IndexHandler, dict(html_path=html_path)),
 
@@ -127,9 +158,9 @@ class Server:
             (r"/modules/(?P<moduleName>[A-z]+)", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.MODULE_INFO)),
 
 			#Board control
-            (r"/boards/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ALL)),
-            (r"/boards/new/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.NEW)),
-            (r"/boards/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID)), #Consider using named regex here
+            (r"/boards/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ALL, boardsManager=self.boardsManager)),
+            (r"/boards/new/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.NEW, boardsManager=self.boardsManager)),
+            (r"/boards/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID, boardsManager=self.boardsManager)), #Consider using named regex here
 
 			#Static files
             (r"/shared/(.*)", utils.NoCacheStaticFileHandler, {"path": config.SHARED_CONTENT_PATH}),
