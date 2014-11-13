@@ -2,14 +2,18 @@ import tornado.web
 
 from voluptuous import Schema, Required, All, Range
 
+from AuthHandlers import BaseAuthHandler
+
 import json
 
 
 
-class ActionHandler(tornado.web.RequestHandler):
-    def initialize(self, boardsManager):
+class ActionHandler(BaseAuthHandler):
+    def initialize(self, config, boardsManager):
+        super(ActionHandler, self).initialize(config=config)
         self.boardsManager = boardsManager
 
+    @tornado.web.authenticated
     def post(self, **params):
         board = self.boardsManager.getBoard(int(params["boardId"]))
         if not board:
@@ -26,6 +30,11 @@ class ActionHandler(tornado.web.RequestHandler):
         # except:
         #     self.send_error(400)
         #     return
+
+
+        #See if it is the user's turn
+        if not board.isPlayersTurn(self.current_user):
+            self.send_error(403) #Forbidden
 
         #We are safe to do this, because we return in the except call (thereby eliminating the 
         #case where requestData is not set

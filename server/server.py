@@ -8,12 +8,13 @@ import json
 
 import game
 import utils
+import BoardsManager
 from MapEditorHandler import MapEditorHandler
 from ActionHandler import ActionHandler
-import BoardsManager
+from AuthHandlers import LoginHandler, LogoutHandler, BaseAuthHandler
 
 
-import random
+
 
 
 class IndexHandler(tornado.web.RequestHandler):
@@ -25,16 +26,20 @@ class IndexHandler(tornado.web.RequestHandler):
             self.write(f.read())
 
 
-class BoardsHandler(tornado.web.RequestHandler):
+class BoardsHandler(BaseAuthHandler):
     #TODO: Consider spliting this class to handle the different scenarios
     actions = utils.Enum(["ALL", "NEW", "ID"])
     nextBoardId = 0
 
     def initialize(self, config, action, boardsManager):
+        super(BoardsHandler, self).initialize(config=config)
         self.config = config
         self.action = action
         self.boardsManager = boardsManager
+        
+        self.setAuthenticateUser = config.USER_AUTH
 
+    @tornado.web.authenticated
     def get(self, **params):
         if self.action == self.actions.ALL:
             #Return list of active boards
@@ -56,21 +61,9 @@ class BoardsHandler(tornado.web.RequestHandler):
             boardInfo["imagePath"] = os.path.join(self.config.MODS_PATH, boardInfo["moduleName"], boardInfo["imageName"])
             self.write(json.dumps(boardInfo))
 
+    @tornado.web.authenticated
     def post(self, **params):
-        #TODO: Add validation with voluptuous here!
-        if self.action == self.actions.ID:
-            if self.boardsManager.getBoard(int(params["boardId"])): #Make sure this is a valid board
-                try:
-                    schema = Schema({
-                        Required("action"): unicode
-                    })
-                    schema(json.loads(self.request.body))
-                except:
-                    self.set_status(400) #400 Bad Request
-                    return
-                print(req)
-
-        elif self.action == self.actions.NEW:
+        if self.action == self.actions.NEW:
             #Make a new board
 
             #Validate settings from request
@@ -92,7 +85,8 @@ class BoardsHandler(tornado.web.RequestHandler):
 
             #TODO: Configure map (module), number of players here
             for i in xrange(settings["players"]):
-                self.boardsManager.getBoard(createdId).addPlayer()
+                #self.boardsManager.getBoard(createdId).addPlayer()
+                pass
 
             #Tell the client the id of the newly created board
             # ideally, I want to get the name from the board object itself
@@ -144,12 +138,21 @@ class Server:
             (r"/boards/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ALL, boardsManager=self.boardsManager)),
             (r"/boards/new/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.NEW, boardsManager=self.boardsManager)),
             (r"/boards/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID, boardsManager=self.boardsManager)), #Consider using named regex here
-            (r"/boards/(?P<boardId>[0-9]+)/action/?", ActionHandler, dict(boardsManager=self.boardsManager)),
+            (r"/boards/(?P<boardId>[0-9]+)/action/?", ActionHandler, dict(config=config, boardsManager=self.boardsManager)),
 
-            #Static files
+            #User auth
+            (r"/login/?", LoginHandler),
+            (r"/logout/?", LogoutHandler),
+
+
+			#Static files
             (r"/shared/(.*)", utils.NoCacheStaticFileHandler, {"path": config.SHARED_CONTENT_PATH}),
             (r"/static/(.*)", utils.NoCacheStaticFileHandler, {"path": config.STATIC_CONTENT_PATH}), #This is not a great way of doing this TODO: Change this to be more intuative
-        ], debug=True)
+        ], 
+        cookie_secret=config.COOKIE_SECRET,
+        login_url="/login",
+        debug=True
+        )
 
         self.app.listen(8888)
         self.ioloop = tornado.ioloop.IOLoop.instance()

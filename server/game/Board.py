@@ -68,9 +68,6 @@ class Board:
             if c.name == terInfo["country"]:
                 return c
 
-    def addPlayer(self):
-        pass
-
     def toDict(self):
         return {
             "name": self.name,
@@ -88,11 +85,15 @@ class Board:
             "moduleName": self.moduleName
         }
 
-    def info(self):
-        return {
-            "name": self.name,
-            "moduleName": self.moduleName
-        }
+    def addPlayer(self, userId, countries):
+        for country in countries:
+            for c in self.countries:
+                if country == c.name:
+                    c.player = userId
+                    break
+
+    def isPlayersTurn(self, userId):
+        return self.currentCountry.player == userId
 
     # Proceed to the next country's turn. This is different than advancing a phase (1/6th of a turn)
     def nextTurn(self):
