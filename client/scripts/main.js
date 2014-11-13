@@ -12,21 +12,26 @@ requirejs.config({
 });
 
 // Start the main app logic.
-requirejs(["globals", 'board', "phases", "components", "render"],
-function (_g, board, _p, _c, _r) {
-    _g.board = new board.Board();
+requirejs(["globals", 'board', "phases", "components", "render", "router"],
+function (_g, board, _p, _c, _r, _router) {
+    var boardId = prompt("ID")
 
-    $.getJSON("/boards/" + prompt("Board number (1 or 2)")).done(function(boardInfo) {
+    _router.fetchBoard(boardId, function(boardInfo) {
+        _g.board = new board.Board(boardInfo.id);
         _g.board.wrapsHorizontally = boardInfo.wrapsHorizontally;
+        console.time("Map Load");
         _g.board.setImage(boardInfo.imagePath, function onMapLoad() {
+            console.timeEnd("Map Load");
             _r.initMap();
         });
         _g.unitCatalogue = boardInfo.unitCatalogue;
 
         _g.board.countries = boardInfo.countries.map(function(c) {
             var countryInfo = JSON.parse(c);
-            return new _c.Country(countryInfo.name, countryInfo.team)
+            return new _c.Country(countryInfo.name, countryInfo.team, countryInfo.ipc)
         });
+
+        console.table(_g.board.countries);
         boardInfo.territoryInfo.forEach(function(tInfo) {
             var country = null;
             for (var i=0; i<_g.board.countries.length; i++) {
@@ -39,9 +44,6 @@ function (_g, board, _p, _c, _r) {
         });
 
         _g.currentCountry = _g.board.countries[0];
-        _g.currentCountry.ipc = 100;
-        _g.currentPhase = new _p.BuyPhase();
-
 
         // ADD TEST UNITS
         _g.board.addUnit("fighter", "Russia", "ussr");
@@ -50,6 +52,10 @@ function (_g, board, _p, _c, _r) {
         _g.board.addUnit("tank", "Archangel", "ussr");
         _g.board.addUnit("bomber", "Evenki", "ussr");
         _g.board.addUnit("infantry", "Yakut", "ussr");
+
+        // current phase is the class name of the phase
+        var phaseClass = _p[boardInfo.currentPhase];
+        _g.currentPhase = new phaseClass();
 
         boardInfo.connections.map(function(c) {
             var first = null,

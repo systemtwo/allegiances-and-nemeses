@@ -4,10 +4,17 @@ define(["globals"], function(_g) {
         this.unitType = unitType;
         this.country = country;
         this.territory = territory;
-        // Territory they started from at the beginning of the turn
-        this.originalTerritory = territory;
+        this.beginningOfPhaseTerritory = territory; // start of phase (1/6th of a turn)
+        this.beginningOfTurnTerritory = territory; // Start of countries turn
     };
 
+    Unit.prototype.isFlying = function() {
+        return this.unitType === "fighter" || this.unitType === "bomber";
+    };
+
+    Unit.prototype.hasNotMoved = function() {
+        return this.beginningOfPhaseTerritory === this.beginningOfTurnTerritory;
+    };
 
     var Territory = function(name, income, country, x, y, width, height) {
         this.name = name;
@@ -59,9 +66,9 @@ define(["globals"], function(_g) {
         this.territory = territory;
     };
 
-    var Country = function(name, team) {
+    var Country = function(name, team, ipc) {
         this.name = name;
-        this.ipc = 0;
+        this.ipc = ipc;
         this.team = team;
         return this;
     };

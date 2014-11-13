@@ -5,7 +5,7 @@ class Country:
     def __init__(self, name, teamName, board=None):
         self.name = name
         self.team = teamName
-        self.ipc = 0
+        self.ipc = 10
         self.board = board
 
     def collectIncome(self):

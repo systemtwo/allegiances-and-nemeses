@@ -1,4 +1,5 @@
 import json
+import UniqueId
 
 
 class Unit:
@@ -7,6 +8,7 @@ class Unit:
         self.territory = territory
         self.previousTerritory = territory
         self.country = country
+        self.id = UniqueId.getUniqueId()
 
     def isFlying(self):
         return self.type == "fighter" or self.type == "bomber"
@@ -16,6 +18,7 @@ class Unit:
 
     def toJSON(self):
         return json.dumps({
+            "id": self.id.hex,
             "type": self.type,
             "territory": self.territory.name,
             "country": self.country.name

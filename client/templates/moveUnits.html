@@ -12,11 +12,12 @@
             <!-- Render  rows -->
             <h3>Enabled</h3>
             {% for unitType, amount in units.enabled %}
-             <div>
-                 {{ unitType }}({{amount}})
+             <div class="unitRow" data-territory="{{name}}" data-type="{{unitType}}" data-max="{{amount}}">
+                 {{ unitType }}(<span class="selectedAmount">0</span>/{{amount}})
              </div>
             {% endfor %}
             <h3>Disabled</h3>
+            <!--List units that can't move-->
             {{t.disabled}}
             {% for unitType, amount in units.disabled %}
              <div>

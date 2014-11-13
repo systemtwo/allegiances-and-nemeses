@@ -17,17 +17,36 @@ Neutral Move -> Planes must land, units that haven't moved can move to friendly 
 Placement -> Place the units bought at the beginning of the turn
 Collect Income -> Collect income from all the territories owned (including conquered territories)
 """
+
+
 class BuyPhase:
     def __init__(self, ipc, board):
         # List[(unitType, cost)]
         self.buyList = []
         self.moneyCap = ipc
         self.board = board
+        self.name = "BuyPhase"
 
     def buyUnit(self, unitType):
         info = self.board.unitInfo(unitType)
         if self.money() + info.cost <= self.moneyCap:
             self.buyList.append((unitType, info.cost))
+
+    def setBuyList(self, buyList):
+        sumCost = 0
+        unitList = []
+        # buyList is of type [{unitType: String, amount: int}]
+        for buyInfo in buyList:
+            unitInfo = self.board.unitInfo(buyInfo["unitType"])
+            sumCost += buyInfo["amount"] * unitInfo.cost
+            for _ in range(buyInfo["amount"]):
+                unitList.append((buyInfo["unitType"], unitInfo.cost))
+
+        if sumCost <= self.moneyCap:
+            self.buyList = unitList
+            return True
+        else:
+            return False
 
     def cancel(self, unitType):
         for x in self.buyList:
@@ -41,7 +60,8 @@ class BuyPhase:
             total += cost
         return total
 
-    def nextPhase(self, board):
+    def nextPhase(self):
+        board = self.board
         board.buyList = [unitType for (unitType, cost) in self.buyList]
         board.currentPhase = AttackPhase(board)
         return board.currentPhase
@@ -66,7 +86,13 @@ class BaseMovePhase:
 # Units are added to a moveList, but unit.territory does not get modified if they are attacking a territory.
 # when they win, unit.territory is updated, and unit.previousTerritory is set
 class AttackPhase(BaseMovePhase):
-    def nextPhase(self, board):
+    def __init__(self, board):
+        super().__init__(board)
+        self.name = "AttackPhase"
+
+    def nextPhase(self):
+        board = self.board
+        # TODO conflict class
         conflicts = {}  # list of territories being attacked, and the attacking units
         for (unit, start, dest) in self.moveList:
             if not Util.allied(dest.country, unit.country):
@@ -90,8 +116,14 @@ class ResolvePhase:
         self.unresolvedConflicts = conflicts
         self.resolvedConflicts = []
         self.board = board
+        self.name = "ResolvePhase"
+        self.currentConflict = None  # change to hold a conflict, not a territory
+
+    def selectTerritory(self, territory):
+        self.currentConflict = territory
 
     # attacks until either defenders or attackers are all dead
+    # TODO update logic. May autoresolve a partially resolved conflict
     def autoResolve(self, territory):
         if not territory in self.unresolvedConflicts:
             return False
@@ -132,6 +164,12 @@ class ResolvePhase:
                     u.territory = territory
                 break
 
+    def autoResolveAll(self):
+        for tName, conflict in self.unresolvedConflicts:  # TODO include current conflict
+            self.autoResolve(tName)
+
+        # TODO return all BattleReports
+
     # Performs a single step in a territory conflict
     # Takes in a list of attackers and defenders. Removes casualties from list
     def battle(self, attackers, defenders):
@@ -146,13 +184,13 @@ class ResolvePhase:
         # Calculate hits. Chance for a hit is attack/6 for attackers, defence/6 for defenders
         for u in attackers:
             info = self.board.unitInfo(u.type)
-            sumAttackers += 1.0/info.attack
+            sumAttackers += 1.0 / info.attack
             if random.randint(1, 6) <= info.attack:
                 defendingCasualties += 1
 
         for u in defenders:
             info = self.board.unitInfo(u.type)
-            sumDefenders += 1.0/info.defence
+            sumDefenders += 1.0 / info.defence
             if random.randint(1, 6) <= info.defence:
                 attackingCasualties += 1
 
@@ -165,11 +203,11 @@ class ResolvePhase:
         while defendingCasualties > 0:
             defendingCasualties -= 1
             runningTotal = 0
-            rand = random.random()*sumDefenders
+            rand = random.random() * sumDefenders
             for d in defenders:
                 defence = self.board.unitInfo(d).defence
                 if defence > 0:
-                    runningTotal += 1.0/defence
+                    runningTotal += 1.0 / defence
                     if runningTotal >= rand:
                         deadD.append(d)
                         defenders.remove(d)
@@ -178,27 +216,33 @@ class ResolvePhase:
         while attackingCasualties > 0:
             attackingCasualties -= 1
             runningTotal = 0
-            rand = random.random()*sumAttackers
+            rand = random.random() * sumAttackers
             for a in attackers:
                 attack = self.board.unitInfo(a).attack
                 if attack > 0:
-                    runningTotal += 1.0/attack
+                    runningTotal += 1.0 / attack
                     if runningTotal >= rand:
                         deadA.append(a)
                         attackers.remove(a)
                         break
         return BattleReport(attackers, defenders, deadA, deadD)
 
-    def retreat(self, conflictTerritory):
-        # send all attacking units back to the closest territory they came from
-        pass
+    def retreat(self, conflictTerritory, destination):
+        """
+        send all attacking units to the destination territory
+        dest must be a friendly territory adjacent to the conflict territory
+        some units may end up moving beyond their move limit
+        This is alright. It's a valid exploit.
+        Can only retreat from the current conflict. This means one battle tick must have happened
+        """
+        assert(conflictTerritory == self.currentConflict)
 
-    def nextPhase(self, board):
+    def nextPhase(self):
         if len(self.unresolvedConflicts) > 0:
             return None
         else:
-            board.currentPhase = MovementPhase(board)
-            return board.currentPhase
+            self.board.currentPhase = MovementPhase(self.board)
+            return self.board.currentPhase
 
 
 class BattleReport:
@@ -210,6 +254,10 @@ class BattleReport:
 
 
 class MovementPhase(BaseMovePhase):
+    def __init__(self, board):
+        super().__init__(board)
+        self.name = "MovementPhase"
+
     # can move units that haven't moved in the attack phase, or planes that need to land
     # can't move into enemy territories
     def canMove(self, unit, destination):
@@ -223,27 +271,29 @@ class MovementPhase(BaseMovePhase):
             newMove = self.board.getPath(unit.territory, destination, unit)
             return previousMove + newMove < self.board.unitInfo(unit.type).movement
 
-    def nextPhase(self, board):
+    def nextPhase(self):
+        board = self.board
         board.neutralMoveList = self.moveList
-        board.currentPhase = PlacementPhase(board.buyList)
+        board.currentPhase = PlacementPhase(board)
         return board.currentPhase
 
 
 class PlacementPhase:
-    def __init__(self, units):
-        self.unitList = units
-        self.placeList = []
+    def __init__(self, board):
+        self.toPlace = board.buyList.copy()  # list of units to place on the board
+        self.placedList = []
+        self.name = "PlacementPhase"
 
     def place(self, unitType, territory, board):
-        if unitType in self.unitList and territory.hasFactory():
-            alreadyPlaced = [u for u in self.placeList if u.territory == territory]
+        if unitType in self.toPlace and territory.hasFactory():
+            alreadyPlaced = [u for u in self.placedList if u.territory == territory]
             if len(alreadyPlaced) < territory.income:
                 newUnit = Unit(unitType, board.currentCountry, territory)
-                self.unitList.remove(unitType)
-                self.placeList.append(newUnit)
+                self.toPlace.remove(unitType)
+                self.placedList.append(newUnit)
 
     def nextPhase(self, board):
-        for u in self.placeList:
+        for u in self.placedList:
             board.units.append(u)
         board.currentCountry.colllectIncome()
 

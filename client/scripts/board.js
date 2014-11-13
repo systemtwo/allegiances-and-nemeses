@@ -1,5 +1,6 @@
 define(["components"], function(_c) {
-    var Board = function() {
+    var Board = function(id) {
+        this.id = id;
         this.players = [];
         this.units = [];
         this.territories = [];
@@ -9,10 +10,10 @@ define(["components"], function(_c) {
         return this;
     };
 
-    Board.prototype.setImage = function(srcImagePath, onloadFunction) {
+    Board.prototype.setImage = function(srcImagePath, onLoadFunction) {
         this.mapImage = this.mapImage || new Image();
         this.mapImage.src = srcImagePath;
-        this.mapImage.onload = onloadFunction;
+        this.mapImage.onload = onLoadFunction;
     };
 
     Board.prototype.getMapWidth = function() {

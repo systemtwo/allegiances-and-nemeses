@@ -50,8 +50,9 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
             height: 500, // TODO base off of window width/user pref
             buttons: {
                 "Ok": function () {
-                    _g.currentPhase.nextPhase();
-                    $(this).dialog("close");
+                    _g.currentPhase.nextPhase(function() {
+                        $(this).dialog("close");
+                    });
                 },
                 "Minimize": function () {
                     $(this).dialog("close");
@@ -72,9 +73,7 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
      * Shows the list of units that can be moved, and which territories they come from.
      */
     var moveWindow = null;
-    function showMoveWindow(enabledUnits, disabledUnits, origin, destination) {
-        origin = origin || "Unknown";
-        destination = destination || "Unknown";
+    function showMoveWindow(enabledUnits, disabledUnits, from, destination) {
         if (moveWindow) {
             moveWindow.dialog("destroy");
         }
@@ -82,40 +81,63 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
 
         // Sort into buckets territory->enabled/disabled->unitType->amount
         var territoryDict = {};
-        enabledUnits.forEach(function(u) {
-            if (u.territory.name in territoryDict) {
-                var number = territoryDict[u.territory.name].enabled[u.unitType];
-                territoryDict[u.territory.name].enabled[u.unitType] = number ? number+1 : 1;
+        function eachUnit(u, key) {
+            var tName = u.beginningOfPhaseTerritory.name;
+//            if (tName !== u.beginningOfTurnTerritory.name) {
+//                tName = u.beginningOfTurnTerritory.name + "->" + tName; // Units that have moved in a previous phase have reduced move
+//            }
+            if (tName in territoryDict) {
+                var number = territoryDict[tName][key][u.unitType];
+                territoryDict[tName][key][u.unitType] = number ? number+1 : 1;
             } else {
-                var temp = {};
-                temp[u.unitType] = 1;
-                territoryDict[u.territory.name] = {enabled: temp};
+                var temp = {
+                    enabled: {},
+                    disabled: {}
+                };
+                temp[key][u.unitType] = 1;
+                territoryDict[tName] = temp;
             }
+        }
+        enabledUnits.forEach(function(unit) {
+            eachUnit(unit, "enabled");
         });
-        disabledUnits.forEach(function(u) {
-            if (u.territory.name in territoryDict) {
-                if (!territoryDict[u.territory.name].disabled) {
-                    territoryDict[u.territory.name].disabled = {};
-                }
-                var number = territoryDict[u.territory.name].disabled[u.unitType];
-                territoryDict[u.territory.name].disabled[u.unitType] = number ? number+1 : 1;
-            } else {
-                territoryDict[u.territory.name] = {disabled: {}};
-                territoryDict[u.territory.name].disabled[u.unitType] = 1;
-            }
+        disabledUnits.forEach(function(unit) {
+            eachUnit(unit, "disabled");
         });
         moveWindow = $(nj.render("static/templates/moveUnits.html", {
             territories: territoryDict,
-            origin: origin,
-            destination: destination,
+            origin: from.name,
+            destination: destination.name,
             columnWidth: Math.floor(12/Object.keys(territoryDict).length)
         }));
+        // attach listeners to enabled units
+        moveWindow.find(".unitRow").mousedown(function onUnitClick(e) {
+            e.preventDefault();
+            var row = $(e.currentTarget);
+            var amountElement = row.find(".selectedAmount");
+            console.assert(!isNaN(parseInt(amountElement.text())), "Amount selected is NaN");
+            var newVal = (parseInt(amountElement.text()) || 0) + 1; // increment by one
+            if (newVal > parseInt(row.data("max"))) {
+                newVal = 0; // cycle back to 0
+            }
+            amountElement.text(newVal);
+        });
+
         moveWindow.dialog({
             title: "Move Units",
             modal: false,
             buttons: {
                 "Move": function () {
                     var selectedUnits = []; // TODO send actual selected unit list
+                    moveWindow.find(".unitRow").each(function() {
+                        var row = $(this);
+                        selectedUnits.push({
+                            unitType: row.data("type"),
+                            currentTerritory: from, // All come from the same territory
+                            originalTerritoryName: row.data("territory").toString(),
+                            amount: parseInt(row.find(".selectedAmount").text())
+                        })
+                    });
                     _g.currentPhase.moveUnits(selectedUnits);
                     $(this).dialog("close");
                 },
@@ -152,6 +174,7 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
     // Attaches mouse listeners to the canvas element
     function listenToMap(canvas) {
         var dragging = false;
+        var blockContextMenu = false; // flag to block menu ONCE
 
         $(canvas).mousemove(function (e) {
             e.preventDefault();
@@ -181,8 +204,11 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
             dragging = false;
         });
 
-        $(canvas).on("contextmenu", function(e) {
-            e.preventDefault();
+        $(document).on("contextmenu", function(e) {
+            if (blockContextMenu) {
+                e.preventDefault();
+                blockContextMenu = false;
+            }
         });
 
         $(canvas).mousedown(function onMapClick(e) {
@@ -190,6 +216,7 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
             // Don't do anything if dragging
             if (e.button == "2") {
                 dragging = true;
+                blockContextMenu = true;
 
                 previousMouse.x = e.pageX;
                 previousMouse.y = e.pageY;
@@ -391,6 +418,18 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         selectableTerritories = territories;
         drawMap();
     }
+    function setTerritoriesWithUnitsSelectable(units) {
+        //unique list of all the territories the current country has units in
+        var territories = [];
+        var territoryNames = {};
+        units.forEach(function(u) {
+            if (!(u.territory.name in territoryNames)) {
+                territoryNames[u.territory.name] = true;
+                territories.push(u.territory)
+            }
+        });
+        setSelectableTerritories(territories);
+    }
 
     function territoryIsSelectable(t) {
         return selectableTerritories.indexOf(t) !== -1;
@@ -430,6 +469,7 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         hideArrow: hideArrow,
         showSkeleton: setShowSkeleton,
         setSelectableTerritories: setSelectableTerritories,
+        setTerritoriesWithUnitsSelectable: setTerritoriesWithUnitsSelectable,
         territoryIsSelectable: territoryIsSelectable,
         territoryAtPoint: territoryAtPoint
     }

@@ -54,7 +54,6 @@ class Board:
                 else:
                     raise Exception("Could not find territories for connection: " + json.dumps(c))
 
-
         # begin
         self.currentCountry = self.countries[0]
         self.currentPhase = BuyPhase(self.currentCountry.ipc, self)
@@ -73,11 +72,13 @@ class Board:
 
     def toDict(self):
         return {
+            "id": self.id.hex,
             "countries": [c.toJSON() for c in self.countries],
             "territoryInfo": self.territoryInfo,  # doesn't have CURRENT territory owners, only initial
             "connections": self.connections,
             "players": self.players,
             "units": [u.toJSON() for u in self.units],
+            "currentPhase": self.currentPhase.name,
 
             # Module info
             "unitCatalogue": self.unitCatalogue,
@@ -101,6 +102,12 @@ class Board:
             if u.territory == t:
                 unitList.append(u)
         return unitList
+
+    def territoryByName(self, name):
+        for t in self.territories:
+            if t.name == name:
+                return t
+        return None
 
     def removeUnit(self, u):
         self.units.remove(u)
