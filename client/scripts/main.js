@@ -14,10 +14,10 @@ requirejs.config({
 // Start the main app logic.
 requirejs(["globals", 'board', "phases", "components", "render", "router"],
 function (_g, board, _p, _c, _r, _router) {
-    _g.board = new board.Board();
+    var boardId = prompt("ID")
 
-    var boardId = "1";
     _router.fetchBoard(boardId, function(boardInfo) {
+        _g.board = new board.Board(boardInfo.id);
         _g.board.wrapsHorizontally = boardInfo.wrapsHorizontally;
         console.time("Map Load");
         _g.board.setImage(boardInfo.imagePath, function onMapLoad() {

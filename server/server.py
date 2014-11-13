@@ -46,7 +46,7 @@ class BoardsHandler(tornado.web.RequestHandler):
     def get(self, **params):
         if self.action == self.actions.ALL:
             #Return list of active boards
-            self.write("All")
+            self.write(BoardCollection.getBoardIds())
         elif self.action == self.actions.NEW:
             #Make a new board
 
@@ -59,7 +59,7 @@ class BoardsHandler(tornado.web.RequestHandler):
             newBoard = game.Board("default")
             BoardCollection.addBoard(newBoard)
             #Tell the client the id of the newly created board
-            self.write(json.dumps({"boardId": newBoard.id}))
+            self.write(json.dumps({"boardId": newBoard.id.hex}))
         elif self.action == self.actions.ID:
             #Return info about board with id boardId
 
@@ -114,8 +114,8 @@ class Server:
             #Board control
             (r"/boards/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ALL)),
             (r"/boards/new/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.NEW)),
-            (r"/boards/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID)), #Consider using named regex here
-            (r"/boards/(?P<boardId>[0-9]+)/action/?", ActionHandler),
+            (r"/boards/(?P<boardId>[0-9A-z]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID)), #Consider using named regex here
+            (r"/boards/(?P<boardId>[0-9A-z]+)/action/?", ActionHandler),
 
             #Static files
             (r"/shared/(.*)", utils.NoCacheStaticFileHandler, {"path": config.SHARED_CONTENT_PATH}),

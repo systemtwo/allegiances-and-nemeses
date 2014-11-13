@@ -74,6 +74,7 @@ class Board:
 
     def toDict(self):
         return {
+            "id": self.id.hex,
             "countries": [c.toJSON() for c in self.countries],
             "territoryInfo": self.territoryInfo,  # doesn't have CURRENT territory owners, only initial
             "connections": self.connections,
@@ -103,6 +104,12 @@ class Board:
             if u.territory == t:
                 unitList.append(u)
         return unitList
+
+    def territoryByName(self, name):
+        for t in self.territories:
+            if t.name == name:
+                return t
+        return None
 
     def removeUnit(self, u):
         self.units.remove(u)

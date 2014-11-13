@@ -1,5 +1,5 @@
-_idCounter = 0
+import uuid
+
+
 def getUniqueId():
-    global _idCounter
-    _idCounter += 1
-    return _idCounter
+    return uuid.uuid4()

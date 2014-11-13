@@ -1,6 +1,6 @@
 define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router) {
 
-    var BuyPhase = function() {
+    function BuyPhase() {
         _r.phaseName("Purchase Units");
         _g.buyList = {};
         _r.showRecruitmentWindow(this);
@@ -9,7 +9,7 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
         });
     //    _r.showTerritoryList();
         return this;
-    };
+    }
 
     // Updates the amount of a certain unit to buy
     BuyPhase.prototype.buyUnits = function(unitType, amount) {
@@ -29,7 +29,7 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
         }, 0);
     };
 
-    BuyPhase.prototype.nextPhase = function(onSucess) {
+    BuyPhase.prototype.nextPhase = function(onSuccess) {
         var buyList = Object.keys(_g.buyList).map(function(value) {
            return {
                unitType: _g.buyList[value].unitType,
@@ -37,7 +37,7 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
             }
         });
         _router.endBuyPhase(buyList, function() {
-            onSucess();
+            onSuccess();
             _g.currentPhase = new AttackPhase();
         });
     };
@@ -45,7 +45,7 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
 
     // Move units into enemy (or friendly) territories
     // User selects start, then selects destination, then selects which units to send
-    var AttackPhase = function() {
+    function AttackPhase() {
         _r.phaseName("Combat Move");
         this.states = {
             START: "selectMoveStart",
@@ -57,11 +57,10 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
         });
         this.setSelectableOriginTerritories();
         this.state = this.states.START;
-        this.selectedUnits = [];
         this.origin = null;
         this.destination = null;
         return this;
-    };
+    }
 
     AttackPhase.prototype.filterMovable = function() {
         return true; // Every unit belonging to a country is movable
@@ -118,17 +117,21 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
             }
         });
 
-        _r.showMoveWindow(able, unable, this.origin.name, this.destination.name);
+        _r.showMoveWindow(able, unable, this.origin, this.destination);
     };
 
     // Move a set of units to the destination territory. Triggered by the move window, when it's submitted
-    // Given a list of unitType, territory, and amount
+    // Given a list of unitType(String), originalTerritory (Territory), currentTerritory (String), and amount (int)
     AttackPhase.prototype.moveUnits = function(moveList) {
         var that = this;
+        _router.validateMove(this.origin, this.destination, moveList, function onFail() {
+            // revert
+            console.warn("Attempted invalid move")
+        });
         moveList.forEach(function(info) {
             var amount = info.amount;
             var t = _h.territoryByName(info.originalTerritoryName);
-            _h.territoryByName(info.currentTerritory).units().forEach(function(u) {
+            info.currentTerritory.units().forEach(function(u) {
                 if (amount > 0 && u.unitType === info.unitType && u.beginningOfPhaseTerritory === t) {
                     amount -= 1;
                     u.territory = that.destination;
@@ -149,28 +152,22 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
     };
 
     AttackPhase.prototype.nextPhase = function() {
-        console.warn("MOVEMENT NEXT PHASE - TODO");
-
-        // temp (should actually send request to server, then proceed)
-        _g.currentPhase = ResolvePhase();
+        _router.nextPhase(function onSuccess(conflicts) {
+            if (conflicts.length > 0) {
+                _g.currentPhase = new ResolvePhase(conflicts);
+            } else {
+                _g.currentPhase = new MovementPhase();
+            }
+        });
     };
 
     // Resolve all attacks made during the movement phase
-    var ResolvePhase = function() {
+    function ResolvePhase(conflicts) {
         _r.phaseName("Resolve Conflicts");
-        this.conflicts = this.getConflicts();
+        this.conflicts = conflicts;
         this.showConflicts();
         this.currentConflict = null;
-    };
-
-    ResolvePhase.prototype.getConflicts = function() {
-        // Fetch from server
-
-        // temp for testing
-        return [{
-            territory: _h.territoryByName("Russia")
-        }]
-    };
+    }
 
     ResolvePhase.prototype.showConflicts = function() {
         // render a window
@@ -195,16 +192,16 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
 
     // Another movement phase, with restrictions on movement.
     // Anyone who has moved cannot move again (unless it's a plane), and territories cannot be attacked (can only move into friendly territories)
-    var MovementPhase = function() {
+    function MovementPhase() {
         AttackPhase.call(this);
-    };
+    }
     MovementPhase.prototype = Object.create(AttackPhase.prototype);
     MovementPhase.prototype.filterMovable = function(unit) {
         return unit.isFlying() || unit.hasNotMoved()
     };
     MovementPhase.prototype.constructor = MovementPhase;
 
-    var PlacementPhase = function() {
+    function PlacementPhase() {
         this.states = {
             SELECT_UNIT: "selectUnit",
             SELECT_TERRITORY: "selectTerritory"
@@ -213,11 +210,11 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
 
         this.toPlace = _g.buyList.slice(); // copy to work with
         this.state = this.states.SELECT_UNIT;
-        showPlacementWindow(); // TODO implement placement window and logic.
+        _r.showPlacementWindow(); // TODO implement placement window and logic.
         // Server validation per unit placement? So that others can view in realtime.
         // Or send to server at end of phase
         return this;
-    };
+    }
 
     PlacementPhase.prototype.validUnitType = function(unitType) {
         for(var i=0; i<this.toPlace.length; i++) {

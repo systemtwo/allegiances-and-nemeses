@@ -74,8 +74,6 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
      */
     var moveWindow = null;
     function showMoveWindow(enabledUnits, disabledUnits, from, destination) {
-        from = from || "Unknown";
-        destination = destination || "Unknown";
         if (moveWindow) {
             moveWindow.dialog("destroy");
         }
@@ -108,8 +106,8 @@ define(["nunjucks", "globals", "helpers"], function(nj, _g, _h) {
         });
         moveWindow = $(nj.render("static/templates/moveUnits.html", {
             territories: territoryDict,
-            origin: from,
-            destination: destination,
+            origin: from.name,
+            destination: destination.name,
             columnWidth: Math.floor(12/Object.keys(territoryDict).length)
         }));
         // attach listeners to enabled units

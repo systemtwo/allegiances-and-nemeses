@@ -90,7 +90,9 @@ class AttackPhase(BaseMovePhase):
         super().__init__(board)
         self.name = "AttackPhase"
 
-    def nextPhase(self, board):
+    def nextPhase(self):
+        board = self.board
+        # TODO conflict class
         conflicts = {}  # list of territories being attacked, and the attacking units
         for (unit, start, dest) in self.moveList:
             if not Util.allied(dest.country, unit.country):
@@ -115,8 +117,13 @@ class ResolvePhase:
         self.resolvedConflicts = []
         self.board = board
         self.name = "ResolvePhase"
+        self.currentConflict = None  # change to hold a conflict, not a territory
+
+    def selectTerritory(self, territory):
+        self.currentConflict = territory
 
     # attacks until either defenders or attackers are all dead
+    # TODO update logic. May autoresolve a partially resolved conflict
     def autoResolve(self, territory):
         if not territory in self.unresolvedConflicts:
             return False
@@ -156,6 +163,12 @@ class ResolvePhase:
                     u.previousTerritory = u.territory
                     u.territory = territory
                 break
+
+    def autoResolveAll(self):
+        for tName, conflict in self.unresolvedConflicts:  # TODO include current conflict
+            self.autoResolve(tName)
+
+        # TODO return all BattleReports
 
     # Performs a single step in a territory conflict
     # Takes in a list of attackers and defenders. Removes casualties from list
@@ -214,16 +227,22 @@ class ResolvePhase:
                         break
         return BattleReport(attackers, defenders, deadA, deadD)
 
-    def retreat(self, conflictTerritory):
-        # send all attacking units back to the closest territory they came from
-        pass
+    def retreat(self, conflictTerritory, destination):
+        """
+        send all attacking units to the destination territory
+        dest must be a friendly territory adjacent to the conflict territory
+        some units may end up moving beyond their move limit
+        This is alright. It's a valid exploit.
+        Can only retreat from the current conflict. This means one battle tick must have happened
+        """
+        assert(conflictTerritory == self.currentConflict)
 
-    def nextPhase(self, board):
+    def nextPhase(self):
         if len(self.unresolvedConflicts) > 0:
             return None
         else:
-            board.currentPhase = MovementPhase(board)
-            return board.currentPhase
+            self.board.currentPhase = MovementPhase(self.board)
+            return self.board.currentPhase
 
 
 class BattleReport:
@@ -252,28 +271,29 @@ class MovementPhase(BaseMovePhase):
             newMove = self.board.getPath(unit.territory, destination, unit)
             return previousMove + newMove < self.board.unitInfo(unit.type).movement
 
-    def nextPhase(self, board):
+    def nextPhase(self):
+        board = self.board
         board.neutralMoveList = self.moveList
-        board.currentPhase = PlacementPhase(board.buyList)
+        board.currentPhase = PlacementPhase(board)
         return board.currentPhase
 
 
 class PlacementPhase:
-    def __init__(self, units):
-        self.unitList = units
-        self.placeList = []
+    def __init__(self, board):
+        self.toPlace = board.buyList.copy()  # list of units to place on the board
+        self.placedList = []
         self.name = "PlacementPhase"
 
     def place(self, unitType, territory, board):
-        if unitType in self.unitList and territory.hasFactory():
-            alreadyPlaced = [u for u in self.placeList if u.territory == territory]
+        if unitType in self.toPlace and territory.hasFactory():
+            alreadyPlaced = [u for u in self.placedList if u.territory == territory]
             if len(alreadyPlaced) < territory.income:
                 newUnit = Unit(unitType, board.currentCountry, territory)
-                self.unitList.remove(unitType)
-                self.placeList.append(newUnit)
+                self.toPlace.remove(unitType)
+                self.placedList.append(newUnit)
 
     def nextPhase(self, board):
-        for u in self.placeList:
+        for u in self.placedList:
             board.units.append(u)
         board.currentCountry.colllectIncome()
 
