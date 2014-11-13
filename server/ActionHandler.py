@@ -27,6 +27,11 @@ class ActionHandler(tornado.web.RequestHandler):
             self.send_error(400)
             return 
 
+
+        #See if it is the user's turn
+        if not board.isPlayersTurn(self.current_user):
+            self.send_error(403) #Forbidden
+
         #We are safe to do this, because we return in the except call (thereby eliminating the 
         #case where requestData is not set
         action = requestData["action"]

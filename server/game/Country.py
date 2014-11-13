@@ -2,9 +2,10 @@ import json
 
 
 class Country:
-    def __init__(self, name, teamName, board=None):
+    def __init__(self, name, teamName, player, board=None):
         self.name = name
         self.team = teamName
+        self.player = player #Not sure if this is a good idea. Maybe move this one level up
         self.ipc = 10
         self.board = board
 
