@@ -14,9 +14,6 @@ from ActionHandler import ActionHandler
 from AuthHandlers import LoginHandler, LogoutHandler, BaseAuthHandler
 
 
-
-
-
 class IndexHandler(tornado.web.RequestHandler):
     def initialize(self, html_path):
         self.HTML_PATH = html_path
@@ -96,27 +93,6 @@ class BoardsHandler(BaseAuthHandler):
             self.set_status(405)
             self.write("Method Not Allowed")
         return
-
-    """Checks to see if a move request body is valid"""
-    def validMoveRequest(self, body):
-        #We check to see if the body is validJSON
-        if len(req.body) == 0:
-            return False
-
-        try:
-            json.loads(body)
-        except ValueError:
-            return False
-
-        return True
-
-    """Get the board with a specific id"""
-    def getBoard(self, boardId):
-        #We use ints for the id, so we force the boardId to be an int
-        normalizedBoardId = int(boardId)
-        if normalizedBoardId in BoardsHandler.boards:
-            return BoardsHandler.boards[normalizedBoardId]
-        return None
 
 
 class Server:
