@@ -12,6 +12,8 @@ import BoardsManager
 from MapEditorHandler import MapEditorHandler
 from ActionHandler import ActionHandler
 from AuthHandlers import LoginHandler, LogoutHandler, BaseAuthHandler
+from LobbyHandlers import LobbyHandler, LobbyCreateHandler, LobbyGameHandler, LobbyNewHandler, LobbyGameJoinHandler, LobbyGameBeginHandler, LobbyGameUpdateHandler, LobbyGameDeleteHandler, ListingsManager
+
 
 
 class IndexHandler(tornado.web.RequestHandler):
@@ -100,6 +102,7 @@ class Server:
         html_path = os.path.join(config.STATIC_CONTENT_PATH, "html")
 
         self.boardsManager = BoardsManager.BoardsManager()
+        self.listingsManager = ListingsManager()
 
         self.app = tornado.web.Application([
             (r"/", IndexHandler, dict(html_path=html_path)),
@@ -120,6 +123,17 @@ class Server:
             (r"/login/?", LoginHandler),
             (r"/logout/?", LogoutHandler),
 
+            #Lobby web routes
+            (r"/lobby", LobbyHandler, dict(config=config, boardsManager=self.boardsManager, listingsManager=self.listingsManager)),
+            (r"/lobby/create", LobbyCreateHandler, dict(config=config, boardsManager=self.boardsManager, listingsManager=self.listingsManager)),
+            (r"/lobby/(?P<listingId>[0-9]+)/?", LobbyGameHandler, dict(config=config, boardsManager=self.boardsManager, listingsManager=self.listingsManager)),
+
+            #Lobby API routes
+            (r"/lobby/new", LobbyNewHandler, dict(config=config, boardsManager=self.boardsManager, listingsManager=self.listingsManager)),
+            (r"/lobby/(?P<listingId>[0-9]+)/join/?", LobbyGameJoinHandler, dict(config=config, boardsManager=self.boardsManager, listingsManager=self.listingsManager)),
+            (r"/lobby/(?P<listingId>[0-9]+)/begin/?", LobbyGameBeginHandler, dict(config=config, boardsManager=self.boardsManager, listingsManager=self.listingsManager)),
+            (r"/lobby/(?P<listingId>[0-9]+)/update/?", LobbyGameUpdateHandler, dict(config=config, boardsManager=self.boardsManager, listingsManager=self.listingsManager)),
+            (r"/lobby/(?P<listingId>[0-9]+)/delete/?", LobbyGameDeleteHandler, dict(config=config, boardsManager=self.boardsManager, listingsManager=self.listingsManager)),
 
 			#Static files
             (r"/shared/(.*)", utils.NoCacheStaticFileHandler, {"path": config.SHARED_CONTENT_PATH}),
