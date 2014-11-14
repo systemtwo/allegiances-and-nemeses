@@ -124,12 +124,12 @@ class Server:
             (r"/logout/?", LogoutHandler),
 
             #Lobby web routes
-            (r"/lobby", LobbyHandler, dict(config=config, boardsManager=self.boardsManager, listingsManager=self.listingsManager)),
-            (r"/lobby/create", LobbyCreateHandler, dict(config=config, boardsManager=self.boardsManager, listingsManager=self.listingsManager)),
+            (r"/lobby/?", LobbyHandler, dict(config=config, boardsManager=self.boardsManager, listingsManager=self.listingsManager)),
+            (r"/lobby/create/?", LobbyCreateHandler, dict(config=config, boardsManager=self.boardsManager, listingsManager=self.listingsManager)),
             (r"/lobby/(?P<listingId>[0-9]+)/?", LobbyGameHandler, dict(config=config, boardsManager=self.boardsManager, listingsManager=self.listingsManager)),
 
             #Lobby API routes
-            (r"/lobby/new", LobbyNewHandler, dict(config=config, boardsManager=self.boardsManager, listingsManager=self.listingsManager)),
+            (r"/lobby/new/?", LobbyNewHandler, dict(config=config, boardsManager=self.boardsManager, listingsManager=self.listingsManager)),
             (r"/lobby/(?P<listingId>[0-9]+)/join/?", LobbyGameJoinHandler, dict(config=config, boardsManager=self.boardsManager, listingsManager=self.listingsManager)),
             (r"/lobby/(?P<listingId>[0-9]+)/begin/?", LobbyGameBeginHandler, dict(config=config, boardsManager=self.boardsManager, listingsManager=self.listingsManager)),
             (r"/lobby/(?P<listingId>[0-9]+)/update/?", LobbyGameUpdateHandler, dict(config=config, boardsManager=self.boardsManager, listingsManager=self.listingsManager)),
