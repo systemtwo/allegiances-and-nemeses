@@ -1,3 +1,5 @@
+import os.path
+
 import tornado.web
 from voluptuous import Schema, Required, All, Range
 
@@ -11,19 +13,22 @@ class BaseLobbyHandler(BaseAuthHandler):
         self.config = config
         self.boardsManager = boardsManager
         self.listingsManager = listingsManager
+        
+        self.LOBBY_HTML_PATH = os.path.join(self.config.STATIC_CONTENT_PATH, "html", "lobby")
 
 """Serves the lobby page"""
 class LobbyHandler(BaseLobbyHandler):
     @tornado.web.authenticated
     def get(self, **params):
-        self.write(str(self.path_args))
-        return
+        with open(os.path.join(self.LOBBY_HTML_PATH, "lobby.html")) as f:
+            self.write(f.read()) 
 
 """Serves a page that allows a game listing to be created"""
 class LobbyCreateHandler(BaseLobbyHandler):
     @tornado.web.authenticated
     def get(self, **params):
-        pass
+        with open(os.path.join(self.LOBBY_HTML_PATH, "lobbynew.html")) as f:
+            self.write(f.read()) 
 
 """Serves a page that has the details of the game listing"""
 class LobbyGameHandler(BaseLobbyHandler):
@@ -72,13 +77,42 @@ class GameListing:
         self.creatorId = creatorId
         self.moduleName = moduleName
         self.password = password
+        self.started = False
+        
+        #This could be a array of tuples if we need it to be
+        self.players = {} #Contains (country, userId) pairs
+
+    """Load the country keys into the players dict"""
+    def loadCountries(self, countries):
+        pass
+
+
+    """Attempts to add a player to a country. Returns True on success"""
+    def addPlayer(self, userId, country):
+        if (self.players[country]):
+            return False
+
+        self.players[country] = userId
+        return True
+
+    def removePlayer(self, country):
+        self.players[country] = None
 
 class ListingsManager:
     def __init__(self):
-        pass
+        self.listings = {}
+        self.lastId = 0
 
     def getGameListing(self, listingId):
-        pass
+        if listingId in self.listings:
+            return self.listings[listingId]
+        return None
+
+    def addGameListing(self, listing):
+        self.lastId += 1
+        self.listings[self.lastId] = listing
+        return self.lastId
+
 
 
 
