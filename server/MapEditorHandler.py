@@ -3,7 +3,7 @@ import tornado.web
 import os.path
 import json
 
-import game
+import GameBoard
 import utils
 
 class MapEditorHandler(tornado.web.RequestHandler):
@@ -25,19 +25,19 @@ class MapEditorHandler(tornado.web.RequestHandler):
         elif self.action == self.actions.MODULE_INFO:
             returnObject = {}
             moduleName = params["moduleName"]
-            with open(game.Util.countryFileName(moduleName)) as countryInfo:
+            with open(GameBoard.Util.countryFileName(moduleName)) as countryInfo:
                 returnObject["countries"] = countryInfo.read()
 
-            with open(game.Util.unitFileName(moduleName)) as unitInfo:
+            with open(GameBoard.Util.unitFileName(moduleName)) as unitInfo:
                 returnObject["units"] = unitInfo.read()
 
-            with open(game.Util.territoryFileName(moduleName)) as territoryInfo:
+            with open(GameBoard.Util.territoryFileName(moduleName)) as territoryInfo:
                 returnObject["territories"] = territoryInfo.read()
 
-            with open(game.Util.connectionFileName(moduleName)) as connections:
+            with open(GameBoard.Util.connectionFileName(moduleName)) as connections:
                 returnObject["connections"] = connections.read()
 
-            with open(game.Util.filePath(moduleName, "info.json")) as file:
+            with open(GameBoard.Util.filePath(moduleName, "info.json")) as file:
                 info = json.load(file)
                 returnObject["wrapsHorizontally"] = info["wrapsHorizontally"]
                 if "imageName" in info:
@@ -50,15 +50,15 @@ class MapEditorHandler(tornado.web.RequestHandler):
             moduleName = self.get_argument("moduleName")
             if not os.path.exists(os.path.join(self.config.MODS_PATH, moduleName)):
                 os.makedirs(os.path.join(self.config.MODS_PATH, moduleName))
-                with open(game.Util.countryFileName(moduleName), 'w') as f:
+                with open(GameBoard.Util.countryFileName(moduleName), 'w') as f:
                     f.write("[]")
-                with open(game.Util.unitFileName(moduleName), 'w') as f:
+                with open(GameBoard.Util.unitFileName(moduleName), 'w') as f:
                     f.write("{}")
-                with open(game.Util.territoryFileName(moduleName), 'w') as f:
+                with open(GameBoard.Util.territoryFileName(moduleName), 'w') as f:
                     f.write("[]")
-                with open(game.Util.connectionFileName(moduleName), 'w') as f:
+                with open(GameBoard.Util.connectionFileName(moduleName), 'w') as f:
                     f.write("[]")
-                with open(game.Util.filePath(moduleName, "info.json"), "w") as file:
+                with open(GameBoard.Util.filePath(moduleName, "info.json"), "w") as file:
                     file.write(json.dumps({
                         "wrapsHorizontally": False
                     }))

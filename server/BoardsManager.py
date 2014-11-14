@@ -1,4 +1,4 @@
-import game
+import GameBoard
 
 """A class to manage game boards"""
 class BoardsManager():
@@ -15,7 +15,7 @@ class BoardsManager():
 
     def newBoard(self, boardName, module):
         self.lastId += 1
-        self.boards[self.lastId] = game.Board(boardName, module)
+        self.boards[self.lastId] = GameBoard.Board(boardName, module)
         return self.lastId
 
     def listBoards(self):

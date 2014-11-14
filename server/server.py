@@ -6,7 +6,6 @@ from voluptuous import Schema, Required, All, Range
 import os.path
 import json
 
-import game
 import utils
 import BoardsManager
 from MapEditorHandler import MapEditorHandler
