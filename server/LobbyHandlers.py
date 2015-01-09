@@ -8,10 +8,10 @@ from AuthHandlers import BaseAuthHandler
 
 ## Lobby Route Handlers **
 class BaseLobbyHandler(BaseAuthHandler):
-    def initialize(self, config, boardsManager, listingsManager):
+    def initialize(self, config, gamesManager, listingsManager):
         super(BaseLobbyHandler, self).initialize(config=config)
         self.config = config
-        self.boardsManager = boardsManager
+        self.gamesManager = gamesManager
         self.listingsManager = listingsManager
         
         self.LOBBY_HTML_PATH = os.path.join(self.config.STATIC_CONTENT_PATH, "html", "lobby")

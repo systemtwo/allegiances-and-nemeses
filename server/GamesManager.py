@@ -1,24 +1,23 @@
 import GameBoard
 
-"""A class to manage game boards"""
-class BoardsManager():
+"""A class to manage games"""
+class GamesManager:
     def __init__(self):
-        self.boards = {}
+        self.games = {}
         self.lastId = 0
-        print("Init'd")
     
-    def getBoard(self, boardId):
+    def getGame(self, boardId):
         if boardId in self.boards:
             return self.boards[boardId]
         else:
             return None
 
-    def newBoard(self, boardName, module):
+    def newGame(self, boardName, module):
         self.lastId += 1
         self.boards[self.lastId] = GameBoard.Board(boardName, module)
         return self.lastId
 
-    def listBoards(self):
+    def listGames(self):
         #Have this return a more lightweight representation instead, like board 
         #title and ids
-        return [{"id": boardId, "name": self.boards[boardId].name} for boardId in self.boards]
+        return [{"id": gameId, "name": self.games[gameId].name} for gameId in self.games]
