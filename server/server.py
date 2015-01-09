@@ -7,7 +7,6 @@ import os.path
 import json
 
 import utils
-import BoardsManager
 import GamesManager
 from MapEditorHandler import MapEditorHandler
 from ActionHandler import ActionHandler
