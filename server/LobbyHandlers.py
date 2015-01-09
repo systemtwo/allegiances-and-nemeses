@@ -20,8 +20,10 @@ class BaseLobbyHandler(BaseAuthHandler):
 class LobbyHandler(BaseLobbyHandler):
     @tornado.web.authenticated
     def get(self, **params):
-        with open(os.path.join(self.LOBBY_HTML_PATH, "lobby.html")) as f:
-            self.write(f.read()) 
+        renderArguments = {}
+        renderArguments["listings"] = self.gamesManager.listGames()
+        
+        self.render(os.path.join("..", self.LOBBY_HTML_PATH, "lobby.html"), **renderArguments)
 
 """Serves a page that allows a game listing to be created"""
 class LobbyCreateHandler(BaseLobbyHandler):
@@ -29,6 +31,13 @@ class LobbyCreateHandler(BaseLobbyHandler):
     def get(self, **params):
         with open(os.path.join(self.LOBBY_HTML_PATH, "lobbynew.html")) as f:
             self.write(f.read()) 
+
+    @tornado.web.authenticated
+    def post(self, **params):
+        self.gamesManager.newGame("title", 10, "default")
+        self.redirect("/lobby")
+        return
+
 
 """Serves a page that has the details of the game listing"""
 class LobbyGameHandler(BaseLobbyHandler):
