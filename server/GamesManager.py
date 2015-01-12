@@ -8,7 +8,7 @@ class GamesManager:
     
     def getGame(self, gameId):
         if gameId in self.games:
-            return self.game[gameId]
+            return self.games[gameId]
         else:
             return None
 
