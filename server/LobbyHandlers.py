@@ -1,18 +1,17 @@
 import os.path
 
 import tornado.web
-from voluptuous import Schema, Required, All, Range
+from voluptuous import Schema, Required, All, Range, Length, MultipleInvalid
 
 from AuthHandlers import BaseAuthHandler
 
 
 ## Lobby Route Handlers **
 class BaseLobbyHandler(BaseAuthHandler):
-    def initialize(self, config, gamesManager, listingsManager):
+    def initialize(self, config, gamesManager):
         super(BaseLobbyHandler, self).initialize(config=config)
         self.config = config
         self.gamesManager = gamesManager
-        self.listingsManager = listingsManager
         
         self.LOBBY_HTML_PATH = os.path.join(self.config.STATIC_CONTENT_PATH, "html", "lobby")
 
@@ -25,16 +24,47 @@ class LobbyHandler(BaseLobbyHandler):
         
         self.render(os.path.join("..", self.LOBBY_HTML_PATH, "lobby.html"), **renderArguments)
 
+
+        #with open(os.path.join(self.LOBBY_HTML_PATH, "lobbynew.html")) as f:
+        #Consider doing t = tornado.Template(file.read())
+        #self.write(t.generate(params))
+
 """Serves a page that allows a game listing to be created"""
 class LobbyCreateHandler(BaseLobbyHandler):
     @tornado.web.authenticated
     def get(self, **params):
-        with open(os.path.join(self.LOBBY_HTML_PATH, "lobbynew.html")) as f:
-            self.write(f.read()) 
+        renderArguments = {}
+        renderArguments["modules"] = [{"name": "default"}]
+        self.render(os.path.join("..", self.LOBBY_HTML_PATH, "lobbynew.html"), **renderArguments)
+        print "rendered"
 
     @tornado.web.authenticated
     def post(self, **params):
-        self.gamesManager.newGame("title", 10, "default")
+        userInput = {}
+        userInput['roomName'] = self.get_argument("roomname")
+        #FIXME: Unsafe cast!
+        userInput['players'] = int(self.get_argument("players"))
+        userInput['module'] = self.get_argument("module")
+
+        schema = Schema({
+            Required("roomName"): All(unicode, Length(min=1)),
+            Required("players"): All(int, Range(min=1, max=5)),
+            Required("module"): unicode
+        })
+
+        try:
+            validUserInput = schema(userInput)
+        except MultipleInvalid as e:
+            print str(e)
+            self.send_error(400)
+            return
+
+
+        #TODO: Check for validity of module
+        #ie. Does it exist?
+
+
+        self.gamesManager.newGame(validUserInput["roomName"], validUserInput["players"], validUserInput["module"])
         self.redirect("/lobby")
         return
 
@@ -54,8 +84,16 @@ class LobbyNewHandler(BaseLobbyHandler):
 """Joins a game listing"""
 class LobbyGameJoinHandler(BaseLobbyHandler):
     @tornado.web.authenticated
-    def post(self, **params):
-        pass
+    def get(self, **params):
+        #TODO: Validate the game id
+        #FIXME? We hackishly cast here...
+        gameId = int(params["gameId"])
+        print gameId
+        if (self.gamesManager.getGame(gameId).addPlayer(1, "aaa")):
+            self.write("Joining game :D")
+        else:
+            self.write("Something went wrong :(")
+
 
 """Initiates a game from a game listing"""
 class LobbyGameBeginHandler(BaseLobbyHandler):
@@ -74,54 +112,6 @@ class LobbyGameDeleteHandler(BaseLobbyHandler):
     @tornado.web.authenticated
     def get(self, **params):
         pass
-
-
-
-## Lobby Objects ##
-class GameListing:
-    def __init__(self, boardName, numPlayers, creatorId, moduleName, password=""):
-        #We are okay to have the password as a default arg, as strings are immutable
-        self.boardName = boardName
-        self.numPlayers = numPlayers
-        self.creatorId = creatorId
-        self.moduleName = moduleName
-        self.password = password
-        self.started = False
-        
-        #This could be a array of tuples if we need it to be
-        self.players = {} #Contains (country, userId) pairs
-
-    """Load the country keys into the players dict"""
-    def loadCountries(self, countries):
-        pass
-
-
-    """Attempts to add a player to a country. Returns True on success"""
-    def addPlayer(self, userId, country):
-        if (self.players[country]):
-            return False
-
-        self.players[country] = userId
-        return True
-
-    def removePlayer(self, country):
-        self.players[country] = None
-
-class ListingsManager:
-    def __init__(self):
-        self.listings = {}
-        self.lastId = 0
-
-    def getGameListing(self, listingId):
-        if listingId in self.listings:
-            return self.listings[listingId]
-        return None
-
-    def addGameListing(self, listing):
-        self.lastId += 1
-        self.listings[self.lastId] = listing
-        return self.lastId
-
 
 
 

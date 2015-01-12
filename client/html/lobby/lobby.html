@@ -27,6 +27,9 @@
                     Name
                 </td>
                 <td>
+                    Players
+                </td>
+                <td>
                     Link
                 </td>
             </tr>
@@ -42,7 +45,10 @@
                     {{item['game'].name}}
                 </td>
                 <td>
-                    <a href="#">Join</a>
+                    {{item['game'].currPlayers}}/{{item['game'].maxPlayers}}
+                </td>
+                <td>
+                    <a href="/lobby/{{item['id']}}/join">Join</a>
                 </td>
             </tr>
             {% end %}
