@@ -12,9 +12,9 @@ class GamesManager:
         else:
             return None
 
-    def newGame(self, gameName, numPlayers, moduleName):
+    def newGame(self, gameName, numPlayers, moduleName, creatorId):
         self.lastId += 1
-        self.games[self.lastId] = Game.Game(gameName, numPlayers, moduleName)
+        self.games[self.lastId] = Game.Game(gameName, numPlayers, moduleName, creatorId)
         return self.lastId
 
     def listGames(self):

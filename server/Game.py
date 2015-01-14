@@ -1,12 +1,12 @@
 import GameBoard
 
 class Game:
-    def __init__(self, gameName, numPlayers, moduleName, password=""):
+    def __init__(self, gameName, numPlayers, moduleName, creatorId, password=""):
         #We are okay to have the password as a default arg, as strings are immutable
         self.name = gameName
         self.currPlayers = 0
         self.maxPlayers = numPlayers
-        self.creatorId = 0
+        self.creatorId = creatorId
         self.moduleName = moduleName
         self.password = password
         self.started = False

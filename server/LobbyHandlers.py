@@ -64,35 +64,78 @@ class LobbyCreateHandler(BaseLobbyHandler):
         #ie. Does it exist?
 
 
-        self.gamesManager.newGame(validUserInput["roomName"], validUserInput["players"], validUserInput["module"])
+        self.gamesManager.newGame(validUserInput["roomName"], validUserInput["players"], validUserInput["module"], self.current_user)
         self.redirect("/lobby")
         return
-
 
 """Serves a page that has the details of the game listing"""
 class LobbyGameHandler(BaseLobbyHandler):
     @tornado.web.authenticated
     def get(self, **params):
-        pass
+        renderArguments = {}
+        renderArguments['players'] = ['a', 'b']
+        renderArguments['countries'] = [{"id": 0, "name": "A"}, {"id": 1, "name": "B"}]
+        self.render(os.path.join("..", self.LOBBY_HTML_PATH, "lobbyjoining.html"), **renderArguments)
 
-"""Serves a page that allows a game listing to be created"""
-class LobbyNewHandler(BaseLobbyHandler):
-    @tornado.web.authenticated
+    # Change the game settings, eg. Player <-> Country mapping
     def post(self, **params):
-        pass
+        userInput = {}
+
+        #TODO: Validate the game id
+        #FIXME? We hackishly cast here...
+        userInput['gameId'] = int(params["gameId"])
+        #userInput['countryId'] = self.get_argument("countryId")
+
+        schema = Schema({
+            Required("gameId"): All(int),
+        #    Required("countryId"): All(unicode, Length(min=1))
+        })
+
+        try:
+            validUserInput = schema(userInput)
+        except MultipleInvalid as e:
+            print str(e)
+            self.send_error(400)
+            return
+
+
+        #Make it so that only the game creator can change the settings
+        if (self.current_user is not self.gamesManager.getGame(validUserInput['gameId']).creatorId):
+            self.send_error(403)
+            return
 
 """Joins a game listing"""
 class LobbyGameJoinHandler(BaseLobbyHandler):
     @tornado.web.authenticated
     def get(self, **params):
-        #TODO: Validate the game id
-        #FIXME? We hackishly cast here...
-        gameId = int(params["gameId"])
-        print gameId
+
+
+        userInput = {}
+        userInput['gameId'] = int(params["gameId"])
+        schema = Schema({
+            Required("gameId"): All(int),
+        })
+
+        try:
+            validUserInput = schema(userInput)
+        except MultipleInvalid as e:
+            print str(e)
+            self.send_error(400)
+            return
+
+        self.gamesManager.getGame(validUserInput['gameId'])
+
         if (self.gamesManager.getGame(gameId).addPlayer(1, "aaa")):
-            self.write("Joining game :D")
+            self.redirect("/lobby")
+            #self.write("Joining game :D")
         else:
             self.write("Something went wrong :(")
+
+
+
+
+
+
 
 
 """Initiates a game from a game listing"""
