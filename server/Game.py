@@ -18,19 +18,14 @@ class Game:
         #This could be a array of tuples if we need it to be
         self.players = {} #Contains (country, userId) pairs
 
-    """Attempts to add a player to a country. Returns True on success"""
-    def addPlayer(self, userId, country):
-        if (self.currPlayers > self.maxPlayers):
+    """Attempts to add a player to the Game. Returns True on success"""
+    def addPlayer(self, userId):
+        if (self.currPlayers >= self.maxPlayers):
             return False
         
+        if (userId not in self.players):
+            self.players[userId] = []
 
-        if (country not in self.players):
-            self.players[country] = None
-
-        if (self.players[country]):
-            return False
-
-        self.players[country] = userId
         self.currPlayers += 1
         return True
 
@@ -39,7 +34,44 @@ class Game:
         self.players[country] = None
 
     def listPlayers(self):
-        pass
+        return [userId for userId in self.players]
+
+    def addPlayerCountry(self, userId, newCountry):
+        if (userId not in self.players or type(self.players[userId]) == list):
+            return False
+
+        self.players[userId].append(newCountry)
+        return True
+
+    def removePlayerCountry(self, userId, country):
+        if (userId not in self.players or type(self.players[userId]) == list):
+            return False
+
+        if (self.players[userId].remove(country)):
+            return True
+        else:
+            return False
+
+    def removePlayerCountries(self, userId):
+        if (userId not in self.players or type(self.players[userId]) == list):
+            return False
+
+        #This clears the entire list
+        del self.players[userId][:]
+        return True
+
+
+    def getPlayerCountries(self, userId):
+        if (userId not in self.players or type(self.players[userId]) == list):
+            return False
+
+        return self.players[userId]
+
+        
+
+
+
+
 
     def loadCountries(self, countries):
         pass

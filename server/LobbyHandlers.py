@@ -73,6 +73,7 @@ class LobbyGameHandler(BaseLobbyHandler):
     @tornado.web.authenticated
     def get(self, **params):
         renderArguments = {}
+        renderArguments['gameName'] = "Some Name"
         renderArguments['players'] = ['a', 'b']
         renderArguments['countries'] = [{"id": 0, "name": "A"}, {"id": 1, "name": "B"}]
         self.render(os.path.join("..", self.LOBBY_HTML_PATH, "lobbyjoining.html"), **renderArguments)
@@ -125,8 +126,8 @@ class LobbyGameJoinHandler(BaseLobbyHandler):
 
         self.gamesManager.getGame(validUserInput['gameId'])
 
-        if (self.gamesManager.getGame(gameId).addPlayer(1, "aaa")):
-            self.redirect("/lobby")
+        if (self.gamesManager.getGame(validUserInput['gameId']).addPlayer(self.current_user)):
+            self.redirect("/lobby/" + str(validUserInput['gameId']))
             #self.write("Joining game :D")
         else:
             self.write("Something went wrong :(")
