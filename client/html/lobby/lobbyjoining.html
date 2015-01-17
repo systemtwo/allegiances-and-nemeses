@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
     <head>
@@ -15,18 +14,39 @@
         <h1>Allegiances and the Nemeses </h1>
         <h2>Configure Game</h2>
 
+        <br />
+        <h3>Game: {{gameName}}</h3>
+
         <form method="POST">
+            <p>
             Players:
-            <br />
+            </p>
+
+            <table class="table table-hover">
+                <tr>
+                    <td>
+                        Name
+                    </td>
+                    <td>
+                        Country
+                    </td>
+                </tr>
+
             {% for player in players %}
+                <tr>
+                    <td>
                 {{player}} 
-                <select name="country-selection-{{player}}">
-                    {% for country in countries %}
-                    <option value="{{country['id']}}">{{country['name']}}</option>
-                    {% end %}
-                </select>
-                <br />
+                    </td>
+                    <td>
+                    <select name="country-selection-{{player}}">
+                        {% for country in countries %}
+                        <option value="{{country['id']}}">{{country['name']}}</option>
+                        {% end %}
+                    </select>
+                    </td>
+                </tr>
             {% end %}
+            </table>
 
             <input type="submit" value="Begin">
         </form>

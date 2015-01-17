@@ -42,7 +42,7 @@
                     {{item['id']}}
                 </td>
                 <td>
-                    {{item['game'].name}}
+                    <a href="/lobby/{{item['id']}}">{{item['game'].name}}</a>
                 </td>
                 <td>
                     {{item['game'].currPlayers}}/{{item['game'].maxPlayers}}
