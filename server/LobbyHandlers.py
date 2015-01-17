@@ -98,7 +98,7 @@ class LobbyGameHandler(BaseLobbyHandler):
         renderArguments['players'] = ['a', 'b']
         renderArguments['countries'] = [{"id": i, "name": game.countries[i]} for i in xrange(len(game.countries))]
         print renderArguments['countries']
-        self.render(os.path.join("..", self.LOBBY_HTML_PATH, "lobbyjoining.html"), **renderArguments)
+        self.render(os.path.join("..", self.LOBBY_HTML_PATH, "lobbyinfo.html"), **renderArguments)
 
     # Change the game settings, eg. Player <-> Country mapping
     def post(self, **params):
@@ -159,8 +159,6 @@ class LobbyGameBeginHandler(BaseLobbyHandler):
     def get(self, **params):
         game = self.gamesManager.getGame(parms['gameId'])
         game.started = True
-        
-        
         pass
 
 """Updates the settings of a game"""
