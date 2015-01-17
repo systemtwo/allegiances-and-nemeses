@@ -16,11 +16,11 @@ define(["globals"], function(_g) {
     // This is called by Attack, Move, and Place phases ONLY
     // Buy Phase ends with "endBuyPhase"
     // Resolve phase ends when there are no more conflicts
-    function nextPhase(onSuccess) {
+    function nextPhase() {
         sendAction({
             action: "nextPhase",
             currentPhase: _g.currentPhase.constructor.name // get the class name
-        }).done(onSuccess);
+        });
     }
     function endBuyPhase(boughtUnits) {
         return sendAction({
@@ -30,12 +30,12 @@ define(["globals"], function(_g) {
             console.log(arguments)
         })
     }
-    function fetchBoard(boardId, onSuccess) {
+    function fetchBoard(boardId) {
         console.assert(boardId !== null, "Board Id not set");
-        return $.getJSON("/boards/" + boardId).done(onSuccess);
+        return $.getJSON("/boards/" + boardId);
     }
-    function fetchBoards(onSuccess) {
-        return $.getJSON("/boards").done(onSuccess);
+    function fetchBoards() {
+        return $.getJSON("/boards");
     }
     function validateMove(start, end, units, onfail) {
         var unitIds = units.map(function(u) {
@@ -43,8 +43,8 @@ define(["globals"], function(_g) {
         });
         return sendAction({
             action: "move",
-            from: start,
-            to: end,
+            from: start.name,
+            to: end.name,
             unitList: unitIds
         }).fail(onfail)
     }
@@ -54,58 +54,51 @@ define(["globals"], function(_g) {
             territory: territoryName
         }).fail(onFail);
     }
-    function battle(territoryName, onSuccess, onFail) {
+    function battle(territoryName) {
         // Perform one tick of a battle
         // Success will return a BattleReport
         // Will fail if battling in the non-current conflict
         return sendAction({
             action: "battleTick",
             territory: territoryName
-        })
-            .done(onSuccess)
-            .fail(onFail);
-
+        });
     }
-    function retreat(conflictTerritory, destination, onSuccess, onFail) {
+    function retreat(conflictTerritory, destination) {
         // Success will return a BattleReport
         // Will fail if battling in the non-current conflict
         return sendAction({
             action: "retreat",
             from: conflictTerritory,
             to: destination
-        })
-            .done(onSuccess)
-            .fail(onFail);
+        });
     }
-    function autoResolve(territoryName, onSuccess, onFail) {
+    function autoResolve(territoryName) {
         // NO RETREAT. TO THE DEATH, BROTHERS!
         // Success will return a BattleReport
         // Will fail if battling in the non-current conflict
         return sendAction({
             action: "autoResolve",
             territory: territoryName
-        })
-            .done(onSuccess)
-            .fail(onFail);
+        });
     }
-    function autoResolveAll(onSuccess) {
+    function autoResolveAll() {
         // NO RETREAT. TO THE DEATH, BROTHERS!
         // Success will return a BattleReport
         // Will fail if battling in the non-current conflict
         var request = sendAction({
             action: "autoResolveAll"
         });
-        request.done(onSuccess);
         request.fail(function onFail(){
             // Show an error?
         });
+        return request;
     }
-    function placeUnit(territoryName, unitType, onFail) {
+    function placeUnit(territoryName, unitType) {
         return sendAction({
             action: "placeUnit",
             territory: territoryName,
             unitType: unitType
-        }).fail(onFail);
+        });
     }
     function getEventLog() {
         return sendAction({

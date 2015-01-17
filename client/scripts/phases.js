@@ -36,7 +36,7 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
                amount: _g.buyList[value].amount
             }
         });
-        _router.endBuyPhase(buyList, function() {
+        _router.endBuyPhase(buyList).done(function() {
             onSuccess();
             _g.currentPhase = new AttackPhase();
         });
@@ -124,7 +124,7 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
     // Given a list of unitType(String), originalTerritory (Territory), currentTerritory (String), and amount (int)
     AttackPhase.prototype.moveUnits = function(moveList) {
         var that = this;
-        _router.validateMove(this.origin, this.destination, moveList, function onFail() {
+        _router.validateMove(this.origin, this.destination, moveList).fail(function onFail() {
             // revert
             console.warn("Attempted invalid move")
         });
@@ -152,7 +152,7 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
     };
 
     AttackPhase.prototype.nextPhase = function() {
-        _router.nextPhase(function onSuccess(conflicts) {
+        _router.nextPhase().done(function onSuccess(conflicts) {
             if (conflicts.length > 0) {
                 _g.currentPhase = new ResolvePhase(conflicts);
             } else {

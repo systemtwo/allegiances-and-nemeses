@@ -1,7 +1,7 @@
 import tornado.ioloop
 import tornado.web
 
-from voluptuous import Schema, Required, All, Range
+from voluptuous import Schema, Required, All, Range, MultipleInvalid
 
 import os.path
 import json
@@ -71,12 +71,13 @@ class BoardsHandler(BaseAuthHandler):
                 Required("players", default=2): All(int, Range(min=2, max=5))
             })
 
-            request = self.request.body or "{}"
-            settings = schema(json.loads(request))
+            try:
+                request = self.request.body or "{}"
+                settings = schema(json.loads(request))
 
-            # except:
-            #     self.set_status(400) #400 Bad Request
-            #     return
+            except MultipleInvalid as e:
+                self.set_status(400) #400 Bad Request
+                return
 
             #Create and add the board to the working list of boards
             createdId = self.boardsManager.newBoard(settings["boardName"], settings["module"])

@@ -1,6 +1,6 @@
 import tornado.web
 
-from voluptuous import Schema, Required, All, Range
+from voluptuous import Schema, Required, All, Range, MultipleInvalid
 
 from AuthHandlers import BaseAuthHandler
 
@@ -20,21 +20,18 @@ class ActionHandler(BaseAuthHandler):
             self.send_error(404)
             return
 
-        # try:
-        schema = Schema({
-            Required("action"): unicode,
-        }, extra=True)
-
-        requestData = schema(json.loads(self.request.body))
-
-        # except:
-        #     self.send_error(400)
-        #     return
-
+        try:
+            schema = Schema({
+                Required("action"): unicode,
+            }, extra=True)
+            requestData = schema(json.loads(self.request.body))
+        except MultipleInvalid as e:
+            self.send_error(400)
+            return
 
         #See if it is the user's turn
         if not board.isPlayersTurn(self.current_user):
-            self.send_error(403) #Forbidden
+            self.send_error(403)  # Forbidden
             return
 
         #We are safe to do this, because we return in the except call (thereby eliminating the 
@@ -85,13 +82,8 @@ class ActionHandler(BaseAuthHandler):
             board.currentPhase.place(requestData["unitType"], requestData["territory"])
 
         elif "getEventLog" == action:
-            pass # TODO
-
+            pass  # TODO
 
     def assertPhase(self, phaseName, board):
         if phaseName is not board.currentPhase.name:
             self.send_error(400)
-
-
-
-

@@ -24,8 +24,9 @@ define(["components"], function(_c) {
         }
     };
     Board.prototype.addUnit = function(unitType, territory, country) {
+        var i = 0;
         if (typeof territory === "string") {
-            for (var i=0; i < this.territories.length; i++) {
+            for (i=0; i < this.territories.length; i++) {
                 if (this.territories[i].name === territory) {
                     territory = this.territories[i];
                     break;
@@ -34,15 +35,14 @@ define(["components"], function(_c) {
             }
         }
         if (typeof country === "string") {
-            for (var i=0; i < this.countries.length; i++) {
+            for (i=0; i < this.countries.length; i++) {
                 if (this.countries[i].name === country) {
                     country = this.countries[i];
                     break;
-
                 }
             }
         }
-        var newUnit = new _c.Unit(unitType, country, territory);
+        var newUnit = new _c.Unit(null, unitType, country, territory);
         this.units.push(newUnit);
     };
 

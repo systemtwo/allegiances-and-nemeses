@@ -1,6 +1,7 @@
 define(["globals"], function(_g) {
 
-    var Unit = function(unitType, country, territory) {
+    var Unit = function(id, unitType, country, territory) {
+        this.id = id;
         this.unitType = unitType;
         this.country = country;
         this.territory = territory;
@@ -75,6 +76,7 @@ define(["globals"], function(_g) {
 
     return {
         Country: Country,
+        Conflict: Conflict,
         Territory: Territory,
         Unit: Unit
     }

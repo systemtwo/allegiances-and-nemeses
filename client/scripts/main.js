@@ -14,12 +14,12 @@ requirejs.config({
 // Start the main app logic.
 requirejs(["globals", 'board', "phases", "components", "render", "router"],
 function (_g, board, _p, _c, _r, _router) {
-    _router.fetchBoards(function(boards) {
+    _router.fetchBoards().done(function(boards) {
         _r.showBoardList(boards, onBoardSelect);
     });
 
-    function onBoardSelect(boardId, onSucess) {
-        _router.fetchBoard(boardId, function(boardInfo) {
+    function onBoardSelect(boardId, onSuccess) {
+        _router.fetchBoard(boardId).done(function(boardInfo) {
             _g.board = new board.Board(boardId);
             _g.board.wrapsHorizontally = boardInfo.wrapsHorizontally;
             console.time("Map Load");
@@ -48,6 +48,10 @@ function (_g, board, _p, _c, _r, _router) {
 
             _g.currentCountry = _g.board.countries[0];
 
+            _g.board.units.forEach(function(u){
+                // do stuff and add to _g.board.units
+            });
+
             // ADD TEST UNITS
             _g.board.addUnit("fighter", "Russia", "ussr");
             _g.board.addUnit("infantry", "Russia", "ussr");
@@ -73,7 +77,7 @@ function (_g, board, _p, _c, _r, _router) {
                 first.connections.push(second);
                 second.connections.push(first);
             });
-            onSucess(); // closes the dialog
+            onSuccess(); // closes the dialog
         });
     }
 });
