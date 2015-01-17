@@ -72,10 +72,32 @@ class LobbyCreateHandler(BaseLobbyHandler):
 class LobbyGameHandler(BaseLobbyHandler):
     @tornado.web.authenticated
     def get(self, **params):
+        userInput = {}
+
+        #TODO: Validate the game id
+        #FIXME? We hackishly cast here...
+        userInput['gameId'] = int(params["gameId"])
+        #userInput['countryId'] = self.get_argument("countryId")
+
+        schema = Schema({
+            Required("gameId"): All(int),
+        #    Required("countryId"): All(unicode, Length(min=1))
+        })
+
+        try:
+            validUserInput = schema(userInput)
+        except MultipleInvalid as e:
+            print str(e)
+            self.send_error(400)
+            return
+
+        game = self.gamesManager.getGame(validUserInput["gameId"])
+
         renderArguments = {}
-        renderArguments['gameName'] = "Some Name"
+        renderArguments['gameName'] = game.name
         renderArguments['players'] = ['a', 'b']
-        renderArguments['countries'] = [{"id": 0, "name": "A"}, {"id": 1, "name": "B"}]
+        renderArguments['countries'] = [{"id": i, "name": game.countries[i]} for i in xrange(len(game.countries))]
+        print renderArguments['countries']
         self.render(os.path.join("..", self.LOBBY_HTML_PATH, "lobbyjoining.html"), **renderArguments)
 
     # Change the game settings, eg. Player <-> Country mapping
@@ -109,8 +131,6 @@ class LobbyGameHandler(BaseLobbyHandler):
 class LobbyGameJoinHandler(BaseLobbyHandler):
     @tornado.web.authenticated
     def get(self, **params):
-
-
         userInput = {}
         userInput['gameId'] = int(params["gameId"])
         schema = Schema({
@@ -133,16 +153,14 @@ class LobbyGameJoinHandler(BaseLobbyHandler):
             self.write("Something went wrong :(")
 
 
-
-
-
-
-
-
 """Initiates a game from a game listing"""
 class LobbyGameBeginHandler(BaseLobbyHandler):
     @tornado.web.authenticated
     def get(self, **params):
+        game = self.gamesManager.getGame(parms['gameId'])
+        game.started = True
+        
+        
         pass
 
 """Updates the settings of a game"""

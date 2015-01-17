@@ -16,7 +16,11 @@ class Game:
         #self.board = GameBoard.Board(moduleName)
 
         #This could be a array of tuples if we need it to be
-        self.players = {} #Contains (country, userId) pairs
+        self.players = {} #Contains (userId, [country, country, ...]) pairs
+        self.countries = []
+
+        #Currently a mock method
+        self.loadCountries([])
 
     """Attempts to add a player to the Game. Returns True on success"""
     def addPlayer(self, userId):
@@ -74,5 +78,7 @@ class Game:
 
 
     def loadCountries(self, countries):
+        #Mock method 
+        self.countries = ["Canada", "USA"]
         pass
 
