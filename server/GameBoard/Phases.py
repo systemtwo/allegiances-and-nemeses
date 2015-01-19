@@ -68,7 +68,7 @@ class BuyPhase:
         return board.currentPhase
 
 
-class BaseMovePhase:
+class BaseMovePhase(object):
     def __init__(self, board):
         self.board = board
         self.moveList = {}
@@ -97,10 +97,10 @@ class BaseMovePhase:
 
 
 # Units are added to a moveList, but unit.territory does not get modified if they are attacking a territory.
-# when they win, unit.territory is updated, and unit.previousTerritory is set
+# when they win, unit.territory is updated, and unit.originalTerritory is set
 class AttackPhase(BaseMovePhase):
     def __init__(self, board):
-        BaseMovePhase.__init__(self, board)  # dirty super
+        super(AttackPhase, self).__init__(board)
         self.name = "AttackPhase"
 
     def nextPhase(self):
@@ -109,18 +109,21 @@ class AttackPhase(BaseMovePhase):
         conflicts = {}  # list of territories being attacked, and the attacking units
         for unit in self.moveList:
             (origin, dest) = self.moveList[unit]
-            if not Util.allied(dest.country, unit.country):
+            if not Util.allied(dest, unit.country):
                 if dest not in conflicts:
                     conflicts[dest] = [unit]
                 else:
                     conflicts[dest].append(unit)
             else:
                 # not in conflict
-                unit.previousTerritory = unit.territory
+                unit.originalTerritory = unit.territory
                 unit.territory = dest
 
         board.attackMoveList = self.moveList
-        board.currentPhase = ResolvePhase(conflicts, self.board)
+        if not conflicts:
+            board.currentPhase = MovementPhase(board)
+        else:
+            board.currentPhase = ResolvePhase(conflicts, board)
         return board.currentPhase
 
 
@@ -136,9 +139,13 @@ class ResolvePhase:
     def selectTerritory(self, territory):
         self.currentConflict = territory
 
-    # attacks until either defenders or attackers are all dead
     # TODO update logic. May autoresolve a partially resolved conflict
     def autoResolve(self, territory):
+        """
+        attacks until either defenders or attackers are all dead
+        :param territory: Territory
+        :return:
+        """
         if not territory in self.unresolvedConflicts:
             return False
 
@@ -174,7 +181,7 @@ class ResolvePhase:
 
                 # now we can update the attackers' current territory. They've officially moved in
                 for u in attackers:
-                    u.previousTerritory = u.territory
+                    u.originalTerritory = u.territory
                     u.territory = territory
                 break
 
@@ -248,11 +255,14 @@ class ResolvePhase:
         some units may end up moving beyond their move limit
         This is alright. It's a valid exploit.
         Can only retreat from the current conflict. This means one battle tick must have happened
+        :param conflictTerritory: Territory territory to retreat from
+        :param destination: Territory territory to retreat to
         """
         assert(conflictTerritory == self.currentConflict)
 
     def nextPhase(self):
         if len(self.unresolvedConflicts) > 0:
+            # throw error instead?
             return None
         else:
             self.board.currentPhase = MovementPhase(self.board)
@@ -275,13 +285,13 @@ class MovementPhase(BaseMovePhase):
     # can move units that haven't moved in the attack phase, or planes that need to land
     # can't move into enemy territories
     def canMove(self, unit, destination):
-        if not Util.allied(destination.country, unit.country):
+        if not Util.allied(destination, unit.country):
             return False
 
         if unit not in self.board.attackMoveList:
-            return super(self).canMove(unit, destination)
+            return super(MovementPhase, self).canMove(unit, destination)
         elif unit.isFlying():
-            previousMove = Util.distance(unit.previousTerritory, unit.territory, unit)
+            previousMove = Util.distance(unit.originalTerritory, unit.territory, unit)
             assert previousMove is not -1
             newMove = Util.distance(unit.territory, destination, unit)
             return newMove is not -1 and previousMove + newMove <= unit.unitInfo.movement
@@ -295,7 +305,7 @@ class MovementPhase(BaseMovePhase):
 
 class PlacementPhase:
     def __init__(self, board):
-        self.toPlace = board.buyList.copy()  # list of units to place on the board
+        self.toPlace = board.buyList[:]  # list of units to place on the board
         self.placedList = []
         self.name = "PlacementPhase"
 

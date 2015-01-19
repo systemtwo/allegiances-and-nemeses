@@ -6,7 +6,7 @@ define(function() {
         currentCountry: null,
         currentPhase: null,
         unitCatalogue: [],
-        buyList: [],
+        buyList: {},
         connections: [] // List of all the connections between territories. Used for rendering for now. Ask dschwarz
     };
     returnObject.getBoard = function() {

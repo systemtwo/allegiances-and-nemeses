@@ -27,8 +27,22 @@ def isFlying(unitType):
 
 
 def allied(a, b):
+    if hasattr(a, "country"):
+        a = a.country
+    if hasattr(b, "country"):
+        b = b.country
+
+    # doesn't have attr country, and doesn't have a team
+    if not hasattr(a, "team"):
+        return friendlySeaTerritory(a, b)
+    elif not hasattr(b, "team"):
+        return friendlySeaTerritory(b, a)
+
     return a.team == b.team
 
+
+def friendlySeaTerritory(sea, country):
+    return len(sea.enemyUnits(country)) == 0
 
 # Finds the distance from the start to the goal, based on the unit's type and country
 # -1 if movement not possible

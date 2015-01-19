@@ -48,7 +48,7 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
     // Move units into enemy (or friendly) territories
     // User selects start, then selects destination, then selects which units to send
     function AttackPhase() {
-        _r.phaseName("Combat Move");
+        _r.phaseName(this.phaseName());
         this.states = {
             START: "selectMoveStart",
             DEST: "selectMoveDest",
@@ -58,11 +58,16 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
             u.beginningOfPhaseTerritory = u.territory;
         });
         this.setSelectableOriginTerritories();
+        _r.nextPhaseButtonVisible(true);
         this.state = this.states.START;
         this.origin = null;
         this.destination = null;
         return this;
     }
+
+    AttackPhase.prototype.phaseName = function() {
+        return "Combat Move";
+    };
 
     AttackPhase.prototype.filterMovable = function() {
         return true; // Every unit belonging to a country is movable
@@ -129,11 +134,13 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
     // Given a list of unitType(String), originalTerritory (Territory), currentTerritory (String), and amount (int)
     AttackPhase.prototype.moveUnits = function(moveList) {
         var that = this;
+        // cache the origin
+        var origin = this.origin;
         var idList = [];
         moveList.forEach(function(info) {
             var amount = info.amount;
-            var t = _h.territoryByName(info.originalTerritoryName);
-            info.currentTerritory.units().forEach(function(u) {
+            var t = _g.getBoard().territoryByName(info.originalTerritoryName);
+            that.origin.units().forEach(function(u) {
                 if (amount > 0 && u.unitType === info.unitType && u.beginningOfPhaseTerritory === t) {
                     amount -= 1;
                     idList.push(u.id);
@@ -144,9 +151,12 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
                 console.error("Asked to move " + info.amount + " " + info.unitType+", only moved " + (info.amount-amount))
             }
         });
-        _router.validateMove(this.origin, this.destination, idList).fail(function onFail() {
-            // revert
-            console.warn("Attempted invalid move")
+        _router.validateMove(origin, this.destination, idList).fail(function onFail() {
+            _g.board.getUnits(idList).forEach(function(u) {
+                u.territory = origin;
+            });
+            alert("Invalid move");
+            that.setSelectableOriginTerritories();
         });
         this.origin = null;
         this.destination = null;
@@ -163,6 +173,7 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
 
     AttackPhase.prototype.nextPhase = function() {
         _router.nextPhase().done(function onSuccess(conflicts) {
+            _r.nextPhaseButtonVisible(false);
             if (conflicts.length > 0) {
                 _g.currentPhase = new ResolvePhase(conflicts);
             } else {
@@ -206,10 +217,20 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
         AttackPhase.call(this);
     }
     MovementPhase.prototype = Object.create(AttackPhase.prototype);
+    MovementPhase.prototype.constructor = MovementPhase;
+
+    MovementPhase.prototype.phaseName = function() {
+        return "Noncombat Move";
+    };
     MovementPhase.prototype.filterMovable = function(unit) {
         return unit.isFlying() || unit.hasNotMoved()
     };
-    MovementPhase.prototype.constructor = MovementPhase;
+    MovementPhase.prototype.nextPhase = function(unit) {
+        _router.nextPhase().done(function() {
+            _r.nextPhaseButtonVisible(false);
+            _g.currentPhase = new PlacementPhase();
+        });
+    };
 
     function PlacementPhase() {
         this.states = {
@@ -218,7 +239,7 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
         };
         this.placed = [];
 
-        this.toPlace = _g.buyList.slice(); // copy to work with
+        this.toPlace = $.extend(true, {}, _g.buyList); // copy to work with
         this.state = this.states.SELECT_UNIT;
         _r.showPlacementWindow(); // TODO implement placement window and logic.
         // Server validation per unit placement? So that others can view in realtime.
@@ -268,7 +289,7 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
 
     PlacementPhase.prototype.onTerritorySelect = function(territory) {
         // TODO dschwarz revisit how we handle placement
-        _g.board.addUnit(null, this.placingType, territory, _g.currentCountry);
+        _g.board.addUnit(null, this.placingType, _g.currentCountry, territory);
         this.placed.push(this.placingType);
         // push to server? or wait for end of phase?
     };

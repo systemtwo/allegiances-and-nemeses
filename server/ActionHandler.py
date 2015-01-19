@@ -56,7 +56,7 @@ class ActionHandler(BaseAuthHandler):
             self.assertMovePhase(board)
             unitIds = [uuid.UUID(id) for id in requestData["unitList"]]
             units = [unit for unit in board.units if unit.id in unitIds]
-            assert len(unitIds) is len(units), "Could not find matching unit for every id"
+            assert len(unitIds) == len(units), "Could not find matching unit for every id"
             destinationTerritory = board.territoryByName(requestData["to"])
             success = board.currentPhase.moveUnits(units, destinationTerritory)
 
@@ -104,5 +104,6 @@ class ActionHandler(BaseAuthHandler):
             self.send_error(400)
 
     def assertPhase(self, phaseName, board):
-        if phaseName is not board.currentPhase.name:
+        if phaseName != board.currentPhase.name:
+            print(phaseName + " did not equal " + board.currentPhase.name)
             self.send_error(400)

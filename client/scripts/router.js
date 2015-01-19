@@ -17,7 +17,7 @@ define(["globals"], function(_g) {
     // Buy Phase ends with "endBuyPhase"
     // Resolve phase ends when there are no more conflicts
     function nextPhase() {
-        sendAction({
+        return sendAction({
             action: "nextPhase",
             currentPhase: _g.currentPhase.constructor.name // get the class name
         });

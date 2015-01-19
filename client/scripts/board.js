@@ -23,16 +23,13 @@ define(["components"], function(_c) {
             return this.mapImage.width
         }
     };
-    Board.prototype.addUnit = function(unitId, unitType, territory, country) {
+    Board.prototype.addUnit = function(unitId, unitType, country, territory, originalTerritory) {
         var i = 0;
         if (typeof territory === "string") {
-            for (i=0; i < this.territories.length; i++) {
-                if (this.territories[i].name === territory) {
-                    territory = this.territories[i];
-                    break;
-
-                }
-            }
+            territory = this.territoryByName(territory)
+        }
+        if (typeof originalTerritory === "string") {
+            originalTerritory = this.territoryByName(originalTerritory);
         }
         if (typeof country === "string") {
             for (i=0; i < this.countries.length; i++) {
@@ -42,8 +39,32 @@ define(["components"], function(_c) {
                 }
             }
         }
-        var newUnit = new _c.Unit(unitId, unitType, country, territory);
+        var newUnit = new _c.Unit(unitId, unitType, country, territory, originalTerritory);
         this.units.push(newUnit);
+    };
+
+    Board.prototype.getUnits = function(ids) {
+        var idSet = {};
+        ids.forEach(function(id){
+            idSet[id] = true;
+        });
+        var units = [];
+        this.units.forEach(function(u) {
+            if (u.id in idSet) {
+                units.push(u);
+            }
+        });
+        if (units.length != ids.length) {
+            throw new Error("Could not get all units for given ids", ids)
+        }
+        return units;
+    };
+    Board.prototype.territoryByName = function(name) {
+        for (var i=0; i< this.territories.length; i++) {
+            if (this.territories[i].name === name) {
+                return this.territories[i];
+            }
+        }
     };
 
     return {

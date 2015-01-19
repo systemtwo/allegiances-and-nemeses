@@ -1,12 +1,12 @@
 define(["globals"], function(_g) {
 
-    var Unit = function(id, unitType, country, territory) {
+    var Unit = function(id, unitType, country, territory, originalTerritory) {
         this.id = id;
         this.unitType = unitType;
         this.country = country;
         this.territory = territory;
         this.beginningOfPhaseTerritory = territory; // start of phase (1/6th of a turn)
-        this.beginningOfTurnTerritory = territory; // Start of countries turn
+        this.beginningOfTurnTerritory = originalTerritory || territory; // Start of countries turn
     };
 
     Unit.prototype.isFlying = function() {

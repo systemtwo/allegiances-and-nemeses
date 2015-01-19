@@ -30,6 +30,7 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
                 "Load": function() {
                     var boardId = windowContents.find("#boardSelect").val();
                     onSelect(boardId, function closeBoardList() {
+                            bindPhaseButton();
                             windowContents.dialog("close");
                         }
                     );
@@ -164,7 +165,6 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
                                 if (units.hasOwnProperty(unitType)) {
                                     unitList.push({
                                         unitType: unitType,
-                                        currentTerritory: from,
                                         originalTerritoryName: tName,
                                         amount: units[unitType].amount
                                     })
@@ -181,7 +181,6 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
                         var row = $(this);
                         selectedUnits.push({
                             unitType: row.data("type"),
-                            currentTerritory: from, // All come from the same territory
                             originalTerritoryName: row.data("territory").toString(),
                             amount: parseInt(row.find(".selectedAmount").text())
                         })
@@ -505,6 +504,16 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
         return "static/images/" + unitType + ".png";
     }
 
+    function nextPhaseButtonVisible(visibleFlag) {
+        $("#nextPhase").toggle(visibleFlag);
+    }
+
+    function bindPhaseButton() {
+        $("#nextPhase").click(function onNextPhaseClick() {
+            _g.currentPhase.nextPhase();
+        });
+    }
+
     return {
         phaseName: phaseName,
         showBoardList: showBoardList,
@@ -512,6 +521,7 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
         showPlacementWindow: showPlacementWindow,
         showRecruitmentWindow: showRecruitmentWindow,
         showMoveWindow: showMoveWindow,
+        nextPhaseButtonVisible: nextPhaseButtonVisible,
         initMap: initMap,
         drawMap: drawMap,
         drawRect: drawRect,

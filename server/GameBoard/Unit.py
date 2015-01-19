@@ -14,7 +14,7 @@ class Unit:
         self.type = unitInfo.unitType
         self.unitInfo = unitInfo
         self.territory = territory
-        self.previousTerritory = territory
+        self.originalTerritory = territory
         self.country = country
         self.id = UniqueId.getUniqueId()
 
@@ -44,11 +44,11 @@ class Unit:
                 # can move if no destroyers present
                 if territory.containsUnitType("destroyer") == 0:
                     return True
-            if len(territory.enemyUnits(self.country)) is 0:
+            if len(territory.enemyUnits(self.country)) == 0:
                 return True
 
         elif territory.type is "land":
-            if Util.allied(territory.country, self.country):
+            if Util.allied(territory, self.country):
                 return True
             if self.type == "tank":
                 if len(territory.units()):
@@ -72,6 +72,7 @@ class Unit:
             "id": self.id.hex,
             "type": self.type,
             "territory": self.territory.name,
+            "originalTerritory": self.originalTerritory.name,
             "country": self.country.name
         })
 

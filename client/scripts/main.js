@@ -50,7 +50,7 @@ function (_g, board, _p, _c, _r, _router) {
 
             boardInfo.units.forEach(function(u){
                 var unit = JSON.parse(u);
-                _g.board.addUnit(unit.id, unit.type, unit.territory, unit.country)
+                _g.board.addUnit(unit.id, unit.type, unit.country, unit.territory, unit.originalTerritory)
             });
 
             // current phase is the class name of the phase
