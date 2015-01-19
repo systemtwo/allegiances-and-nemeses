@@ -48,17 +48,10 @@ function (_g, board, _p, _c, _r, _router) {
 
             _g.currentCountry = _g.board.countries[0];
 
-            _g.board.units.forEach(function(u){
-                // do stuff and add to _g.board.units
+            boardInfo.units.forEach(function(u){
+                var unit = JSON.parse(u);
+                _g.board.addUnit(unit.id, unit.type, unit.territory, unit.country)
             });
-
-            // ADD TEST UNITS
-            _g.board.addUnit("fighter", "Russia", "ussr");
-            _g.board.addUnit("infantry", "Russia", "ussr");
-            _g.board.addUnit("tank", "Russia", "ussr");
-            _g.board.addUnit("tank", "Archangel", "ussr");
-            _g.board.addUnit("bomber", "Evenki", "ussr");
-            _g.board.addUnit("infantry", "Yakut", "ussr");
 
             // current phase is the class name of the phase
             var phaseClass = _p[boardInfo.currentPhase];

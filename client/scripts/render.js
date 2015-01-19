@@ -103,39 +103,42 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
         }
         disabledUnits = disabledUnits || []; // optional parameter
 
-        // Sort into buckets territory->enabled/disabled->unitType->amount
-        var territoryDict = {};
-        function eachUnit(u, key) {
-            var tName = u.beginningOfPhaseTerritory.name;
+        // Sort into buckets territory->unitType->{amount, imageSource, reason}
+        var unableUnitDict = {};
+        var ableUnitDict = {};
+        function eachUnit(u, dict, reason) { // key is enabled or disabled
+            var tName = u.beginningOfPhaseTerritory.name; // maybe this should be beginning of turn territory
 //            if (tName !== u.beginningOfTurnTerritory.name) {
 //                tName = u.beginningOfTurnTerritory.name + "->" + tName; // Units that have moved in a previous phase have reduced move
 //            }
-            if (tName in territoryDict) {
-                var number = territoryDict[tName][key][u.unitType];
-                territoryDict[tName][key][u.unitType] = number ? number+1 : 1;
+            if (!(tName in dict))
+                dict[tName] = {};
+
+            var unitData = dict[tName][u.unitType];
+            if (unitData) {
+                unitData.amount += 1;
             } else {
-                var temp = {
-                    enabled: {},
-                    disabled: {}
+                dict[tName][u.unitType] = {
+                    amount: 1,
+                    imageSource: getImageSource(u.unitType, u.country),
+                    reason: reason // only defined for disabled units
                 };
-                temp[key][u.unitType] = 1;
-                territoryDict[tName] = temp;
             }
         }
         enabledUnits.forEach(function(unit) {
-            eachUnit(unit, "enabled");
+            eachUnit(unit, ableUnitDict);
         });
-        disabledUnits.forEach(function(unit) {
-            eachUnit(unit, "disabled");
+        disabledUnits.forEach(function(unitObject) {
+            eachUnit(unitObject.unit, unableUnitDict, unitObject.reason);
         });
         moveWindow = $(nj.render("static/templates/moveUnits.html", {
-            territories: territoryDict,
-            origin: from.name,
-            destination: destination.name,
-            columnWidth: Math.floor(12/Object.keys(territoryDict).length)
+            able: ableUnitDict,
+            unable: unableUnitDict,
+            ableLength: Object.keys(ableUnitDict).length,
+            unableLength: Object.keys(unableUnitDict).length
         }));
         // attach listeners to enabled units
-        moveWindow.find(".unitRow").mousedown(function onUnitClick(e) {
+        moveWindow.find(".unitBlock.able").mousedown(function onUnitClick(e) {
             e.preventDefault();
             var row = $(e.currentTarget);
             var amountElement = row.find(".selectedAmount");
@@ -148,12 +151,33 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
         });
 
         moveWindow.dialog({
-            title: "Move Units",
+            title: "Move Units from " + from.name + " to " + destination.name,
             modal: false,
+            width: 600,
             buttons: {
+                "Move All": function() {
+                    var unitList = [];
+                    for (var tName in ableUnitDict) {
+                        if (ableUnitDict.hasOwnProperty(tName)) {
+                            var units = ableUnitDict[tName];
+                            for (var unitType in units) {
+                                if (units.hasOwnProperty(unitType)) {
+                                    unitList.push({
+                                        unitType: unitType,
+                                        currentTerritory: from,
+                                        originalTerritoryName: tName,
+                                        amount: units[unitType].amount
+                                    })
+                                }
+                            }
+                        }
+                    }
+                    _g.currentPhase.moveUnits(unitList);
+                    $(this).dialog("close");
+                },
                 "Move": function () {
-                    var selectedUnits = []; // TODO send actual selected unit list
-                    moveWindow.find(".unitRow").each(function() {
+                    var selectedUnits = [];
+                    moveWindow.find(".unitBlock.able").each(function() {
                         var row = $(this);
                         selectedUnits.push({
                             unitType: row.data("type"),
@@ -353,7 +377,6 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
             drawArc(t.x + t.width/2, t.y + t.height/2, t.width*1.2, t.height*1.2, true);
         });
         ctx.restore();
-        ctx.stroke();
     }
 
     // begin and end just need x and y in board coordinates
@@ -476,6 +499,10 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
                 return t;
             }
         }
+    }
+
+    function getImageSource(unitType, country) {
+        return "static/images/" + unitType + ".png";
     }
 
     return {

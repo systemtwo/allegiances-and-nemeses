@@ -9,3 +9,24 @@
     width: 17%;
     padding: 5px;
 }
+
+.units {
+    overflow: auto;
+}
+
+.unitBlock {
+    float: left;
+}
+.sectionHeader {
+    display: table;
+}
+
+.flex {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.territoryBlock {
+    flex: 1 1;
+    min-width: 100px;
+}

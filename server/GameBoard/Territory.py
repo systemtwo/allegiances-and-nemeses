@@ -1,11 +1,12 @@
 import json
+import Util
 
 
 class BaseTerritory:
-    def __init__(self, name):
+    def __init__(self, board, name):
         self.name = name
         self.connections = []
-        self.board = None
+        self.board = board
         # id tag
 
     def units(self):
@@ -41,16 +42,20 @@ class BaseTerritory:
 
         return False
 
+    def enemyUnits(self, country):
+        return [u for u in self.units() if not Util.allied(u.country, country)]
+
 
 class LandTerritory(BaseTerritory):
-    def __init__(self, name, income, country):
+    def __init__(self, board, name, income, country):
         # insert py2 hate here
         # super().__init__(name)
         self.name = name
         self.connections = []
-        self.board = None
+        self.board = board
         self.income = income
         self.country = country
+        self.type = "land"
 
     def toJSON(self):
         return json.dumps({
@@ -59,6 +64,11 @@ class LandTerritory(BaseTerritory):
             "income": self.income
         })
 
+
 class SeaTerritory(BaseTerritory):
+    def __init__(self, board, name):
+        BaseTerritory.__init__(self, board, name)
+        self.type = "sea"
+
     def hasFactory(self):
         return False

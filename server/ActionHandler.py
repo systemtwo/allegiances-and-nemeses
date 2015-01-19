@@ -5,6 +5,7 @@ from voluptuous import Schema, Required, All, Range, MultipleInvalid
 from AuthHandlers import BaseAuthHandler
 
 import json
+import uuid
 
 
 
@@ -51,6 +52,17 @@ class ActionHandler(BaseAuthHandler):
                 board.currentPhase.nextPhase()
             self.write(json.dumps({"success": success}))
 
+        elif "move" == action:
+            self.assertMovePhase(board)
+            unitIds = [uuid.UUID(id) for id in requestData["unitList"]]
+            units = [unit for unit in board.units if unit.id in unitIds]
+            assert len(unitIds) is len(units), "Could not find matching unit for every id"
+            destinationTerritory = board.territoryByName(requestData["to"])
+            success = board.currentPhase.moveUnits(units, destinationTerritory)
+
+            if not success:
+                self.send_error(400)
+
         elif "selectConflict" == action:
             self.assertPhase("ResolvePhase", board)
             territory = board.territoryByName(requestData["territory"])
@@ -83,6 +95,13 @@ class ActionHandler(BaseAuthHandler):
 
         elif "getEventLog" == action:
             pass  # TODO
+
+        else:
+            print("unsupported action")
+
+    def assertMovePhase(self, board):
+        if board.currentPhase.name not in ["AttackPhase", "MovementPhase"]:
+            self.send_error(400)
 
     def assertPhase(self, phaseName, board):
         if phaseName is not board.currentPhase.name:

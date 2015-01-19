@@ -1,4 +1,6 @@
 define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router) {
+    var notEnoughMovesReason = "Not enough move points";
+    var alreadyAttackedReason = "Already used to attack";
 
     function BuyPhase() {
         _r.phaseName("Purchase Units");
@@ -113,7 +115,10 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
             if (distanceToCurrent + distanceToDest <= _h.unitInfo(unit.unitType).move) {
                 able.push(unit);
             } else {
-                unable.push(unit);
+                unable.push({
+                    unit: unit,
+                    reason: notEnoughMovesReason
+                });
             }
         });
 
@@ -124,19 +129,24 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
     // Given a list of unitType(String), originalTerritory (Territory), currentTerritory (String), and amount (int)
     AttackPhase.prototype.moveUnits = function(moveList) {
         var that = this;
-        _router.validateMove(this.origin, this.destination, moveList).fail(function onFail() {
-            // revert
-            console.warn("Attempted invalid move")
-        });
+        var idList = [];
         moveList.forEach(function(info) {
             var amount = info.amount;
             var t = _h.territoryByName(info.originalTerritoryName);
             info.currentTerritory.units().forEach(function(u) {
                 if (amount > 0 && u.unitType === info.unitType && u.beginningOfPhaseTerritory === t) {
                     amount -= 1;
+                    idList.push(u.id);
                     u.territory = that.destination;
                 }
             });
+            if (amount > 0) {
+                console.error("Asked to move " + info.amount + " " + info.unitType+", only moved " + (info.amount-amount))
+            }
+        });
+        _router.validateMove(this.origin, this.destination, idList).fail(function onFail() {
+            // revert
+            console.warn("Attempted invalid move")
         });
         this.origin = null;
         this.destination = null;
@@ -257,7 +267,8 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
     };
 
     PlacementPhase.prototype.onTerritorySelect = function(territory) {
-        _g.board.addUnit(this.placingType, territory, _g.currentCountry);
+        // TODO dschwarz revisit how we handle placement
+        _g.board.addUnit(null, this.placingType, territory, _g.currentCountry);
         this.placed.push(this.placingType);
         // push to server? or wait for end of phase?
     };

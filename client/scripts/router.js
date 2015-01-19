@@ -37,10 +37,7 @@ define(["globals"], function(_g) {
     function fetchBoards() {
         return $.getJSON("/boards");
     }
-    function validateMove(start, end, units, onfail) {
-        var unitIds = units.map(function(u) {
-            return u.id
-        });
+    function validateMove(start, end, unitIds, onfail) {
         return sendAction({
             action: "move",
             from: start.name,

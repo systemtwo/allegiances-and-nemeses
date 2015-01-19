@@ -2,7 +2,7 @@ import json
 from Country import Country
 from Phases import BuyPhase
 from Territory import LandTerritory, SeaTerritory
-from Unit import UnitInfo
+from Unit import UnitInfo, Unit
 import Util
 
 
@@ -20,10 +20,11 @@ class Board:
             self.moduleInfo = json.load(file)
 
         with open(Util.countryFileName(moduleName)) as countryInfo:
-            self.countries = [Country(c["name"], c["team"], self) for c in json.load(countryInfo)]
+            self.countries = [Country(c["name"], c["team"], None, self) for c in json.load(countryInfo)]
 
         with open(Util.unitFileName(moduleName)) as unitInfo:
             self.unitCatalogue = json.load(unitInfo)
+            self.unitInfoDict = {unitType: UnitInfo(unitType, jsonInfo) for unitType, jsonInfo in self.unitCatalogue.iteritems()}
 
         with open(Util.territoryFileName(moduleName)) as territoryInfo:
             self.territoryInfo = json.load(territoryInfo)
@@ -32,9 +33,9 @@ class Board:
         for info in self.territoryInfo:
             if info["type"] == "land":
                 startingCountry = self.getStartingCountry(info)
-                self.territories.append(LandTerritory(info["name"], info["income"], startingCountry))
+                self.territories.append(LandTerritory(self, info["name"], info["income"], startingCountry))
             elif info["type"] == "sea":
-                self.territories.append(SeaTerritory(info["name"]))
+                self.territories.append(SeaTerritory(self, info["name"]))
             else:
                 print("Territory info does not have valid type")
                 print(info)
@@ -56,8 +57,15 @@ class Board:
                     raise Exception("Could not find territories for connection: " + json.dumps(c))
 
         # begin
+        for c in self.countries:
+            c.collectIncome()
         self.currentCountry = self.countries[0]
         self.currentPhase = BuyPhase(self.currentCountry.ipc, self)
+
+        # test stuff
+        russian_territories = [x for x in self.territories if hasattr(x, "country") and x.country.name == "ussr"]
+        infantry = Unit(self.unitInfo("infantry"), self.countries[0], russian_territories[0])
+        self.units.append(infantry)
 
     def getStartingCountry(self, terInfo):
         if "country" not in terInfo:
@@ -120,31 +128,8 @@ class Board:
     def removeUnit(self, u):
         self.units.remove(u)
 
-    # Finds a path from the start to the goal, based on the unit's type and country
-    def getPath(self, start, goal, unit):
-        if start is goal:
-            return []
-        frontier = [(x, [start]) for x in start.connections]
-        checked = []
-
-        while len(frontier) > 0:
-            (currentTerritory, path) = frontier.pop(0)
-            if currentTerritory is goal:
-                return path + [currentTerritory]
-
-            if Util.canMoveThrough(unit, currentTerritory):
-                newPath = path[:]
-                newPath.append(currentTerritory)
-                for t in currentTerritory.connections:
-                    if t not in checked:
-                        frontier.append((t, newPath[:]))
-
-            checked.append(currentTerritory)
-        return None
-
     def unitInfo(self, unitType):
-        if unitType not in self.unitCatalogue:
+        if unitType not in self.unitInfoDict:
             return None
 
-        unit_dict = self.unitCatalogue[unitType]
-        return UnitInfo(unit_dict)
+        return self.unitInfoDict[unitType]

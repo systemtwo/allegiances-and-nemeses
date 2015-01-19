@@ -1,8 +1,6 @@
 import json
 from Board import Board
 from Phases import BuyPhase
-from Territory import LandTerritory, SeaTerritory
-from Country import Country
 from Unit import Unit
 
 board = Board("Test Board", "default")

@@ -27,6 +27,7 @@ class BuyPhase:
         self.board = board
         self.name = "BuyPhase"
 
+    # deprecated
     def buyUnit(self, unitType):
         info = self.board.unitInfo(unitType)
         if self.money() + info.cost <= self.moneyCap:
@@ -72,6 +73,18 @@ class BaseMovePhase:
         self.board = board
         self.moveList = {}
 
+    def moveUnits(self, units, destination):
+        canMoveAll = True
+        for unit in units:
+            if not self.board.currentPhase.canMove(unit, destination):
+                canMoveAll = False
+
+        if canMoveAll:
+            for unit in units:
+                self.board.currentPhase.move(unit, destination)
+
+        return canMoveAll
+
     def move(self, unit, destination):
         if self.canMove(unit, destination):
             self.moveList[unit] = (unit.territory, destination)
@@ -80,7 +93,7 @@ class BaseMovePhase:
             return False
 
     def canMove(self, unit, destination):
-        return len(self.board.getPath(unit.territory, destination, unit)) <= self.board.unitInfo(unit.type).movement + 1
+        return Util.distance(unit.territory, destination, unit) is not -1
 
 
 # Units are added to a moveList, but unit.territory does not get modified if they are attacking a territory.
@@ -94,7 +107,8 @@ class AttackPhase(BaseMovePhase):
         board = self.board
         # TODO conflict class
         conflicts = {}  # list of territories being attacked, and the attacking units
-        for (unit, start, dest) in self.moveList:
+        for unit in self.moveList:
+            (origin, dest) = self.moveList[unit]
             if not Util.allied(dest.country, unit.country):
                 if dest not in conflicts:
                     conflicts[dest] = [unit]
@@ -142,7 +156,7 @@ class ResolvePhase:
 
             outcome = self.battle(attackers, defenders)
             outcomes.append(outcome)
-            for u in outcome.deadAttackers + outcome.deadDefenders:
+            for u in outcome.deadDefenders:
                 self.board.removeUnit(u)
 
             if len(attackers) == 0:
@@ -183,13 +197,13 @@ class ResolvePhase:
 
         # Calculate hits. Chance for a hit is attack/6 for attackers, defence/6 for defenders
         for u in attackers:
-            info = self.board.unitInfo(u.type)
+            info = u.unitInfo
             sumAttackers += 1.0 / info.attack
             if random.randint(1, 6) <= info.attack:
                 defendingCasualties += 1
 
         for u in defenders:
-            info = self.board.unitInfo(u.type)
+            info = u.unitInfo
             sumDefenders += 1.0 / info.defence
             if random.randint(1, 6) <= info.defence:
                 attackingCasualties += 1
@@ -205,7 +219,7 @@ class ResolvePhase:
             runningTotal = 0
             rand = random.random() * sumDefenders
             for d in defenders:
-                defence = self.board.unitInfo(d).defence
+                defence = d.unitInfo.defence
                 if defence > 0:
                     runningTotal += 1.0 / defence
                     if runningTotal >= rand:
@@ -218,7 +232,7 @@ class ResolvePhase:
             runningTotal = 0
             rand = random.random() * sumAttackers
             for a in attackers:
-                attack = self.board.unitInfo(a).attack
+                attack = a.unitInfo.attack
                 if attack > 0:
                     runningTotal += 1.0 / attack
                     if runningTotal >= rand:
@@ -267,9 +281,10 @@ class MovementPhase(BaseMovePhase):
         if unit not in self.board.attackMoveList:
             return super(self).canMove(unit, destination)
         elif unit.isFlying():
-            previousMove = self.board.getPath(unit.previousTerritory, unit.territory, unit)
-            newMove = self.board.getPath(unit.territory, destination, unit)
-            return previousMove + newMove < self.board.unitInfo(unit.type).movement
+            previousMove = Util.distance(unit.previousTerritory, unit.territory, unit)
+            assert previousMove is not -1
+            newMove = Util.distance(unit.territory, destination, unit)
+            return newMove is not -1 and previousMove + newMove <= unit.unitInfo.movement
 
     def nextPhase(self):
         board = self.board
@@ -288,7 +303,7 @@ class PlacementPhase:
         if unitType in self.toPlace and territory.hasFactory():
             alreadyPlaced = [u for u in self.placedList if u.territory == territory]
             if len(alreadyPlaced) < territory.income:
-                newUnit = Unit(unitType, board.currentCountry, territory)
+                newUnit = Unit(board.unitInfo(unitType), board.currentCountry, territory)
                 self.toPlace.remove(unitType)
                 self.placedList.append(newUnit)
 

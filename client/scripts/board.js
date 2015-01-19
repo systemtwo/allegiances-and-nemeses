@@ -23,7 +23,7 @@ define(["components"], function(_c) {
             return this.mapImage.width
         }
     };
-    Board.prototype.addUnit = function(unitType, territory, country) {
+    Board.prototype.addUnit = function(unitId, unitType, territory, country) {
         var i = 0;
         if (typeof territory === "string") {
             for (i=0; i < this.territories.length; i++) {
@@ -42,7 +42,7 @@ define(["components"], function(_c) {
                 }
             }
         }
-        var newUnit = new _c.Unit(null, unitType, country, territory);
+        var newUnit = new _c.Unit(unitId, unitType, country, territory);
         this.units.push(newUnit);
     };
 

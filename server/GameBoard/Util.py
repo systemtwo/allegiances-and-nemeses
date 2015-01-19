@@ -30,22 +30,23 @@ def allied(a, b):
     return a.team == b.team
 
 
-# Checks if a unit can move through a territory
-def canMoveThrough(unit, territory):
-    unitType = unit.type
-    if allied(territory.country, unit.country):
-        return True
+# Finds the distance from the start to the goal, based on the unit's type and country
+# -1 if movement not possible
+def distance(start, goal, unit):
+    if start is goal:
+        return 0
+    frontier = [(x, 1) for x in start.connections if unit.canMoveInto(x)]
+    checked = []
 
-    if isFlying(unitType):
-        return True
+    while len(frontier) > 0:
+        (currentTerritory, steps) = frontier.pop(0)
+        if currentTerritory is goal:
+            return steps
 
-    if unitType == "sub":
-        # can move if no destroyers present
-        if territory.containsUnitType("destroyer") == 0:
-            return True
+        if unit.canMoveThrough(currentTerritory) and steps < unit.unitInfo.movement:
+            for t in currentTerritory.connections:
+                if t not in checked and unit.canMoveInto(t):
+                    frontier.append((t, steps + 1))
 
-    if unitType == "tank":
-        if len(territory.units()):
-            return True
-
-    return False
+        checked.append(currentTerritory)
+    return -1
