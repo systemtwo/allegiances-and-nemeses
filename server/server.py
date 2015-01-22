@@ -26,7 +26,7 @@ class IndexHandler(tornado.web.RequestHandler):
 
 class BoardsHandler(BaseAuthHandler):
     #TODO: Consider spliting this class to handle the different scenarios
-    actions = utils.Enum(["ALL", "NEW", "ID"])
+    actions = utils.Enum(["ALL", "NEW", "ID", "CONFLICTS"])
     nextBoardId = 0
 
     def initialize(self, config, action, boardsManager):
@@ -58,6 +58,14 @@ class BoardsHandler(BaseAuthHandler):
             boardInfo = board.toDict()
             boardInfo["imagePath"] = os.path.join(self.config.MODS_PATH, boardInfo["moduleName"], boardInfo["imageName"])
             self.write(json.dumps(boardInfo))
+
+        elif self.action == self.actions.CONFLICTS:
+            conflicts = self.boardsManager.getConflicts(int(params["boardId"]))
+            if conflicts is None:
+                self.set_status(400)
+                return
+
+            self.write(json.dumps(conflicts))
 
     @tornado.web.authenticated
     def post(self, **params):
@@ -117,6 +125,7 @@ class Server:
             (r"/boards/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ALL, boardsManager=self.boardsManager)),
             (r"/boards/new/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.NEW, boardsManager=self.boardsManager)),
             (r"/boards/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID, boardsManager=self.boardsManager)), #Consider using named regex here
+            (r"/conflicts/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.CONFLICTS, boardsManager=self.boardsManager)),
             (r"/boards/(?P<boardId>[0-9]+)/action/?", ActionHandler, dict(config=config, boardsManager=self.boardsManager)),
 
             #User auth
@@ -138,7 +147,7 @@ class Server:
 			#Static files
             (r"/shared/(.*)", utils.NoCacheStaticFileHandler, {"path": config.SHARED_CONTENT_PATH}),
             (r"/static/(.*)", utils.NoCacheStaticFileHandler, {"path": config.STATIC_CONTENT_PATH}), #This is not a great way of doing this TODO: Change this to be more intuative
-        ], 
+        ],
         cookie_secret=config.COOKIE_SECRET,
         login_url="/login",
         debug=True

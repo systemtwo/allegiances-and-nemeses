@@ -2,6 +2,10 @@
     display: none
 }
 
+.dialog-sub-title {
+    text-align: center;
+}
+
 #editTerritoryPanel {
     background-color: #ffe45c;
     float: right;
@@ -31,6 +35,6 @@
     min-width: 100px;
 }
 
-#nextPhase {
+.floatRight {
     float: right;
 }

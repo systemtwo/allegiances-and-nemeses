@@ -172,10 +172,11 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
     };
 
     AttackPhase.prototype.nextPhase = function() {
-        _router.nextPhase().done(function onSuccess(conflicts) {
+        _router.nextPhase().done(function onSuccess(result) {
             _r.nextPhaseButtonVisible(false);
-            if (conflicts.length > 0) {
-                _g.currentPhase = new ResolvePhase(conflicts);
+            if (result.conflicts.length > 0) {
+                _g.conflicts = result.conflicts;
+                _g.currentPhase = new ResolvePhase();
             } else {
                 _g.currentPhase = new MovementPhase();
             }
@@ -183,15 +184,14 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
     };
 
     // Resolve all attacks made during the movement phase
-    function ResolvePhase(conflicts) {
+    function ResolvePhase() {
         _r.phaseName("Resolve Conflicts");
-        this.conflicts = conflicts;
         this.showConflicts();
         this.currentConflict = null;
     }
 
     ResolvePhase.prototype.showConflicts = function() {
-        // render a window
+        _r.showConflictList(_g.conflicts)
     };
 
     ResolvePhase.prototype.retreat = function() {
@@ -209,6 +209,10 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
         // send request to server
         // Get result
         // Show summary of all battle reports
+    };
+
+    ResolvePhase.prototype.autoResolveAll = function() {
+        _router.autoResolveAll();
     };
 
     // Another movement phase, with restrictions on movement.

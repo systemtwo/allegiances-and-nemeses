@@ -1,0 +1,16 @@
+<div>
+    <div class="dialog-sub-title">
+        <button id="autoresolve-all" class="btn btn-primary">Autoresolve All</button>
+    </div>
+    <div>
+        {% for conflict in conflicts %}
+        <div>
+            <span class="territory-name">{{ conflict.territoryName }}</span>
+            <span class="conflict-actions" data-name="{{ conflict.territoryName }}">
+                <button class="resolve-conflict">Resolve</button>
+                <button class="autoresolve-conflict">Auto</button>
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+</div>

@@ -42,7 +42,9 @@ class ActionHandler(BaseAuthHandler):
         if "nextPhase" == action:
             # TODO improve error handling
             self.assertPhase(requestData["currentPhase"], board)
-            board.currentPhase.nextPhase()
+            newPhase = board.currentPhase.nextPhase()
+            if hasattr(newPhase, "unresolvedConflicts"):
+                self.write(json.dumps({"conflicts": newPhase.unresolvedConflicts}))
 
         elif "buy" == action:
             # buy units, with validation

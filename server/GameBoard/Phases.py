@@ -1,4 +1,5 @@
 import random
+from Components import Conflict
 from Unit import Unit
 import Util
 
@@ -106,23 +107,24 @@ class AttackPhase(BaseMovePhase):
     def nextPhase(self):
         board = self.board
         # TODO conflict class
-        conflicts = {}  # list of territories being attacked, and the attacking units
+        hostileTerToAttackers = {}  # list of territories being attacked, and the attacking units
         for unit in self.moveList:
             (origin, dest) = self.moveList[unit]
             if not Util.allied(dest, unit.country):
-                if dest not in conflicts:
-                    conflicts[dest] = [unit]
+                if dest not in hostileTerToAttackers:
+                    hostileTerToAttackers[dest] = [unit]
                 else:
-                    conflicts[dest].append(unit)
+                    hostileTerToAttackers[dest].append(unit)
             else:
                 # not in conflict
                 unit.originalTerritory = unit.territory
                 unit.territory = dest
 
         board.attackMoveList = self.moveList
-        if not conflicts:
+        if not hostileTerToAttackers:
             board.currentPhase = MovementPhase(board)
         else:
+            conflicts = [Conflict(territory, attackers) for territory, attackers in hostileTerToAttackers.iteritems()]
             board.currentPhase = ResolvePhase(conflicts, board)
         return board.currentPhase
 
@@ -130,8 +132,12 @@ class AttackPhase(BaseMovePhase):
 class ResolvePhase:
     def __init__(self, conflicts, board):
         # dictionary of territory ->  list of units
-        self.unresolvedConflicts = conflicts
-        self.resolvedConflicts = []
+        """
+
+        :param conflicts: List[Conflicts]
+        :param board:
+        """
+        self.conflicts = conflicts
         self.board = board
         self.name = "ResolvePhase"
         self.currentConflict = None  # change to hold a conflict, not a territory
@@ -144,15 +150,15 @@ class ResolvePhase:
         """
         attacks until either defenders or attackers are all dead
         :param territory: Territory
-        :return:
+        :return: bool
         """
-        if not territory in self.unresolvedConflicts:
-            return False
+
+        conflict = next((conflict for conflict in self.conflicts if conflict.territory == territory), None)
+        if not conflict:
+            return False  # or throw error
 
         defenders = territory.units()
-        attackers = self.unresolvedConflicts[territory]
 
-        outcomes = []  # list of battle reports
         constraint = 100000
         while True:
             # bit of safety
@@ -161,92 +167,35 @@ class ResolvePhase:
                 print("Auto-resolve does not complete")
                 break
 
-            outcome = self.battle(attackers, defenders)
-            outcomes.append(outcome)
+            outcome = Util.battle(conflict.attackers, defenders)
+            conflict.reports.append(outcome)
             for u in outcome.deadDefenders:
                 self.board.removeUnit(u)
 
-            if len(attackers) == 0:
+            if len(conflict.attackers) == 0:
                 # defenders win
-                self.resolvedConflicts.append((territory, outcomes, defenders))
+                conflict.resolution = Conflict.defenderWin
                 break
             elif len(defenders) == 0:
                 # attackers win if no defenders, and 1+ attackers
-                self.resolvedConflicts.append((territory, outcomes, attackers))
+                conflict.resolution = Conflict.attackerWin
 
                 # can only take the territory if 1+ attackers are land attackers
-                landAttackers = [u for u in attackers if u.isLand()]
+                landAttackers = [u for u in conflict.attackers if u.isLand()]
                 if len(landAttackers) > 0:
                     territory.country = self.board.currentCountry
 
                 # now we can update the attackers' current territory. They've officially moved in
-                for u in attackers:
+                for u in conflict.attackers:
                     u.originalTerritory = u.territory
                     u.territory = territory
                 break
 
     def autoResolveAll(self):
-        for tName, conflict in self.unresolvedConflicts:  # TODO include current conflict
-            self.autoResolve(tName)
+        for conflict in self.conflicts.iteritems():  # TODO include current conflict
+            self.autoResolve(conflict.territory)
 
         # TODO return all BattleReports
-
-    # Performs a single step in a territory conflict
-    # Takes in a list of attackers and defenders. Removes casualties from list
-    def battle(self, attackers, defenders):
-        # counts number of each side that must die
-        attackingCasualties = 0
-        defendingCasualties = 0
-
-        # there's a weighted chance of each unit dying. We sum the weights for all the attackers and defenders
-        sumAttackers = 0
-        sumDefenders = 0
-
-        # Calculate hits. Chance for a hit is attack/6 for attackers, defence/6 for defenders
-        for u in attackers:
-            info = u.unitInfo
-            sumAttackers += 1.0 / info.attack
-            if random.randint(1, 6) <= info.attack:
-                defendingCasualties += 1
-
-        for u in defenders:
-            info = u.unitInfo
-            sumDefenders += 1.0 / info.defence
-            if random.randint(1, 6) <= info.defence:
-                attackingCasualties += 1
-
-        # kill random peeps. chance of dying is 1/attack or 1/defence
-        # using the sum of the weights, we take a random number that's less than the sum
-        # Then we add up the weights of each unit until the total exceeds our random number
-        # That unlucky unit is now dead
-        deadA = []
-        deadD = []
-        while defendingCasualties > 0:
-            defendingCasualties -= 1
-            runningTotal = 0
-            rand = random.random() * sumDefenders
-            for d in defenders:
-                defence = d.unitInfo.defence
-                if defence > 0:
-                    runningTotal += 1.0 / defence
-                    if runningTotal >= rand:
-                        deadD.append(d)
-                        defenders.remove(d)
-                        break
-
-        while attackingCasualties > 0:
-            attackingCasualties -= 1
-            runningTotal = 0
-            rand = random.random() * sumAttackers
-            for a in attackers:
-                attack = a.unitInfo.attack
-                if attack > 0:
-                    runningTotal += 1.0 / attack
-                    if runningTotal >= rand:
-                        deadA.append(a)
-                        attackers.remove(a)
-                        break
-        return BattleReport(attackers, defenders, deadA, deadD)
 
     def retreat(self, conflictTerritory, destination):
         """
@@ -261,20 +210,13 @@ class ResolvePhase:
         assert(conflictTerritory == self.currentConflict)
 
     def nextPhase(self):
-        if len(self.unresolvedConflicts) > 0:
+        unresolvedConflicts = [c for c in self.conflicts if c.resolution == Conflict.noResolution]
+        if unresolvedConflicts:
             # throw error instead?
             return None
         else:
             self.board.currentPhase = MovementPhase(self.board)
             return self.board.currentPhase
-
-
-class BattleReport:
-    def __init__(self, attackers, defenders, deadAttack, deadDefend):
-        self.survivingAttackers = attackers
-        self.survivingDefenders = defenders
-        self.deadAttackers = deadAttack
-        self.deadDefenders = deadDefend
 
 
 class MovementPhase(BaseMovePhase):

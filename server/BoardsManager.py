@@ -13,6 +13,12 @@ class BoardsManager():
         else:
             return None
 
+    def getConflicts(self, boardId):
+        board = self.getBoard(boardId)
+        if not hasattr(board.currentPhase, "conflicts"):
+            return None
+        return [conflict.toJSON() for conflict in board.currentPhase.conflicts]
+
     def newBoard(self, boardName, module):
         self.lastId += 1
         self.boards[self.lastId] = GameBoard.Board(boardName, module)

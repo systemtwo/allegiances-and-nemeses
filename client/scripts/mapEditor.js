@@ -253,6 +253,7 @@ requirejs(["nunjucks", "globals", "render", "board", "helpers"], function(nj, _g
             title: "Territories - Click to Edit",
             modal: false,
             width: 600,
+            dialogClass: "no-close-button",
             height: Math.min(500, window.innerHeight),
             buttons: {
                 "Close": function () {

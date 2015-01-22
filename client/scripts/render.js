@@ -195,6 +195,34 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
         })
     }
 
+    function showConflictList(conflicts) {
+        var conflictList = $(nj.render("static/templates/conflictList.html"), {
+            conflicts: conflicts
+        });
+
+        conflictList.find(".conflict-actions").each(function(actionSection) {
+            var tName = actionSection.data("name");
+            actionSection.find(".resolve-conflict").each(function(button) {
+                button.click(function onResolveClick() {
+                    _g.currentPhase.showBattle(tName);
+                });
+            });
+            actionSection.find(".autoresolve-conflict").each(function(button) {
+                button.click(function onResolveClick() {
+                    _g.currentPhase.autoResolve(tName);
+                });
+            });
+        });
+
+        $("#autoresolve-all", conflictList).click(function() {
+            _g.currentPhase.autoResolveAll();
+        });
+
+        conflictList.dialog({
+            title: "Conflicts"
+        });
+    }
+
     function showBattle(conflict) {
         console.warn("TODO Show battle dialog")
     }
@@ -521,6 +549,7 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
         showPlacementWindow: showPlacementWindow,
         showRecruitmentWindow: showRecruitmentWindow,
         showMoveWindow: showMoveWindow,
+        showConflictList: showConflictList,
         nextPhaseButtonVisible: nextPhaseButtonVisible,
         initMap: initMap,
         drawMap: drawMap,

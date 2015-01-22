@@ -46,16 +46,21 @@ function (_g, board, _p, _c, _r, _router) {
                 _g.board.territories.push(new _c.Territory(tInfo.name, tInfo.income, country, tInfo.x, tInfo.y, tInfo.width, tInfo.height))
             });
 
-            _g.currentCountry = _g.board.countries[0];
-
             boardInfo.units.forEach(function(u){
                 var unit = JSON.parse(u);
                 _g.board.addUnit(unit.id, unit.type, unit.country, unit.territory, unit.originalTerritory)
             });
 
+            _g.conflicts = boardInfo.conflicts;
+            _g.currentCountry = _g.board.countries[0];
+
             // current phase is the class name of the phase
             var phaseClass = _p[boardInfo.currentPhase];
             _g.currentPhase = new phaseClass();
+
+            if (boardInfo.currentConflict && boardInfo.currentPhase === "ResolvePhase") {
+                _g.currentPhase.currentConflict = boardInfo.currentConflict;
+            }
 
             boardInfo.connections.map(function(c) {
                 var first = null,

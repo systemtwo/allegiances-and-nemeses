@@ -1,4 +1,6 @@
+import json
 import os
+import random
 import config
 
 def unitFileName(moduleName):
@@ -64,3 +66,77 @@ def distance(start, goal, unit):
 
         checked.append(currentTerritory)
     return -1
+
+
+# Performs a single step in a territory conflict
+# Takes in a list of attackers and defenders. Removes casualties from list
+def battle(attackers, defenders):
+    # counts number of each side that must die
+    attackingCasualties = 0
+    defendingCasualties = 0
+
+    # there's a weighted chance of each unit dying. We sum the weights for all the attackers and defenders
+    sumAttackers = 0
+    sumDefenders = 0
+
+    # Calculate hits. Chance for a hit is attack/6 for attackers, defence/6 for defenders
+    for u in attackers:
+        info = u.unitInfo
+        sumAttackers += 1.0 / info.attack
+        if random.randint(1, 6) <= info.attack:
+            defendingCasualties += 1
+
+    for u in defenders:
+        info = u.unitInfo
+        sumDefenders += 1.0 / info.defence
+        if random.randint(1, 6) <= info.defence:
+            attackingCasualties += 1
+
+    # kill random peeps. chance of dying is 1/attack or 1/defence
+    # using the sum of the weights, we take a random number that's less than the sum
+    # Then we add up the weights of each unit until the total exceeds our random number
+    # That unlucky unit is now dead
+    deadA = []
+    deadD = []
+    while defendingCasualties > 0:
+        defendingCasualties -= 1
+        runningTotal = 0
+        rand = random.random() * sumDefenders
+        for d in defenders:
+            defence = d.unitInfo.defence
+            if defence > 0:
+                runningTotal += 1.0 / defence
+                if runningTotal >= rand:
+                    deadD.append(d)
+                    defenders.remove(d)
+                    break
+
+    while attackingCasualties > 0:
+        attackingCasualties -= 1
+        runningTotal = 0
+        rand = random.random() * sumAttackers
+        for a in attackers:
+            attack = a.unitInfo.attack
+            if attack > 0:
+                runningTotal += 1.0 / attack
+                if runningTotal >= rand:
+                    deadA.append(a)
+                    attackers.remove(a)
+                    break
+    return BattleReport(attackers, defenders, deadA, deadD)
+
+
+class BattleReport:
+    def __init__(self, attackers, defenders, deadAttack, deadDefend):
+        self.survivingAttackers = attackers
+        self.survivingDefenders = defenders
+        self.deadAttackers = deadAttack
+        self.deadDefenders = deadDefend
+
+    def toJSON(self):
+        return json.dumps({
+            "survivingAttackers": self.survivingAttackers,
+            "survivingDefenders": self.survivingDefenders,
+            "deadAttackers": self.deadAttackers,
+            "deadDefenders": self.deadDefenders
+        })
