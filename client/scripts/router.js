@@ -45,6 +45,11 @@ define(["globals"], function(_g) {
             unitList: unitIds
         }).fail(onfail)
     }
+
+    function getConflicts(boardId) {
+        return $.getJSON("/conflicts/" + boardId);
+    }
+
     function selectConflict(territoryName, onFail) {
         return sendAction({
             action: "selectConflict",
@@ -107,6 +112,7 @@ define(["globals"], function(_g) {
         endBuyPhase: endBuyPhase,
         fetchBoard: fetchBoard,
         fetchBoards: fetchBoards,
+        getConflicts: getConflicts,
         validateMove: validateMove,
         selectConflict: selectConflict,
         battle: battle,

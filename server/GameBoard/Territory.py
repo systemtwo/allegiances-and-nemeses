@@ -1,4 +1,3 @@
-import json
 import Util
 
 
@@ -30,10 +29,10 @@ class BaseTerritory:
     def __repr__(self):
         return str(self)
 
-    def toJSON(self):
-        return json.dumps({
+    def toDict(self):
+        return {
             "name": self.name
-        })
+        }
 
     def containsUnitType(self, unitType):
         for u in self.units():
@@ -57,12 +56,12 @@ class LandTerritory(BaseTerritory):
         self.country = country
         self.type = "land"
 
-    def toJSON(self):
-        return json.dumps({
+    def toDict(self):
+        return {
             "name": self.name,
             "country": self.country.name,
             "income": self.income
-        })
+        }
 
 
 class SeaTerritory(BaseTerritory):

@@ -1,6 +1,3 @@
-import json
-
-
 class Conflict(object):
     # awesome if we could figure out another way for pycharm to pick up these enums
     noResolution = "none"
@@ -17,10 +14,10 @@ class Conflict(object):
         self.reports = []
         self.resolution = Conflict.noResolution
 
-    def toJSON(self):
-        return json.dumps({
+    def toDict(self):
+        return {
             "territoryName": self.territory.name,
-            "attackers": [u.toJSON() for u in self.attackers],
-            "reports": [r.toJSON() for r in self.reports],
+            "attackers": [u.toDict() for u in self.attackers],
+            "reports": [r.toDict() for r in self.reports],
             "resolution": self.resolution
-        })
+        }

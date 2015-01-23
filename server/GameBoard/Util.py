@@ -1,4 +1,3 @@
-import json
 import os
 import random
 import config
@@ -128,15 +127,15 @@ def battle(attackers, defenders):
 
 class BattleReport:
     def __init__(self, attackers, defenders, deadAttack, deadDefend):
-        self.survivingAttackers = attackers
-        self.survivingDefenders = defenders
-        self.deadAttackers = deadAttack
-        self.deadDefenders = deadDefend
+        self.survivingAttackers = attackers[:]
+        self.survivingDefenders = defenders[:]
+        self.deadAttackers = deadAttack[:]
+        self.deadDefenders = deadDefend[:]
 
-    def toJSON(self):
-        return json.dumps({
-            "survivingAttackers": self.survivingAttackers,
-            "survivingDefenders": self.survivingDefenders,
-            "deadAttackers": self.deadAttackers,
-            "deadDefenders": self.deadDefenders
-        })
+    def toDict(self):
+        return {
+            "survivingAttackers": [u.toDict() for u in self.survivingAttackers],
+            "survivingDefenders": [u.toDict() for u in self.survivingDefenders],
+            "deadAttackers": [u.toDict() for u in self.deadAttackers],
+            "deadDefenders": [u.toDict() for u in self.deadDefenders]
+        }

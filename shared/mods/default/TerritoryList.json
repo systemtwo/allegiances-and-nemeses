@@ -1,6 +1,6 @@
 [
     {
-        "name":"Karelia S.S.R.",
+        "name":"Karelia",
         "country":"ussr",
         "x":851,
         "y":140,
@@ -70,7 +70,7 @@
         "type":"land"
     },
     {
-        "name":"Ukraine S.S.R.",
+        "name":"Ukraine",
         "country":"germany",
         "x":946,
         "y":397,

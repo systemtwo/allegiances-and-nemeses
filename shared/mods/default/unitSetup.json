@@ -1,0 +1,76 @@
+{
+    "ussr": {
+        "Russia": [
+            "infantry",
+            "infantry",
+            "infantry",
+            "tank",
+            "tank",
+            "fighter"
+        ],
+        "Karelia": [
+            "infantry",
+            "infantry",
+            "infantry",
+            "fighter"
+        ],
+        "Archangel": [
+            "infantry",
+            "infantry",
+            "infantry",
+            "tank"
+        ],
+        "Caucasus": [
+            "infantry",
+            "infantry",
+            "infantry",
+            "tank"
+        ],
+        "Kazakh": [
+            "infantry",
+            "infantry"
+        ],
+        "Novosibirsk": [
+            "infantry",
+            "infantry"
+        ],
+        "Evenki": [
+            "infantry",
+            "infantry"
+        ],
+        "Yakut": [
+            "infantry",
+            "infantry"
+        ],
+        "Buryatia": [
+            "infantry",
+            "infantry"
+        ],
+        "Soviet Far East": [
+            "infantry",
+            "infantry"
+        ]
+    },
+    "germany": {
+        "West Russia": [
+            "infantry",
+            "infantry",
+            "infantry",
+            "artillery",
+            "tank"
+        ],
+        "Belorussia": [
+            "infantry",
+            "infantry",
+            "infantry"
+        ],
+        "Ukraine": [
+            "infantry",
+            "infantry",
+            "infantry",
+            "artillery",
+            "fighter",
+            "tank"
+        ]
+    }
+}

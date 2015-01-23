@@ -192,7 +192,7 @@ class ResolvePhase:
                 break
 
     def autoResolveAll(self):
-        for conflict in self.conflicts.iteritems():  # TODO include current conflict
+        for conflict in self.conflicts:  # TODO include current conflict
             self.autoResolve(conflict.territory)
 
         # TODO return all BattleReports
@@ -213,7 +213,7 @@ class ResolvePhase:
         unresolvedConflicts = [c for c in self.conflicts if c.resolution == Conflict.noResolution]
         if unresolvedConflicts:
             # throw error instead?
-            return None
+            raise NameError("Cannot advance to next phase before resolving conflicts")
         else:
             self.board.currentPhase = MovementPhase(self.board)
             return self.board.currentPhase

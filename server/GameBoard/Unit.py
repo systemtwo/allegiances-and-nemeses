@@ -1,4 +1,3 @@
-import json
 import UniqueId
 import Util
 
@@ -67,14 +66,14 @@ class Unit:
                 return True
         return False
 
-    def toJSON(self):
-        return json.dumps({
+    def toDict(self):
+        return {
             "id": self.id.hex,
             "type": self.type,
             "territory": self.territory.name,
             "originalTerritory": self.originalTerritory.name,
             "country": self.country.name
-        })
+        }
 
 
 class UnitInfo:
@@ -83,7 +82,7 @@ class UnitInfo:
         self.cost = dictionary["cost"]
         self.movement = dictionary["move"]
         self.attack = dictionary["attack"]
-        self.defense = dictionary["defence"]
+        self.defence = dictionary["defence"]
         self.terrainType = dictionary["terrainType"]
 
         if "description" in dictionary:

@@ -56,16 +56,21 @@ class Board:
                 else:
                     raise Exception("Could not find territories for connection: " + json.dumps(c))
 
+        # add units
+        with open(Util.filePath(moduleName, "unitSetup.json")) as unitFile:
+            unitSetup = json.load(unitFile)
+            for countryName, territoryUnitMap in unitSetup.iteritems():
+                country = self.getCountryByName(countryName)
+                for tName, unitTypes in territoryUnitMap.iteritems():
+                    territory = self.territoryByName(tName)
+                    for unitType in unitTypes:
+                        self.units.append(Unit(self.unitInfo(unitType), country, territory))
+
         # begin
         for c in self.countries:
             c.collectIncome()
         self.currentCountry = self.countries[0]
         self.currentPhase = BuyPhase(self.currentCountry.ipc, self)
-
-        # test stuff
-        russian_territories = [x for x in self.territories if hasattr(x, "country") and x.country.name == "ussr"]
-        infantry = Unit(self.unitInfo("infantry"), self.countries[0], russian_territories[0])
-        self.units.append(infantry)
 
     def getStartingCountry(self, terInfo):
         if "country" not in terInfo:
@@ -79,11 +84,11 @@ class Board:
     def toDict(self):
         return {
             "name": self.name,
-            "countries": [c.toJSON() for c in self.countries],
+            "countries": [c.toDict() for c in self.countries],
             "territoryInfo": self.territoryInfo,  # doesn't have CURRENT territory owners, only initial
             "connections": self.connections,
             "players": self.players,
-            "units": [u.toJSON() for u in self.units],
+            "units": [u.toDict() for u in self.units],
             "currentPhase": self.currentPhase.name,
 
             # Module info
@@ -123,6 +128,12 @@ class Board:
         for t in self.territories:
             if t.name == name:
                 return t
+        return None
+
+    def getCountryByName(self, name):
+        for c in self.countries:
+            if c.name == name:
+                return c
         return None
 
     def removeUnit(self, u):

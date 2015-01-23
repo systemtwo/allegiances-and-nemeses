@@ -29,8 +29,7 @@ function (_g, board, _p, _c, _r, _router) {
             });
             _g.unitCatalogue = boardInfo.unitCatalogue;
 
-            _g.board.countries = boardInfo.countries.map(function(c) {
-                var countryInfo = JSON.parse(c);
+            _g.board.countries = boardInfo.countries.map(function(countryInfo) {
                 return new _c.Country(countryInfo.name, countryInfo.team, countryInfo.ipc)
             });
 
@@ -46,8 +45,7 @@ function (_g, board, _p, _c, _r, _router) {
                 _g.board.territories.push(new _c.Territory(tInfo.name, tInfo.income, country, tInfo.x, tInfo.y, tInfo.width, tInfo.height))
             });
 
-            boardInfo.units.forEach(function(u){
-                var unit = JSON.parse(u);
+            boardInfo.units.forEach(function(unit){
                 _g.board.addUnit(unit.id, unit.type, unit.country, unit.territory, unit.originalTerritory)
             });
 

@@ -107,5 +107,5 @@ class ActionHandler(BaseAuthHandler):
 
     def assertPhase(self, phaseName, board):
         if phaseName != board.currentPhase.name:
-            print(phaseName + " did not equal " + board.currentPhase.name)
             self.send_error(400)
+            raise NameError(phaseName + " did not equal " + board.currentPhase.name)

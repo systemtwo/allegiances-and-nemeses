@@ -172,22 +172,26 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
     };
 
     AttackPhase.prototype.nextPhase = function() {
-        _router.nextPhase().done(function onSuccess(result) {
-            _r.nextPhaseButtonVisible(false);
-            if (result.conflicts.length > 0) {
-                _g.conflicts = result.conflicts;
-                _g.currentPhase = new ResolvePhase();
-            } else {
-                _g.currentPhase = new MovementPhase();
-            }
+        _router.nextPhase().done(function onSuccess() {
+            _g.currentPhase = new ResolvePhase();
         });
     };
 
     // Resolve all attacks made during the movement phase
     function ResolvePhase() {
+        var that = this;
         _r.phaseName("Resolve Conflicts");
-        this.showConflicts();
+        _r.nextPhaseButtonVisible(true);
+        _router.getConflicts(_g.board.id).done(function(conflicts) {
+            that.conflicts = conflicts;
+            if (conflicts.length) {
+                that.showConflicts();
+            } else {
+                _r.nextPhaseButtonVisible(true);
+            }
+        });
         this.currentConflict = null;
+        return this;
     }
 
     ResolvePhase.prototype.showConflicts = function() {
@@ -215,10 +219,17 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
         _router.autoResolveAll();
     };
 
+    ResolvePhase.prototype.nextPhase = function() {
+        _router.nextPhase().done(function onSuccess() {
+            _g.currentPhase = new MovementPhase();
+        });
+    };
+
     // Another movement phase, with restrictions on movement.
     // Anyone who has moved cannot move again (unless it's a plane), and territories cannot be attacked (can only move into friendly territories)
     function MovementPhase() {
         AttackPhase.call(this);
+        _r.phaseName("Non-Combat Move");
     }
     MovementPhase.prototype = Object.create(AttackPhase.prototype);
     MovementPhase.prototype.constructor = MovementPhase;

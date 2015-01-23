@@ -17,7 +17,7 @@ class BoardsManager():
         board = self.getBoard(boardId)
         if not hasattr(board.currentPhase, "conflicts"):
             return None
-        return [conflict.toJSON() for conflict in board.currentPhase.conflicts]
+        return [conflict.toDict() for conflict in board.currentPhase.conflicts]
 
     def newBoard(self, boardName, module):
         self.lastId += 1

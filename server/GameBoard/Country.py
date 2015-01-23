@@ -1,6 +1,3 @@
-import json
-
-
 class Country:
     def __init__(self, name, teamName, player, board=None):
         self.name = name
@@ -14,9 +11,9 @@ class Country:
             if hasattr(t, "country") and t.country == self:
                 self.ipc += t.income
 
-    def toJSON(self):
-        return json.dumps({
+    def toDict(self):
+        return {
             "name": self.name,
             "team": self.team,
             "ipc": self.ipc
-        })
+        }
