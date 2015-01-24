@@ -64,8 +64,8 @@ class LobbyCreateHandler(BaseLobbyHandler):
         #ie. Does it exist?
 
 
-        self.gamesManager.newGame(validUserInput["roomName"], validUserInput["players"], validUserInput["module"], self.current_user)
-        self.redirect("/lobby")
+        gameId = self.gamesManager.newGame(validUserInput["roomName"], validUserInput["players"], validUserInput["module"], self.current_user)
+        self.redirect("/lobby/" + str(gameId))
         return
 
 """Serves a page that has the details of the game listing"""
