@@ -93,9 +93,11 @@ class LobbyGameHandler(BaseLobbyHandler):
 
         game = self.gamesManager.getGame(validUserInput["gameId"])
 
+        
+        #TODO: Fix renderArguments so that the point to the actual data
         renderArguments = {}
         renderArguments['gameName'] = game.name
-        renderArguments['players'] = ['a', 'b']
+        renderArguments['players'] = [{"id": 1, "name":'a'}, {"id": 2, "name": 'b'}]
         renderArguments['countries'] = [{"id": i, "name": game.countries[i]} for i in xrange(len(game.countries))]
         print renderArguments['countries']
         self.render(os.path.join("..", self.LOBBY_HTML_PATH, "lobbyinfo.html"), **renderArguments)
