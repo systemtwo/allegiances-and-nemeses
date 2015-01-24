@@ -129,7 +129,12 @@ class LobbyGameHandler(BaseLobbyHandler):
             self.send_error(403)
             return
 
-"""Joins a game listing"""
+"""
+Joins a game listing
+
+The user will be added to the players list and the player will be 
+redirected to the game detail page
+"""
 class LobbyGameJoinHandler(BaseLobbyHandler):
     @tornado.web.authenticated
     def get(self, **params):
