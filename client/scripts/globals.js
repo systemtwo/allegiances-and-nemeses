@@ -5,7 +5,8 @@ define(function() {
         board: null,
         currentCountry: null,
         currentPhase: null,
-        unitCatalogue: [],
+        unitCatalogue: {},
+        imageMap: {},
         buyList: {},
         conflicts: [],
         connections: [] // List of all the connections between territories. Used for rendering for now. Ask dschwarz

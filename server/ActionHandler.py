@@ -65,21 +65,14 @@ class ActionHandler(BaseAuthHandler):
             if not success:
                 self.send_error(400)
 
-        elif "selectConflict" == action:
-            self.assertPhase("ResolvePhase", board)
-            territory = board.territoryByName(requestData["territory"])
-            board.currentPhase.selectConflict(territory)
-            
         elif "battleTick" == action:
             self.assertPhase("ResolvePhase", board)
             territory = board.territoryByName(requestData["territory"])
-            assert(territory == board.currentPhase.currentConflict)
 
         elif "retreat" == action:
             self.assertPhase("ResolvePhase", board)
             fromTerritory = board.territoryByName(requestData["from"])
             toTerritory = board.territoryByName(requestData["to"])
-            assert(fromTerritory == board.currentPhase.currentConflict)
             board.currentPhase.retreat(fromTerritory, toTerritory)
 
         elif "autoResolve" == action:

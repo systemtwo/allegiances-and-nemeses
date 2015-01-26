@@ -38,3 +38,62 @@
 .floatRight {
     float: right;
 }
+
+/* Conflict list */
+.conflict-row {
+    width: 500px;
+    height: 50px;
+    margin: 5px;
+    font-size: 18px;
+}
+
+.conflict-actions,.conflict-outcome {
+    width: 220px;
+    float: right;
+}
+
+.conflict-actions button {
+    margin: 0 5px;
+}
+
+.conflict-outcome {
+    font-size: 18px;
+}
+
+/* Battle window */
+.battle-info {
+    min-width: 600px;
+}
+.casualty-section {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    border-right: 1px solid black;
+    padding-right: 0;
+}
+
+.casualty-title {
+    height: 60px;
+}
+
+.reports {
+    flex: 1 1;
+    overflow-y: scroll;
+}
+
+.report {
+    cursor: zoom-out;
+    border-bottom: 1px solid black;
+}
+.report.collapsed {
+    cursor: zoom-in;
+}
+
+.report.collapsed .casualty-details {
+    display: none;
+}
+
+.casualty-details img {
+    width: 20px;
+    height: 20px;
+}

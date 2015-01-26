@@ -28,6 +28,9 @@ function (_g, board, _p, _c, _r, _router) {
                 _r.initMap();
             });
             _g.unitCatalogue = boardInfo.unitCatalogue;
+            Object.keys(_g.unitCatalogue).forEach(function(unitType) {
+                _g.imageMap[unitType] = _r.getImageSource(unitType);
+            });
 
             _g.board.countries = boardInfo.countries.map(function(countryInfo) {
                 return new _c.Country(countryInfo.name, countryInfo.team, countryInfo.ipc)
@@ -55,10 +58,6 @@ function (_g, board, _p, _c, _r, _router) {
             // current phase is the class name of the phase
             var phaseClass = _p[boardInfo.currentPhase];
             _g.currentPhase = new phaseClass();
-
-            if (boardInfo.currentConflict && boardInfo.currentPhase === "ResolvePhase") {
-                _g.currentPhase.currentConflict = boardInfo.currentConflict;
-            }
 
             boardInfo.connections.map(function(c) {
                 var first = null,

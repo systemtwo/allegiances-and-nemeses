@@ -140,10 +140,6 @@ class ResolvePhase:
         self.conflicts = conflicts
         self.board = board
         self.name = "ResolvePhase"
-        self.currentConflict = None  # change to hold a conflict, not a territory
-
-    def selectTerritory(self, territory):
-        self.currentConflict = territory
 
     # TODO update logic. May autoresolve a partially resolved conflict
     def autoResolve(self, territory):
@@ -157,8 +153,6 @@ class ResolvePhase:
         if not conflict:
             return False  # or throw error
 
-        defenders = territory.units()
-
         constraint = 100000
         while True:
             # bit of safety
@@ -167,18 +161,21 @@ class ResolvePhase:
                 print("Auto-resolve does not complete")
                 break
 
-            outcome = Util.battle(conflict.attackers, defenders)
+            outcome = Util.battle(conflict.attackers, conflict.defenders)
             conflict.reports.append(outcome)
+            # may want to revisit this
             for u in outcome.deadDefenders:
+                self.board.removeUnit(u)
+            for u in outcome.deadAttackers:
                 self.board.removeUnit(u)
 
             if len(conflict.attackers) == 0:
                 # defenders win
-                conflict.resolution = Conflict.defenderWin
+                conflict.outcome = Conflict.defenderWin
                 break
-            elif len(defenders) == 0:
+            elif len(conflict.defenders) == 0:
                 # attackers win if no defenders, and 1+ attackers
-                conflict.resolution = Conflict.attackerWin
+                conflict.outcome = Conflict.attackerWin
 
                 # can only take the territory if 1+ attackers are land attackers
                 landAttackers = [u for u in conflict.attackers if u.isLand()]
@@ -207,10 +204,10 @@ class ResolvePhase:
         :param conflictTerritory: Territory territory to retreat from
         :param destination: Territory territory to retreat to
         """
-        assert(conflictTerritory == self.currentConflict)
+        pass
 
     def nextPhase(self):
-        unresolvedConflicts = [c for c in self.conflicts if c.resolution == Conflict.noResolution]
+        unresolvedConflicts = [c for c in self.conflicts if c.outcome == Conflict.inProgress]
         if unresolvedConflicts:
             # throw error instead?
             raise NameError("Cannot advance to next phase before resolving conflicts")

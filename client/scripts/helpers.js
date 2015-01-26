@@ -71,12 +71,21 @@ define(["globals"], function(_g) {
 
         return territoryObjects;
     }
+    function getConflictByTerritoryName(tName) {
+        for (var i = 0; i < _g.conflicts.length; i++) {
+            if (_g.conflicts[i].territoryName == tName) {
+                return _g.conflicts[i];
+            }
+        }
+        return null;
+    }
 
 return {
     unitInfo: unitInfo,
     countryTerritories: countryTerritories,
     countryUnits: countryUnits,
     getPath: getPath,
+    getConflictByTerritoryName: getConflictByTerritoryName,
     territoriesInRange: territoriesInRange
 }
 

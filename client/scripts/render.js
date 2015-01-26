@@ -195,36 +195,66 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
         })
     }
 
-    function showConflictList(conflicts) {
-        var conflictList = $(nj.render("static/templates/conflictList.html"), {
-            conflicts: conflicts
-        });
+    var conflictWindow = null;
+    function showConflictList() {
+        closeConflicts();
+        var conflictList = $(nj.render("static/templates/conflictList.html", {
+            conflicts: _g.conflicts
+        }));
 
-        conflictList.find(".conflict-actions").each(function(actionSection) {
-            var tName = actionSection.data("name");
-            actionSection.find(".resolve-conflict").each(function(button) {
-                button.click(function onResolveClick() {
+        conflictList.find(".conflict-actions").each(function(index, actionSection) {
+            actionSection = $(actionSection);
+            var tName = actionSection.closest("[data-name]").data("name");
+            actionSection.find(".resolve-conflict").each(function(index, button) {
+                $(button).click(function onResolveClick() {
                     _g.currentPhase.showBattle(tName);
                 });
             });
-            actionSection.find(".autoresolve-conflict").each(function(button) {
-                button.click(function onResolveClick() {
+            actionSection.find(".autoresolve-conflict").each(function(index, button) {
+                $(button).click(function onResolveClick() {
                     _g.currentPhase.autoResolve(tName);
                 });
             });
+        });
+
+        $("button.details", conflictList).click(function(event){
+            var name = $(event.currentTarget).closest("[data-name]").data("name");
+            showBattle(name);
         });
 
         $("#autoresolve-all", conflictList).click(function() {
             _g.currentPhase.autoResolveAll();
         });
 
-        conflictList.dialog({
-            title: "Conflicts"
+        conflictWindow = conflictList.dialog({
+            title: "Conflicts",
+            width: 640,
+            height: 400
         });
     }
 
-    function showBattle(conflict) {
-        console.warn("TODO Show battle dialog")
+    function showBattle(tName) {
+        // get the conflict
+        var conflict = _h.getConflictByTerritoryName(tName);
+
+        // render a dialog for it
+        var dialog = $(nj.render("static/templates/battleground.html", {
+            conflict: conflict,
+            images: _g.imageMap
+        }));
+
+        $(".report", dialog).click(function() {
+            $(this).toggleClass("collapsed");
+        });
+        dialog.dialog({
+            title: "Battle for " + conflict.territoryName,
+            width: 600,
+            height: 400
+        });
+    }
+    function closeConflicts() {
+        if (conflictWindow)
+            conflictWindow.dialog("destroy");
     }
 
     function initMap() {
@@ -550,6 +580,7 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
         showRecruitmentWindow: showRecruitmentWindow,
         showMoveWindow: showMoveWindow,
         showConflictList: showConflictList,
+        closeConflicts: closeConflicts,
         nextPhaseButtonVisible: nextPhaseButtonVisible,
         initMap: initMap,
         drawMap: drawMap,
@@ -562,6 +593,7 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
         setSelectableTerritories: setSelectableTerritories,
         setTerritoriesWithUnitsSelectable: setTerritoriesWithUnitsSelectable,
         territoryIsSelectable: territoryIsSelectable,
+        getImageSource: getImageSource,
         territoryAtPoint: territoryAtPoint
     }
 });

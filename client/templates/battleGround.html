@@ -1,0 +1,56 @@
+<div class="row battle-info">
+    <div class="col-sm-4 casualty-section">
+        <div class="casualty-title">
+            <h3>Causalties</h3>
+        </div>
+        <div class="reports">
+            {% for report in conflict.reports %}
+            <div class="report collapsed">
+                <div>Attackers: {{report.deadAttackers.length}}</div>
+                <div class="casualty-details">
+                    {% for unit in report.deadAttackers %}
+                    <img src="{{ images[unit.type] }}">
+                    {% endfor %}
+                </div>
+                <div>Defenders: {{report.deadDefenders.length}}</div>
+                <div class="casualty-details">
+                    {% for unit in report.deadDefenders %}
+                    <img src="{{ images[unit.type] }}">
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="col-sm-8">
+        <div style="display: none" class="action-bar row">
+            <div class="col-sm-3">
+                <button>Fight</button>
+            </div>
+            <div class="col-sm-3">
+                <button>To The Death</button>
+            </div>
+            <div class="col-sm-3">
+                <button>Retreat</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="attackers col-sm-6">
+                <h2>
+                    Attackers
+                </h2>
+                {% for unit in conflict.attackers %}
+                    <img src="{{ images[unit.type] }}">
+                {% endfor %}
+            </div>
+            <div class="defenders col-sm-6">
+                <h2>
+                    Defenders
+                </h2>
+                {% for unit in conflict.defenders %}
+                    <img src="{{ images[unit.type] }}">
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>

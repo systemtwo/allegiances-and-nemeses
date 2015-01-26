@@ -46,8 +46,13 @@ define(["globals"], function(_g) {
         }).fail(onfail)
     }
 
-    function getConflicts(boardId) {
-        return $.getJSON("/conflicts/" + boardId);
+    function updateConflicts(boardId) {
+        var promise = new $.Deferred();
+        $.getJSON("/conflicts/" + boardId).done(function(conflicts) {
+            _g.conflicts = conflicts;
+            promise.resolve();
+        });
+        return promise;
     }
 
     function selectConflict(territoryName, onFail) {
@@ -77,7 +82,6 @@ define(["globals"], function(_g) {
     function autoResolve(territoryName) {
         // NO RETREAT. TO THE DEATH, BROTHERS!
         // Success will return a BattleReport
-        // Will fail if battling in the non-current conflict
         return sendAction({
             action: "autoResolve",
             territory: territoryName
@@ -112,7 +116,7 @@ define(["globals"], function(_g) {
         endBuyPhase: endBuyPhase,
         fetchBoard: fetchBoard,
         fetchBoards: fetchBoards,
-        getConflicts: getConflicts,
+        updateConflicts: updateConflicts,
         validateMove: validateMove,
         selectConflict: selectConflict,
         battle: battle,

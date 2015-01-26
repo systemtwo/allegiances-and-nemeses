@@ -29,10 +29,20 @@ define(["globals"], function(_g) {
         this.height = height;
     };
 
-    Territory.prototype.units = function () {
+    Territory.prototype.units = function (country) {
         var that = this;
         return _g.board.units.filter(function(u) {
-            return u.territory === that
+            var countryMatch = true;
+            if (country)
+                countryMatch = u.country == country;
+            return countryMatch && u.territory === that;
+        })
+    };
+    Territory.prototype.enemyUnits = function (country) {
+        var that = this;
+        return _g.board.units.filter(function(u) {
+
+            return country.team == u.country.team && u.territory === that;
         })
     };
 
@@ -53,8 +63,11 @@ define(["globals"], function(_g) {
     };
 
 
-
-    var Conflict = function(territory) {
+    /**
+     * Not currently in use - only for IDE to detect properties
+     * @constructor
+     */
+    var Conflict = function() {
         this.outcomes = {
             DEFENDER: "defenderWin",
             ATTACKER: "attackerWin",
@@ -62,9 +75,9 @@ define(["globals"], function(_g) {
         };
         this.attackers = [];
         this.defenders = [];
-        this.battleReports = [];
+        this.reports = [];
         this.outcome = this.outcomes.IN_PROGRESS;
-        this.territory = territory;
+        this.territoryName = null;
     };
 
     var Country = function(name, team, ipc) {

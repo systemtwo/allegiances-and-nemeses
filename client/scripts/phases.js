@@ -6,15 +6,15 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
         _r.phaseName("Purchase Units");
         _g.buyList = {};
         _r.showRecruitmentWindow(this);
-        _h.countryUnits(_g.currentCountry).forEach(function(u) {
+        _h.countryUnits(_g.currentCountry).forEach(function (u) {
             u.beginningOfTurnTerritory = u.territory;
         });
-    //    _r.showTerritoryList();
+        //    _r.showTerritoryList();
         return this;
     }
 
     // Updates the amount of a certain unit to buy
-    BuyPhase.prototype.buyUnits = function(unitType, amount) {
+    BuyPhase.prototype.buyUnits = function (unitType, amount) {
         var info = _h.unitInfo(unitType);
         _g.buyList[unitType] = {
             unitType: unitType,
@@ -24,21 +24,21 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
         // Notify server
     };
 
-    BuyPhase.prototype.money = function() {
-        return Object.keys(_g.buyList).reduce(function(total, key) {
+    BuyPhase.prototype.money = function () {
+        return Object.keys(_g.buyList).reduce(function (total, key) {
             var data = _g.buyList[key];
-            return total + data.cost*data.amount
+            return total + data.cost * data.amount
         }, 0);
     };
 
-    BuyPhase.prototype.nextPhase = function(onSuccess) {
-        var buyList = Object.keys(_g.buyList).map(function(value) {
-           return {
-               unitType: _g.buyList[value].unitType,
-               amount: _g.buyList[value].amount
+    BuyPhase.prototype.nextPhase = function (onSuccess) {
+        var buyList = Object.keys(_g.buyList).map(function (value) {
+            return {
+                unitType: _g.buyList[value].unitType,
+                amount: _g.buyList[value].amount
             }
         });
-        _router.endBuyPhase(buyList).done(function() {
+        _router.endBuyPhase(buyList).done(function () {
             onSuccess();
             _g.currentPhase = new AttackPhase();
         });
@@ -54,7 +54,7 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
             DEST: "selectMoveDest",
             SELECT_UNITS: "selectUnits"
         };
-        _h.countryUnits(_g.currentCountry).forEach(function(u) {
+        _h.countryUnits(_g.currentCountry).forEach(function (u) {
             u.beginningOfPhaseTerritory = u.territory;
         });
         this.setSelectableOriginTerritories();
@@ -65,25 +65,25 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
         return this;
     }
 
-    AttackPhase.prototype.phaseName = function() {
+    AttackPhase.prototype.phaseName = function () {
         return "Combat Move";
     };
 
-    AttackPhase.prototype.filterMovable = function() {
+    AttackPhase.prototype.filterMovable = function () {
         return true; // Every unit belonging to a country is movable
     };
 
-    AttackPhase.prototype.setSelectableOriginTerritories = function() {
+    AttackPhase.prototype.setSelectableOriginTerritories = function () {
         _r.setTerritoriesWithUnitsSelectable(_h.countryUnits(_g.currentCountry).filter(this.filterMovable));
     };
 
-    AttackPhase.prototype.setSelectableDestinationTerritories = function(originTerritory) {
-            var controlledUnits = originTerritory.countryUnits(_g.currentCountry).filter(this.filterMovable);
-            // Make selectable any territory that a unit currently in the clicked territory can move to
-            _r.setSelectableTerritories(_h.territoriesInRange(controlledUnits, _g.currentCountry));
+    AttackPhase.prototype.setSelectableDestinationTerritories = function (originTerritory) {
+        var controlledUnits = originTerritory.countryUnits(_g.currentCountry).filter(this.filterMovable);
+        // Make selectable any territory that a unit currently in the clicked territory can move to
+        _r.setSelectableTerritories(_h.territoriesInRange(controlledUnits, _g.currentCountry));
     };
 
-    AttackPhase.prototype.onTerritorySelect = function(territory) {
+    AttackPhase.prototype.onTerritorySelect = function (territory) {
         if (this.state == this.states.START) {
             this.state = this.states.DEST;
             this.origin = territory;
@@ -106,14 +106,14 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
         }
     };
 
-    AttackPhase.prototype.showUnitSelectionWindow = function() {
+    AttackPhase.prototype.showUnitSelectionWindow = function () {
         var that = this;
         var units = this.origin.units().filter(this.filterMovable);
         var able = [];
         var unable = [];
         // Find the units currently in the origin territory that are ABLE to move to the destination territory
         // This can be improved by combining with the territoriesInRange check computed previously
-        units.forEach(function(unit) {
+        units.forEach(function (unit) {
             var distanceToCurrent = _h.getPath(unit.beginningOfPhaseTerritory, unit.beginningOfTurnTerritory, unit).length;
             var distanceToDest = _h.getPath(unit.beginningOfPhaseTerritory, that.destination, unit).length;
             console.log(distanceToCurrent, distanceToDest);
@@ -132,15 +132,15 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
 
     // Move a set of units to the destination territory. Triggered by the move window, when it's submitted
     // Given a list of unitType(String), originalTerritory (Territory), currentTerritory (String), and amount (int)
-    AttackPhase.prototype.moveUnits = function(moveList) {
+    AttackPhase.prototype.moveUnits = function (moveList) {
         var that = this;
         // cache the origin
         var origin = this.origin;
         var idList = [];
-        moveList.forEach(function(info) {
+        moveList.forEach(function (info) {
             var amount = info.amount;
             var t = _g.getBoard().territoryByName(info.originalTerritoryName);
-            that.origin.units().forEach(function(u) {
+            that.origin.units().forEach(function (u) {
                 if (amount > 0 && u.unitType === info.unitType && u.beginningOfPhaseTerritory === t) {
                     amount -= 1;
                     idList.push(u.id);
@@ -148,11 +148,11 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
                 }
             });
             if (amount > 0) {
-                console.error("Asked to move " + info.amount + " " + info.unitType+", only moved " + (info.amount-amount))
+                console.error("Asked to move " + info.amount + " " + info.unitType + ", only moved " + (info.amount - amount))
             }
         });
         _router.validateMove(origin, this.destination, idList).fail(function onFail() {
-            _g.board.getUnits(idList).forEach(function(u) {
+            _g.board.getUnits(idList).forEach(function (u) {
                 u.territory = origin;
             });
             alert("Invalid move");
@@ -165,13 +165,13 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
         this.setSelectableOriginTerritories();
     };
 
-    AttackPhase.prototype.clickNothing = function() {
+    AttackPhase.prototype.clickNothing = function () {
         this.state = this.states.START;
         this.setSelectableOriginTerritories();
         _r.hideArrow();
     };
 
-    AttackPhase.prototype.nextPhase = function() {
+    AttackPhase.prototype.nextPhase = function () {
         _router.nextPhase().done(function onSuccess() {
             _g.currentPhase = new ResolvePhase();
         });
@@ -179,23 +179,28 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
 
     // Resolve all attacks made during the movement phase
     function ResolvePhase() {
-        var that = this;
         _r.phaseName("Resolve Conflicts");
-        _r.nextPhaseButtonVisible(true);
-        _router.getConflicts(_g.board.id).done(function(conflicts) {
-            that.conflicts = conflicts;
-            if (conflicts.length) {
-                that.showConflicts();
-            } else {
-                _r.nextPhaseButtonVisible(true);
-            }
-        });
-        this.currentConflict = null;
+        _r.nextPhaseButtonVisible(false);
+        this.conflictWindow = null;
+        this.updateConflicts();
         return this;
     }
 
-    ResolvePhase.prototype.showConflicts = function() {
-        _r.showConflictList(_g.conflicts)
+    ResolvePhase.prototype.updateConflicts = function () {
+        _router.updateConflicts(_g.board.id).done(function () {
+            var unresolvedConflictExists = false;
+            _g.conflicts.forEach(function (c) {
+                if (c.outcome == "inProgress") {
+                    unresolvedConflictExists = true;
+                }
+            });
+            if (unresolvedConflictExists) {
+                _r.nextPhaseButtonVisible(false);
+            } else {
+                _r.nextPhaseButtonVisible(true);
+            }
+            _r.showConflictList();
+        });
     };
 
     ResolvePhase.prototype.retreat = function() {
@@ -208,19 +213,24 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
         // Update conflict with matching territory
     };
 
-    ResolvePhase.prototype.autoresolve = function(territory) {
-        // Battle to the death in a conflict territory
-        // send request to server
-        // Get result
-        // Show summary of all battle reports
+    ResolvePhase.prototype.autoResolve = function(tName) {
+        var that = this;
+        _router.autoResolve(tName).done(function(){
+            that.updateConflicts();
+        })
     };
 
     ResolvePhase.prototype.autoResolveAll = function() {
-        _router.autoResolveAll();
+        var that = this;
+        _router.autoResolveAll().done(function onAutoResolveSuccess() {
+            that.updateConflicts();
+        });
     };
 
     ResolvePhase.prototype.nextPhase = function() {
+        var that = this;
         _router.nextPhase().done(function onSuccess() {
+            _r.closeConflicts();
             _g.currentPhase = new MovementPhase();
         });
     };
