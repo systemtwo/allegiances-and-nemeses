@@ -111,7 +111,6 @@ class Board:
 
     # Proceed to the next country's turn. This is different than advancing a phase (1/6th of a turn)
     def nextTurn(self):
-        self.countries = []
         nextIndex = self.countries.index(self.currentCountry) + 1
         if nextIndex > len(self.countries):
             self.currentCountry = self.countries[0]
