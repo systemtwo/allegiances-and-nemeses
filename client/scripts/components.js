@@ -48,7 +48,7 @@ define(["globals"], function(_g) {
 
     Territory.prototype.hasFactory = function() {
         for(var i=0; i < _g.board.units.length; i++) {
-            if (_g.board.units[i].type == "factory") {
+            if (_g.board.units[i].unitType == "factory") {
                 return true;
             }
         }

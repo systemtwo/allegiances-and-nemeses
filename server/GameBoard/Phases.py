@@ -38,11 +38,10 @@ class BuyPhase:
         sumCost = 0
         unitList = []
         # buyList is of type [{unitType: String, amount: int}]
-        for buyInfo in buyList:
-            unitInfo = self.board.unitInfo(buyInfo["unitType"])
-            sumCost += buyInfo["amount"] * unitInfo.cost
-            for _ in range(buyInfo["amount"]):
-                unitList.append((buyInfo["unitType"], unitInfo.cost))
+        for unitType in buyList:
+            unitInfo = self.board.unitInfo(unitType)
+            sumCost += unitInfo.cost
+            unitList.append((unitType, unitInfo.cost))
 
         if sumCost <= self.moneyCap:
             self.buyList = unitList
@@ -121,11 +120,8 @@ class AttackPhase(BaseMovePhase):
                 unit.territory = dest
 
         board.attackMoveList = self.moveList
-        if not hostileTerToAttackers:
-            board.currentPhase = MovementPhase(board)
-        else:
-            conflicts = [Conflict(territory, attackers) for territory, attackers in hostileTerToAttackers.iteritems()]
-            board.currentPhase = ResolvePhase(conflicts, board)
+        conflicts = [Conflict(territory, attackers) for territory, attackers in hostileTerToAttackers.iteritems()]
+        board.currentPhase = ResolvePhase(conflicts, board)
         return board.currentPhase
 
 
@@ -246,21 +242,22 @@ class PlacementPhase:
     def __init__(self, board):
         self.toPlace = board.buyList[:]  # list of units to place on the board
         self.placedList = []
+        self.board = board
         self.name = "PlacementPhase"
 
-    def place(self, unitType, territory, board):
+    def place(self, unitType, territory):
         if unitType in self.toPlace and territory.hasFactory():
             alreadyPlaced = [u for u in self.placedList if u.territory == territory]
             if len(alreadyPlaced) < territory.income:
-                newUnit = Unit(board.unitInfo(unitType), board.currentCountry, territory)
+                newUnit = Unit(self.board.unitInfo(unitType), self.board.currentCountry, territory)
                 self.toPlace.remove(unitType)
                 self.placedList.append(newUnit)
 
-    def nextPhase(self, board):
+    def nextPhase(self):
         for u in self.placedList:
-            board.units.append(u)
-        board.currentCountry.colllectIncome()
+            self.board.units.append(u)
+        self.board.currentCountry.collectIncome()
 
-        board.nextTurn()
-        board.currentPhase = BuyPhase(board.currentCountry, board)
-        return board.currentPhase
+        self.board.nextTurn()
+        self.board.currentPhase = BuyPhase(self.board.currentCountry, self.board)
+        return self.board.currentPhase

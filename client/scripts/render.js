@@ -50,7 +50,12 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
 
             function getMax(){
                 var remainingMoney = _g.currentCountry.ipc - buyPhase.money();
-                var currentAmount = _g.buyList[unitType] ? _g.buyList[unitType].amount : 0;
+                var currentAmount = _g.buyList.reduce(function(number, boughtUnitType) {
+                    if (boughtUnitType == unitType) {
+                        return number + 1;
+                    } else {
+                        return number;
+                    }}, 0);
                 var newMax = Math.floor(remainingMoney/ info.cost) + currentAmount;
                 if (newMax < 0) {
                     console.error("Spent more than allowed")
@@ -62,7 +67,7 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
                 max: getMax,
                 change: function () {
                     buyPhase.buyUnits(unitType, input.counter("value"));
-                    sum.text(buyPhase.money())
+                    sum.text(buyPhase.money());
                 }
             });
         });
@@ -90,8 +95,26 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
     /**
      * Shows the list of units bought, indicates which are available to be placed, and which have already been placed
      */
-    function showPlacementWindow() {
+    function showPlacementWindow(units) {
+        var window = $(nj.render("static/templates/place.html", {
+            units: units,
+            images: _g.imageMap
+        }));
 
+        $(".place-unit", window).click(function(event) {
+            var target = $(event.currentTarget);
+            if (_g.currentPhase.onUnitSelect) {
+                var result = _g.currentPhase.onUnitSelect(target.data("type"));
+                if (result) {
+                    window.dialog("destroy");
+                }
+            }
+        });
+
+        window.dialog({
+            title: "Units to Place",
+            modal: false
+        });
     }
 
     /**

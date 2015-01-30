@@ -7,7 +7,7 @@ define(function() {
         currentPhase: null,
         unitCatalogue: {},
         imageMap: {},
-        buyList: {},
+        buyList: [],
         conflicts: [],
         connections: [] // List of all the connections between territories. Used for rendering for now. Ask dschwarz
     };

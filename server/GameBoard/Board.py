@@ -89,6 +89,7 @@ class Board:
             "connections": self.connections,
             "players": self.players,
             "units": [u.toDict() for u in self.units],
+            "buyList": self.buyList,
             "currentPhase": self.currentPhase.name,
 
             # Module info

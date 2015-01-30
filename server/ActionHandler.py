@@ -86,7 +86,8 @@ class ActionHandler(BaseAuthHandler):
 
         elif "placeUnit" == action:
             self.assertPhase("PlacementPhase", board)
-            board.currentPhase.place(requestData["unitType"], requestData["territory"])
+            territory = board.territoryByName(requestData["territory"])
+            board.currentPhase.place(requestData["unitType"], territory)
 
         elif "getEventLog" == action:
             pass  # TODO

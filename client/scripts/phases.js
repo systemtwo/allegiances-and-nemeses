@@ -4,7 +4,7 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
 
     function BuyPhase() {
         _r.phaseName("Purchase Units");
-        _g.buyList = {};
+        _g.buyList = [];
         _r.showRecruitmentWindow(this);
         _h.countryUnits(_g.currentCountry).forEach(function (u) {
             u.beginningOfTurnTerritory = u.territory;
@@ -14,31 +14,38 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
     }
 
     // Updates the amount of a certain unit to buy
-    BuyPhase.prototype.buyUnits = function (unitType, amount) {
-        var info = _h.unitInfo(unitType);
-        _g.buyList[unitType] = {
-            unitType: unitType,
-            cost: info.cost,
-            amount: amount
-        };
-        // Notify server
+    BuyPhase.prototype.buyUnits = function (unitType, targetAmount) {
+        var newArray = [];
+        _g.buyList.forEach(function(boughtUnitType) {
+            if (boughtUnitType === unitType) {
+                if (targetAmount > 0) {
+                    targetAmount -= 1;
+                    newArray.push(boughtUnitType);
+                } else {
+                    // don't push, we've met the target
+                }
+            } else {
+                newArray.push(boughtUnitType);
+            }
+        });
+        // push to meet target
+        for(var i=0; i<targetAmount; i++) {
+            newArray.push(unitType);
+        }
+        _g.buyList = newArray;
+        // Notify server?
     };
 
     BuyPhase.prototype.money = function () {
-        return Object.keys(_g.buyList).reduce(function (total, key) {
-            var data = _g.buyList[key];
-            return total + data.cost * data.amount
+        return _g.buyList.reduce(function (total, unitType) {
+            var data = _h.unitInfo(unitType);
+            return total + data.cost;
         }, 0);
     };
 
     BuyPhase.prototype.nextPhase = function (onSuccess) {
-        var buyList = Object.keys(_g.buyList).map(function (value) {
-            return {
-                unitType: _g.buyList[value].unitType,
-                amount: _g.buyList[value].amount
-            }
-        });
-        _router.endBuyPhase(buyList).done(function () {
+        // send array of unit types to server
+        _router.endBuyPhase(_g.buyList).done(function () {
             onSuccess();
             _g.currentPhase = new AttackPhase();
         });
@@ -258,15 +265,18 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
     };
 
     function PlacementPhase() {
+        _r.phaseName("Place Units");
+        _r.nextPhaseButtonVisible(true);
         this.states = {
             SELECT_UNIT: "selectUnit",
             SELECT_TERRITORY: "selectTerritory"
         };
         this.placed = [];
 
-        this.toPlace = $.extend(true, {}, _g.buyList); // copy to work with
+        // array
+        this.toPlace = _g.buyList.slice(); // copy to work with
         this.state = this.states.SELECT_UNIT;
-        _r.showPlacementWindow(); // TODO implement placement window and logic.
+        _r.showPlacementWindow(this.toPlace);
         // Server validation per unit placement? So that others can view in realtime.
         // Or send to server at end of phase
         return this;
@@ -281,7 +291,8 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
         return false;
     };
 
-        // Begin placing unit of unitType
+    // Begin placing unit of unitType
+    // returns false on error
     PlacementPhase.prototype.onUnitSelect = function(unitType) {
         // Called by render.js, or other ui related file
         if (!this.validUnitType(unitType)) return false;
@@ -296,27 +307,51 @@ define(["globals", "helpers", "render", "router"], function(_g, _h, _r, _router)
         var validTerritories = _h.countryTerritories(_g.currentCountry).filter(function(t) {
             var hasFactory = t.hasFactory();
             // ugly XOR
-            return ((unitType == "factory" && !hasFactory ||
-                unitType != "factory" && hasFactory) &&
-                (t.previousOwner != _g.currentCountry) &&
+            return (((unitType == "factory" && !hasFactory) ||
+                (unitType != "factory" && hasFactory)) &&
+                (t.previousOwner == _g.currentCountry) &&
                 (that.placed.length < t.income))
         });
 
+        if (!validTerritories.length) {
+            return false;
+        }
         _r.setSelectableTerritories(validTerritories);
         this.placingType = unitType;
+        return true;
     };
 
-    PlacementPhase.prototype.cancelCurrentPlacement = function() {
+    PlacementPhase.prototype.clickNothing = function() {
+        this.setStateSelectUnit();
+    };
+
+    PlacementPhase.prototype.setStateSelectUnit = function() {
         this.placingType = null;
         this.state = this.states.SELECT_UNIT;
         _r.setSelectableTerritories([]);
+        _r.showPlacementWindow(this.toPlace);
     };
 
     PlacementPhase.prototype.onTerritorySelect = function(territory) {
-        // TODO dschwarz revisit how we handle placement
-        _g.board.addUnit(null, this.placingType, _g.currentCountry, territory);
-        this.placed.push(this.placingType);
-        // push to server? or wait for end of phase?
+        var that = this;
+        _router.placeUnit(territory.name, this.placingType).done(function() {
+            that.placed.push(that.placingType);
+            var index = that.toPlace.indexOf(that.placingType);
+            if (index > -1) {
+                that.toPlace.splice(index, 1);
+            }
+            that.setStateSelectUnit();
+        }).fail(function() {
+            alert("Invalid Territory");
+        });
+    };
+
+    PlacementPhase.prototype.nextPhase = function() {
+        _router.nextPhase().done(function() {
+            console.log("DONE");
+            // advance to next country's turn
+            // probably have to send a request to server to update again, then cycle back to buy phase
+        });
     };
 
     return {

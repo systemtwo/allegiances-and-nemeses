@@ -21,6 +21,7 @@ function (_g, board, _p, _c, _r, _router) {
     function onBoardSelect(boardId, onSuccess) {
         _router.fetchBoard(boardId).done(function(boardInfo) {
             _g.board = new board.Board(boardId);
+            _g.buyList = boardInfo.buyList;
             _g.board.wrapsHorizontally = boardInfo.wrapsHorizontally;
             console.time("Map Load");
             _g.board.setImage(boardInfo.imagePath, function onMapLoad() {

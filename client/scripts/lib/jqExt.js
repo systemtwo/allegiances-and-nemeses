@@ -224,11 +224,13 @@ var counter = $.widget( "ui.counter", {
     },
 
     increment: function() {
-        this.value(this.value() + 1)
+        this.value(this.value() + 1);
+        this._trigger( "increment");
     },
 
     decrement: function() {
-        this.value(this.value() - 1)
+        this.value(this.value() - 1);
+        this._trigger( "decrement");
     },
 
     _parse: function( val ) {
