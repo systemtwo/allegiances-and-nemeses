@@ -1,7 +1,7 @@
-define(["globals"], function(_g) {
+define(["gameAccessor"], function(_b) {
     // All router functions return the request object, which can then have done and fail handlers added to it
     function sendAction(data) {
-        return $.ajax("/boards/" + _g.board.id + "/action", {
+        return $.ajax("/boards/" + _b.getBoard().id + "/action", {
             method: "POST",
             data: JSON.stringify(data),
             contentType: 'application/json'
@@ -19,10 +19,11 @@ define(["globals"], function(_g) {
     function nextPhase() {
         return sendAction({
             action: "nextPhase",
-            currentPhase: _g.currentPhase.constructor.name // get the class name
+            currentPhase: _b.getBoard().currentPhaseName() // get the class name
         });
     }
-    function endBuyPhase(boughtUnits) {
+    function endBuyPhase() {
+        var boughtUnits = _b.getBoard().boardData.buyList;
         return sendAction({
             action: "buy",
             boughtUnits: boughtUnits
@@ -49,7 +50,7 @@ define(["globals"], function(_g) {
     function updateConflicts(boardId) {
         var promise = new $.Deferred();
         $.getJSON("/conflicts/" + boardId).done(function(conflicts) {
-            _g.conflicts = conflicts;
+             _b.getBoard().boardData.conflicts = conflicts;
             promise.resolve();
         });
         return promise;

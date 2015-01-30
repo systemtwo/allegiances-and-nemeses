@@ -1,4 +1,4 @@
-define(["globals"], function(_g) {
+define(["gameAccessor"], function(_b) {
 
     var Unit = function(id, unitType, country, territory, originalTerritory) {
         this.id = id;
@@ -29,36 +29,36 @@ define(["globals"], function(_g) {
         this.height = height;
     };
 
-    Territory.prototype.units = function (country) {
+    Territory.prototype.units = function () {
         var that = this;
-        return _g.board.units.filter(function(u) {
-            var countryMatch = true;
-            if (country)
-                countryMatch = u.country == country;
-            return countryMatch && u.territory === that;
-        })
+        var board = _b.getBoard();
+        var units = board.boardData.units;
+        return units.filter(function(u) {
+            return u.territory === that;
+        });
     };
     Territory.prototype.enemyUnits = function (country) {
         var that = this;
-        return _g.board.units.filter(function(u) {
-
+        return _b.getBoard().boardData.units.filter(function(u) {
             return country.team == u.country.team && u.territory === that;
         })
     };
 
     Territory.prototype.hasFactory = function() {
-        for(var i=0; i < _g.board.units.length; i++) {
-            if (_g.board.units[i].unitType == "factory") {
+        var units = this.units();
+        for(var i=0; i < units.length; i++) {
+            if (units[i].unitType == "factory") {
                 return true;
             }
         }
         return false;
     };
 
-    Territory.prototype.countryUnits = function(country) {
+    Territory.prototype.unitsForCountry = function(country) {
         var that = this;
-        return _g.getBoard().units.filter(function(u) {
-            return u.territory === that && u.country === country;
+        var boardUnits = _b.getBoard().unitsForCountry(country);
+        return boardUnits.filter(function(u) {
+            return u.territory === that;
         })
     };
 

@@ -91,6 +91,7 @@ class Board:
             "units": [u.toDict() for u in self.units],
             "buyList": self.buyList,
             "currentPhase": self.currentPhase.name,
+            "currentCountry": self.currentCountry.name,
 
             # Module info
             "unitCatalogue": self.unitCatalogue,
@@ -107,7 +108,8 @@ class Board:
                     break
 
     def isPlayersTurn(self, userId):
-        return self.currentCountry.player == userId
+        return True
+        # return self.currentCountry.player == userId
 
     # Proceed to the next country's turn. This is different than advancing a phase (1/6th of a turn)
     def nextTurn(self):
