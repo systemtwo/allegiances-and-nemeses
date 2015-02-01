@@ -1,3 +1,5 @@
+#TODO:
+#I think we can remove the validation for the gameId url param
 import os.path
 
 import tornado.web
@@ -93,13 +95,11 @@ class LobbyGameHandler(BaseLobbyHandler):
 
         game = self.gamesManager.getGame(validUserInput["gameId"])
 
-        
         #TODO: Fix renderArguments so that the point to the actual data
         renderArguments = {}
         renderArguments['gameName'] = game.name
         renderArguments['players'] = [{"id": 1, "name":'a'}, {"id": 2, "name": 'b'}]
-        renderArguments['countries'] = [{"id": i, "name": game.countries[i]} for i in xrange(len(game.countries))]
-        print renderArguments['countries']
+        renderArguments['countries'] = game.countries
         self.render(os.path.join("..", self.LOBBY_HTML_PATH, "lobbyinfo.html"), **renderArguments)
 
     # Change the game settings, eg. Player <-> Country mapping
@@ -123,11 +123,25 @@ class LobbyGameHandler(BaseLobbyHandler):
             self.send_error(400)
             return
 
-
         #Make it so that only the game creator can change the settings
         if (self.current_user is not self.gamesManager.getGame(validUserInput['gameId']).creatorId):
             self.send_error(403)
             return
+
+
+        game = self.gamesManager.getGame(validUserInput['gameId'])
+
+        #Before we set the user countries, we clear all player<->country associations
+        for player in game.listPlayers():
+            game.clearPlayerCountries()
+
+        #We grab each country entry, and put it in the player's list
+        for country in game.countries:
+            player = self.get_argument("country-selection-" + str(country['id']))
+            game.addPlayerCountry(player, country['id'])
+
+        
+
 
 """
 Joins a game listing
@@ -157,6 +171,7 @@ class LobbyGameJoinHandler(BaseLobbyHandler):
             self.redirect("/lobby/" + str(validUserInput['gameId']))
             #self.write("Joining game :D")
         else:
+            self.send_error(500)
             self.write("Something went wrong :(")
 
 

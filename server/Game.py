@@ -44,7 +44,10 @@ class Game:
         if (userId not in self.players or type(self.players[userId]) == list):
             return False
 
-        self.players[userId].append(newCountry)
+        #Make sure we don't add the country twice
+        if (newCountry not in self.players[userId]):
+            self.players[userId].append(newCountry)
+
         return True
 
     def removePlayerCountry(self, userId, country):
@@ -56,7 +59,7 @@ class Game:
         else:
             return False
 
-    def removePlayerCountries(self, userId):
+    def clearPlayerCountries(self, userId):
         if (userId not in self.players or type(self.players[userId]) == list):
             return False
 
@@ -71,14 +74,9 @@ class Game:
 
         return self.players[userId]
 
-        
-
-
-
-
 
     def loadCountries(self, countries):
         #Mock method 
-        self.countries = ["Canada", "USA"]
+        self.countries = [{"id": 1, "name": "Canada"}, {"id": 2, "name": "USA"}]
         pass
 
