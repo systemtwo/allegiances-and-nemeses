@@ -11,7 +11,6 @@ class Board:
         self.name = boardName
         self.players = []
         self.units = []
-        self.attackMoveList = []
         self.buyList = []
         self.moduleName = moduleName
 
@@ -113,6 +112,10 @@ class Board:
 
     # Proceed to the next country's turn. This is different than advancing a phase (1/6th of a turn)
     def nextTurn(self):
+        self.buyList = []
+        for unit in self.units:
+            unit.reset()
+
         nextIndex = self.countries.index(self.currentCountry) + 1
         if nextIndex > len(self.countries):
             self.currentCountry = self.countries[0]
@@ -140,6 +143,12 @@ class Board:
 
     def removeUnit(self, u):
         self.units.remove(u)
+
+    def unitById(self, id):
+        for unit in self.units:
+            if unit.id == id:
+                return unit
+        return None
 
     def unitInfo(self, unitType):
         if unitType not in self.unitInfoDict:

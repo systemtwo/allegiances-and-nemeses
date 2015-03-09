@@ -1,6 +1,6 @@
-define(["components", "helpers"], function(_c, _helpers) {
+define(["components", "helpers", "router", "gameAccessor", "phases/phaseHelper"], function(_c, _helpers, _router, _b, phaseHelper) {
     var Game = function(id, boardInfo) {
-        var that = this;
+        _b.setBoard(this);
         this.id = id;
         // lists of game objects whose properties will change as the game progresses
         this.boardData = {
@@ -20,6 +20,28 @@ define(["components", "helpers"], function(_c, _helpers) {
         this.currentCountry = null;
         this.currentPhase = null;
         this.mapImage = new Image();
+        this.parse(boardInfo);
+        return this;
+    };
+
+    Game.prototype.parse = function(boardInfo) {
+        var that = this;
+        // lists of game objects whose properties will change as the game progresses
+        this.boardData = {
+            countries: [],
+            territories: [],
+            units: [],
+            buyList: boardInfo.buyList,
+            conflicts: boardInfo.conflicts
+        };
+        // Info about the game that will remain constant
+        this.info = {
+            players: boardInfo.players,
+            connections: [],
+            unitCatalogue: boardInfo.unitCatalogue,
+            imageMap: {} // Map of unitType->imageSource
+        };
+
         this.wrapsHorizontally = boardInfo.wrapsHorizontally;
 
         Object.keys(boardInfo.unitCatalogue).forEach(function(unitType) {
@@ -41,8 +63,14 @@ define(["components", "helpers"], function(_c, _helpers) {
         });
 
         this.currentCountry = that.getCountry(boardInfo.currentCountry);
+        this.currentPhase = phaseHelper.createPhase(boardInfo.currentPhase);
 
-        boardInfo.connections.map(function(c) {
+        this.initConnections(boardInfo);
+    };
+
+    Game.prototype.initConnections = function(connectionJson) {
+        var that = this;
+        connectionJson.connections.map(function(c) {
             var first = null,
                 second = null;
             that.boardData.territories.forEach(function(t) {
@@ -55,7 +83,7 @@ define(["components", "helpers"], function(_c, _helpers) {
             first.connections.push(second);
             second.connections.push(first);
         });
-        return this;
+
     };
 
     Game.prototype.setImage = function(srcImagePath, onLoadFunction) {
@@ -70,6 +98,10 @@ define(["components", "helpers"], function(_c, _helpers) {
 
     Game.prototype.clearBuyList = function() {
         this.boardData.buyList = [];
+    };
+
+    Game.prototype.setBuyList = function(buyList) {
+        this.boardData.buyList = buyList;
     };
 
     Game.prototype.unitInfo = function(unitType) {
@@ -87,7 +119,7 @@ define(["components", "helpers"], function(_c, _helpers) {
         if (typeof country === "string") {
             country = this.getCountry(country); // assume we were passed the country's name
         }
-        var newUnit = new _c.Unit(unitId, unitType, country, territory, originalTerritory);
+        var newUnit = new _c.Unit(unitId, unitType, this.unitInfo(unitType), country, territory, originalTerritory);
         this.addUnit(newUnit);
     };
 
@@ -101,23 +133,6 @@ define(["components", "helpers"], function(_c, _helpers) {
         } else {
             return this.mapImage.width
         }
-    };
-
-    Game.prototype.getUnits = function(ids) {
-        var idSet = {};
-        ids.forEach(function(id){
-            idSet[id] = true;
-        });
-        var units = [];
-        this.boardData.units.forEach(function(u) {
-            if (u.id in idSet) {
-                units.push(u);
-            }
-        });
-        if (units.length != ids.length) {
-            throw new Error("Could not get all units for given ids", ids)
-        }
-        return units;
     };
 
     Game.prototype.getCountry = function(name) {
@@ -150,6 +165,13 @@ define(["components", "helpers"], function(_c, _helpers) {
     };
 
     // TODO mirror server logic, using unit.canMove and unit.canMoveThrough
+    /**
+     * Calculates the distance from one territory to another, for a specific unit
+     * @param start Territory
+     * @param destination Territory
+     * @param unit Unit
+     * @returns {number|*}
+     */
     Game.prototype.distance = function(start, destination, unit) {
         var frontier = [{
                 territory: start,
@@ -173,10 +195,14 @@ define(["components", "helpers"], function(_c, _helpers) {
         // throw error, path not found?
     };
 
-    // finds all territories in range of a set of units
-    // Very similar to distance method, but slightly optimized
+    /**
+     * finds all territories in range of a set of units
+     * Very similar to distance method, but slightly optimized
+     * @param units Array[Unit]
+     * @returns {Array}
+     */
     Game.prototype.territoriesInRange = function(units) {
-        // TODO - filter similar units - is the time spent filtering worth the time saved on calculating move range?
+        // MEMO: could refactor logic to hold a list of valid units for each territory. If list is empty, territory is not in range
         var that = this;
         var validNames = {}; // List of names in territory objects for quick look up
         var territoryObjects = []; // List of territory objects. Should be unique.
@@ -195,7 +221,7 @@ define(["components", "helpers"], function(_c, _helpers) {
                     validNames[current.territory.name] = true;
                 }
                 checkedNames[current.territory.name] = true;
-                if (current.distance < that.unitInfo(unit.unitType).move) {
+                if (current.distance < unit.unitInfo.move) {
                     current.territory.connections.forEach(function(c) {
                         if (!(c.name in checkedNames)) {
                             frontier.push({territory: c, distance: current.distance+1})
@@ -216,6 +242,16 @@ define(["components", "helpers"], function(_c, _helpers) {
         }
         return null;
     };
+
+    Game.prototype.nextPhase = function() {
+        var that = this;
+        if (this.currentPhase.endPhase)
+            this.currentPhase.endPhase();
+        _router.nextPhase().done(function(boardData) {
+            that.parse(JSON.parse(boardData));
+        })
+    };
+
     return {
         Game: Game
     }

@@ -1,4 +1,6 @@
-define(["nunjucks", "gameAccessor", "helpers", "router"], function(nj, _asdf, _h, _router) {
+define(["gameAccessor", "helpers", "router"], function(_asdf, _h, _router) {
+    // TODO replace nj with ko
+
     // Distance from edge of board top left to the top left corner of camera
     var offset = {
         x: 0,

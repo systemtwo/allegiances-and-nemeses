@@ -1,5 +1,5 @@
-define(["gameAccessor", "phases/movementMixin", "helpers", "render", "dialogs", "router"],
-function(_b, movementMixin, _helpers, _render, _dialogs, _router) {
+define(["gameAccessor", "phases/movementMixin"],
+function(_b, movementMixin) {
 
     // Move units into enemy (or friendly) territories
     // User selects start, then selects destination, then selects which units to send
@@ -14,14 +14,5 @@ function(_b, movementMixin, _helpers, _render, _dialogs, _router) {
         return "Combat Move";
     };
 
-    AttackPhase.prototype.filterMovable = function () {
-        return true; // Every unit belonging to a country is movable
-    };
-
-    AttackPhase.prototype.nextPhase = function () {
-        _router.nextPhase().done(function onSuccess() {
-            _b.getBoard().currentPhase = require("phases/phaseHelper").createPhase("ResolvePhase");
-        });
-    };
     return AttackPhase;
 });

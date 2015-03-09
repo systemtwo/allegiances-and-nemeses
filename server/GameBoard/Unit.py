@@ -7,8 +7,8 @@ class Unit:
         """
         Creates a single unit
         :param unitInfo: UnitInfo
-        :param country:
-        :param territory:
+        :param country: Country
+        :param territory: Territory
         """
         self.type = unitInfo.unitType
         self.unitInfo = unitInfo
@@ -16,6 +16,9 @@ class Unit:
         self.originalTerritory = territory
         self.country = country
         self.id = UniqueId.getUniqueId()
+
+    def reset(self):
+        self.originalTerritory = self.territory
 
     def isFlying(self):
         return self.unitInfo.terrainType == "air"
@@ -66,6 +69,9 @@ class Unit:
                 return True
         return False
 
+    def hasMoved(self):
+        return self.originalTerritory is not self.territory
+
     def toDict(self):
         return {
             "id": self.id.hex,
@@ -87,3 +93,6 @@ class UnitInfo:
 
         if "description" in dictionary:
             self.description = dictionary["description"]
+
+    def __getitem__(self, item):
+        return getattr(self, item)

@@ -42,26 +42,34 @@ class ActionHandler(BaseAuthHandler):
         if "nextPhase" == action:
             # TODO improve error handling
             self.assertPhase(requestData["currentPhase"], board)
-            newPhase = board.currentPhase.nextPhase()
-            if hasattr(newPhase, "unresolvedConflicts"):
-                self.write(json.dumps({"conflicts": newPhase.unresolvedConflicts}))
+            board.currentPhase.nextPhase()
+            self.write(json.dumps(board.toDict()))
 
         elif "buy" == action:
             # buy units, with validation
             self.assertPhase("BuyPhase", board)
             success = board.currentPhase.setBuyList(requestData["boughtUnits"])
-            if success:
-                board.currentPhase.nextPhase()
-            self.write(json.dumps({"success": success}))
+            if not success:
+                self.send_error()
 
-        elif "move" == action:
+        elif "moveMany" == action:
             self.assertMovePhase(board)
-            unitIds = [uuid.UUID(id) for id in requestData["unitList"]]
-            units = [unit for unit in board.units if unit.id in unitIds]
+            unitIds = requestData["unitList"]
+            units = [board.unitById(uuid.UUID(unitId)) for unitId in unitIds]
             assert len(unitIds) == len(units), "Could not find matching unit for every id"
             destinationTerritory = board.territoryByName(requestData["to"])
             success = board.currentPhase.moveUnits(units, destinationTerritory)
 
+            if not success:
+                self.send_error(400)
+
+        elif "move" == action:
+            self.assertMovePhase(board)
+            unitId = uuid.UUID(requestData["unitId"])
+            unit = board.unitById(unitId)
+            assert unit is not None, "Could not find unit for id"
+            destinationTerritory = board.territoryByName(requestData["to"])
+            success = board.currentPhase.move(unit, destinationTerritory)
             if not success:
                 self.send_error(400)
 
@@ -93,7 +101,7 @@ class ActionHandler(BaseAuthHandler):
             pass  # TODO
 
         else:
-            print("unsupported action")
+            self.send_error()
 
     def assertMovePhase(self, board):
         if board.currentPhase.name not in ["AttackPhase", "MovementPhase"]:

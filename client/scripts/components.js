@@ -1,8 +1,9 @@
 define(["gameAccessor"], function(_b) {
 
-    var Unit = function(id, unitType, country, territory, originalTerritory) {
+    var Unit = function(id, unitType, unitInfo, country, territory, originalTerritory) {
         this.id = id;
         this.unitType = unitType;
+        this.unitInfo = unitInfo;
         this.country = country;
         this.territory = territory;
         this.beginningOfPhaseTerritory = territory; // start of phase (1/6th of a turn)

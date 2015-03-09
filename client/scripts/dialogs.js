@@ -20,64 +20,9 @@ define(["nunjucks", "gameAccessor", "router", "helpers"], function(nj, _b, _rout
                 "Load": function() {
                     var boardId = windowContents.find("#boardSelect").val();
                     onSelect(boardId, function closeBoardList() {
-                            _helpers.bindPhaseButton();
                             windowContents.dialog("close");
                         }
                     );
-                }
-            }
-        })
-    }
-
-    function showRecruitmentWindow(buyPhase) {
-        var sum = $("<span>").text(0);
-        var windowContents = $(nj.render("static/templates/recruitment.html", {units: _b.getBoard().info.unitCatalogue })).prepend(sum);
-
-        windowContents.find(".buyAmount").each(function (index, input) {
-            input = $(input);
-            var unitType = input.data("type");
-            var info = _b.getBoard().unitInfo(unitType);
-
-            function getMax() {
-                var remainingMoney = _b.getBoard().currentCountry.ipc - buyPhase.money();
-                var currentAmount = _b.getBoard().boardData.buyList.reduce(function (number, boughtUnitType) {
-                    if (boughtUnitType == unitType) {
-                        return number + 1;
-                    } else {
-                        return number;
-                    }
-                }, 0);
-                var newMax = Math.floor(remainingMoney / info.cost) + currentAmount;
-                if (newMax < 0) {
-                    console.error("Spent more than allowed")
-                }
-                return newMax;
-            }
-
-            input.counter({
-                min: 0,
-                max: getMax,
-                change: function () {
-                    buyPhase.buyUnits(unitType, input.counter("value"));
-                    sum.text(buyPhase.money());
-                }
-            });
-        });
-
-        windowContents.dialog({
-            title: "Unit List",
-            modal: false,
-            closeOnEscape: false,
-            width: 600, // TODO base off of window width/user pref
-            height: Math.min(500, window.innerHeight), // TODO base off of window width/user pref
-            buttons: {
-                "Ok": function () {
-                    _b.getBoard().currentPhase.nextPhase(function () {
-                        windowContents.dialog("close");
-                    });
-                },
-                "Minimize": function () {
-                    $(this).dialog("close");
                 }
             }
         })
@@ -278,8 +223,6 @@ define(["nunjucks", "gameAccessor", "router", "helpers"], function(nj, _b, _rout
 
     return {
         showBoardList: showBoardList,
-        showRecruitmentWindow: showRecruitmentWindow,
-        showMoveWindow: showMoveWindow,
         showConflictList: showConflictList,
         closeConflicts: closeConflicts,
         showBattle: showBattle,

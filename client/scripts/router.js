@@ -22,13 +22,12 @@ define(["gameAccessor"], function(_b) {
             currentPhase: _b.getBoard().currentPhaseName() // get the class name
         });
     }
-    function endBuyPhase() {
-        var boughtUnits = _b.getBoard().boardData.buyList;
+    function buyUnits(boughtUnits) {
         return sendAction({
             action: "buy",
             boughtUnits: boughtUnits
         }).done(function() {
-            console.log(arguments)
+            _b.getBoard().setBuyList(boughtUnits);
         })
     }
     function fetchBoard(boardId) {
@@ -38,12 +37,12 @@ define(["gameAccessor"], function(_b) {
     function fetchBoards() {
         return $.getJSON("/boards");
     }
-    function validateMove(start, end, unitIds, onfail) {
+    function validateMove(start, end, unitId, onfail) {
         return sendAction({
             action: "move",
             from: start.name,
             to: end.name,
-            unitList: unitIds
+            unitId: unitId
         }).fail(onfail)
     }
 
@@ -114,7 +113,7 @@ define(["gameAccessor"], function(_b) {
     }
     return {
         newBoard: newBoard,
-        endBuyPhase: endBuyPhase,
+        buyUnits: buyUnits,
         fetchBoard: fetchBoard,
         fetchBoards: fetchBoards,
         updateConflicts: updateConflicts,

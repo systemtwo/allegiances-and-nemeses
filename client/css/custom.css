@@ -2,6 +2,18 @@
     display: none
 }
 
+.flex-row {
+    display: flex;
+    flex-direction: row;
+}
+.flex-column {
+    display: flex;
+    flex-direction: column;
+}
+.flex-grow {
+    flex-grow: 1;
+}
+
 .dialog-sub-title {
     text-align: center;
 }
@@ -16,6 +28,10 @@
 
 .units {
     overflow: auto;
+}
+
+.disabledUnit {
+    opacity: 0.5;
 }
 
 .unitBlock {

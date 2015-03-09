@@ -70,67 +70,70 @@ def distance(start, goal, unit):
 # Performs a single step in a territory conflict
 # Takes in a list of attackers and defenders. Removes casualties from list
 def battle(attackers, defenders):
+    keys = ["attack", "defence"]
+    combatants = {
+        "attack": attackers,
+        "defence": defenders
+    }
     # counts number of each side that must die
-    attackingCasualties = 0
-    defendingCasualties = 0
+    scoredHits = {}
+    for key in keys:
+        scoredHits[key] = _calculateHits(combatants[key], key)
 
-    # there's a weighted chance of each unit dying. We sum the weights for all the attackers and defenders
-    sumAttackers = 0
-    sumDefenders = 0
+    casualties = {}
+    for key in keys:
+        if key == "attack":
+            otherKey = "defence"
+        else:
+            otherKey = "attack"
+        casualties[key] = _calculateCasualties(combatants[key], scoredHits[otherKey], key)
 
+    return BattleReport(combatants, casualties)
+
+
+def _calculateHits(units, combatValueKey):
     # Calculate hits. Chance for a hit is attack/6 for attackers, defence/6 for defenders
-    for u in attackers:
-        info = u.unitInfo
-        sumAttackers += 1.0 / info.attack
-        if random.randint(1, 6) <= info.attack:
-            defendingCasualties += 1
+    scoredHits = 0
+    for u in units:
+        if random.randint(1, 6) <= u.unitInfo[combatValueKey]:
+            scoredHits += 1
+    return scoredHits
 
-    for u in defenders:
+
+def _calculateCasualties(units, hits, combatValueKey):
+    # there's a weighted chance of each unit dying. We sum the weights for all the units
+    summedHitChance = 0
+    casualties = []
+    for u in units:
         info = u.unitInfo
-        sumDefenders += 1.0 / info.defence
-        if random.randint(1, 6) <= info.defence:
-            attackingCasualties += 1
+        if info.defence > 0:
+            summedHitChance += 1.0 / info[combatValueKey]
 
     # kill random peeps. chance of dying is 1/attack or 1/defence
     # using the sum of the weights, we take a random number that's less than the sum
     # Then we add up the weights of each unit until the total exceeds our random number
     # That unlucky unit is now dead
-    deadA = []
-    deadD = []
-    while defendingCasualties > 0:
-        defendingCasualties -= 1
+    while hits > 0:
+        hits -= 1
         runningTotal = 0
-        rand = random.random() * sumDefenders
-        for d in defenders:
-            defence = d.unitInfo.defence
-            if defence > 0:
-                runningTotal += 1.0 / defence
+        rand = random.random() * summedHitChance
+        for unit in units:
+            combatValue = unit.unitInfo[combatValueKey]
+            if combatValue > 0:  # units with a combat value of 0 are immortal.
+                runningTotal += 1.0 / combatValue
                 if runningTotal >= rand:
-                    deadD.append(d)
-                    defenders.remove(d)
+                    casualties.append(unit)
+                    units.remove(unit)
                     break
-
-    while attackingCasualties > 0:
-        attackingCasualties -= 1
-        runningTotal = 0
-        rand = random.random() * sumAttackers
-        for a in attackers:
-            attack = a.unitInfo.attack
-            if attack > 0:
-                runningTotal += 1.0 / attack
-                if runningTotal >= rand:
-                    deadA.append(a)
-                    attackers.remove(a)
-                    break
-    return BattleReport(attackers, defenders, deadA, deadD)
+    return casualties
 
 
 class BattleReport:
-    def __init__(self, attackers, defenders, deadAttack, deadDefend):
-        self.survivingAttackers = attackers[:]
-        self.survivingDefenders = defenders[:]
-        self.deadAttackers = deadAttack[:]
-        self.deadDefenders = deadDefend[:]
+    def __init__(self, survivors, casualties):
+        self.survivingAttackers = survivors["attack"][:]
+        self.survivingDefenders = survivors["defence"][:]
+        self.deadAttackers = casualties["attack"][:]
+        self.deadDefenders = casualties["defence"][:]
 
     def toDict(self):
         return {

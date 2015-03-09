@@ -1,7 +1,6 @@
 define(["gameAccessor", "helpers", "render", "dialogs", "router"], function(_b, _helpers, _render, _dialogs, _router) {
     function PlacementPhase() {
         _helpers.phaseName("Place Units");
-        _helpers.nextPhaseButtonVisible(true);
         this.states = {
             SELECT_UNIT: "selectUnit",
             SELECT_TERRITORY: "selectTerritory"
@@ -39,17 +38,18 @@ define(["gameAccessor", "helpers", "render", "dialogs", "router"], function(_b, 
         // a) A factory (or if placing a factory, doesn't have a factory)
         // b) Controlled since beginning of turn
         // c) Units placed < income of territory
-        // d) Units placed < factory limit [optional, expansion only]
+        // d) Units placed < factory limit [optional, expansion only, not implemented yet]
+        //    The idea is, different sizes of factories with their own placement limits.
         var validTerritories = board.territoriesForCountry(board.currentCountry).filter(function(t) {
             var hasFactory = t.hasFactory();
-            // ugly XOR
-            return (((unitType == "factory" && !hasFactory) ||
-                (unitType != "factory" && hasFactory)) &&
+            return (((unitType == "factory" && !hasFactory) || // factories are one per territory
+                (unitType != "factory" && hasFactory)) &&  // otherwise, must place in territories with a factory
                 (t.previousOwner == board.currentCountry) &&
                 (that.placed.length < t.income))
         });
 
         if (!validTerritories.length) {
+            console.error("No valid territories, cannot place unit");
             return false;
         }
         _render.setSelectableTerritories(validTerritories);
@@ -79,14 +79,6 @@ define(["gameAccessor", "helpers", "render", "dialogs", "router"], function(_b, 
             that.setStateSelectUnit();
         }).fail(function() {
             alert("Invalid Territory");
-        });
-    };
-
-    PlacementPhase.prototype.nextPhase = function() {
-        _router.nextPhase().done(function() {
-            console.log("DONE");
-            // advance to next country's turn
-            // probably have to send a request to server to update again, then cycle back to buy phase
         });
     };
     return PlacementPhase;

@@ -119,7 +119,6 @@ class AttackPhase(BaseMovePhase):
                 unit.originalTerritory = unit.territory
                 unit.territory = dest
 
-        board.attackMoveList = self.moveList
         conflicts = [Conflict(territory, attackers) for territory, attackers in hostileTerToAttackers.iteritems()]
         board.currentPhase = ResolvePhase(conflicts, board)
         return board.currentPhase
@@ -223,7 +222,7 @@ class MovementPhase(BaseMovePhase):
         if not Util.allied(destination, unit.country):
             return False
 
-        if unit not in self.board.attackMoveList:
+        if not unit.hasMoved():
             return super(MovementPhase, self).canMove(unit, destination)
         elif unit.isFlying():
             previousMove = Util.distance(unit.originalTerritory, unit.territory, unit)
@@ -259,5 +258,5 @@ class PlacementPhase:
         self.board.currentCountry.collectIncome()
 
         self.board.nextTurn()
-        self.board.currentPhase = BuyPhase(self.board.currentCountry, self.board)
+        self.board.currentPhase = BuyPhase(self.board.currentCountry.ipc, self.board)
         return self.board.currentPhase

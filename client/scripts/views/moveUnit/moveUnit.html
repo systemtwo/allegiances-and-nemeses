@@ -1,0 +1,14 @@
+<div class="flex-row">
+    <div class="origin">
+        <div data-bind="template: {name: 'unit-template', foreach: originUnits}"></div>
+    </div>
+    <div class="destination">
+        <div data-bind="template: {name: 'unit-template', foreach: destinationUnits}"></div>
+    </div>
+</div>
+
+<script type="text/html" id="unit-template">
+<img src="" data-bind="attr: { src: $root.getImageSrc($data) },
+    click: $root.clickUnit,
+    css: {disabledUnit: !$root.canMove($data)}" />
+</script>
