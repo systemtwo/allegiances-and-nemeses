@@ -13,6 +13,10 @@
 .flex-grow {
     flex-grow: 1;
 }
+.vertical-rule {
+    width: 0;
+    border-left: black solid medium;
+}
 
 .dialog-sub-title {
     text-align: center;
