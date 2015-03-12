@@ -3,6 +3,7 @@ class Conflict(object):
     inProgress = "inProgress"
     attackerWin = "attackerWin"
     defenderWin = "defenderWin"
+    draw = "draw"
 
     def __init__(self, territory, initialAttackers):
         """

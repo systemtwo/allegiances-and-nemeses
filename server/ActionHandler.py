@@ -86,6 +86,7 @@ class ActionHandler(BaseAuthHandler):
         elif "autoResolve" == action:
             self.assertPhase("ResolvePhase", board)
             territory = board.territoryByName(requestData["territory"])
+            assert territory is not None, "Invalid territory name %r" % requestData["territory"]
             board.currentPhase.autoResolve(territory)
 
         elif "autoResolveAll" == action:

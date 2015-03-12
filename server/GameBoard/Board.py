@@ -60,8 +60,10 @@ class Board:
             unitSetup = json.load(unitFile)
             for countryName, territoryUnitMap in unitSetup.iteritems():
                 country = self.getCountryByName(countryName)
+                assert country is not None, "Invalid country name %r" % countryName
                 for tName, unitTypes in territoryUnitMap.iteritems():
                     territory = self.territoryByName(tName)
+                    assert territory is not None, "Invalid territory name %r" % tName
                     for unitType in unitTypes:
                         self.units.append(Unit(self.unitInfo(unitType), country, territory))
 
@@ -130,6 +132,7 @@ class Board:
         return unitList
 
     def territoryByName(self, name):
+        name = str(name)
         for t in self.territories:
             if t.name == name:
                 return t

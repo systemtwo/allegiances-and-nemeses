@@ -18,8 +18,10 @@
             {% else %}
             <span class="conflict-outcome label {% if conflict.outcome == "attackerWin" %} label-warning">
                     Occupied
-                {% else %} label-info">
+                {% elif conflict.outcome == "defenderWin" %} label-info">
                     Defended
+                {% elif conflict.outcome == "draw" %} label-info">
+                    Stalemate
                 {% endif %}
             </span>
             {% endif %}

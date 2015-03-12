@@ -106,25 +106,30 @@ def _calculateCasualties(units, hits, combatValueKey):
     casualties = []
     for u in units:
         info = u.unitInfo
-        if info.defence > 0:
+        if info[combatValueKey] > 0:
             summedHitChance += 1.0 / info[combatValueKey]
 
-    # kill random peeps. chance of dying is 1/attack or 1/defence
-    # using the sum of the weights, we take a random number that's less than the sum
-    # Then we add up the weights of each unit until the total exceeds our random number
-    # That unlucky unit is now dead
-    while hits > 0:
-        hits -= 1
-        runningTotal = 0
-        rand = random.random() * summedHitChance
-        for unit in units:
-            combatValue = unit.unitInfo[combatValueKey]
-            if combatValue > 0:  # units with a combat value of 0 are immortal.
-                runningTotal += 1.0 / combatValue
-                if runningTotal >= rand:
-                    casualties.append(unit)
-                    units.remove(unit)
-                    break
+    if hits > 0 and summedHitChance == 0:
+        # no combat value, they all die. This will happen after EVERY other unit dies
+        while len(units) > 0:
+            casualties.append(units.pop())
+    else:
+        # kill random peeps. chance of dying is 1/attack or 1/defence
+        # using the sum of the weights, we take a random number that's less than the sum
+        # Then we add up the weights of each unit until the total exceeds our random number
+        # That unlucky unit is now dead
+        while hits > 0:
+            runningTotal = 0
+            rand = random.random() * summedHitChance
+            for unit in units:
+                combatValue = unit.unitInfo[combatValueKey]
+                if combatValue > 0:  # units with a combat value of 0 are immortal.
+                    runningTotal += 1.0 / combatValue
+                    if runningTotal >= rand:
+                        casualties.append(unit)
+                        units.remove(unit)
+                        hits -= 1
+                        break
     return casualties
 
 

@@ -70,6 +70,7 @@ define(["gameAccessor"], function(_b) {
      */
     var Conflict = function() {
         this.outcomes = {
+            DRAW: "draw",
             DEFENDER: "defenderWin",
             ATTACKER: "attackerWin",
             IN_PROGRESS: "inProgress"

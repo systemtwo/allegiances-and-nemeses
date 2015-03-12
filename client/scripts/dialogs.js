@@ -172,8 +172,10 @@ define(["nunjucks", "gameAccessor", "router", "helpers"], function(nj, _b, _rout
      * Closes the conflict list dialog
      */
     function closeConflicts() {
-        if (conflictWindow)
+        if (conflictWindow) {
             conflictWindow.dialog("destroy");
+            conflictWindow = null;
+        }
     }
 
     function showBattle(tName) {

@@ -149,7 +149,7 @@ class ResolvePhase:
             return False  # or throw error
 
         constraint = 100000
-        while True:
+        while conflict.outcome == conflict.inProgress:
             # bit of safety
             constraint -= 1
             if constraint == 0:
@@ -163,6 +163,15 @@ class ResolvePhase:
                 self.board.removeUnit(u)
             for u in outcome.deadAttackers:
                 self.board.removeUnit(u)
+
+            combatSum = 0
+            for u in conflict.attackers:
+                combatSum += u.unitInfo.attack
+            for u in conflict.defenders:
+                combatSum += u.unitInfo.defence
+            if combatSum == 0:
+                conflict.outcome = Conflict.draw
+                break
 
             if len(conflict.attackers) == 0:
                 # defenders win
