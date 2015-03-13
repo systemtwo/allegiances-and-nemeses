@@ -18,6 +18,11 @@
     border-left: black solid medium;
 }
 
+.move-unit-pane {
+    flex-grow: 1;
+    flex-basis: 50%;
+}
+
 .dialog-sub-title {
     text-align: center;
 }

@@ -28,6 +28,12 @@ def isFlying(unitType):
 
 
 def allied(a, b):
+    """
+    Returns true if a is allid to b
+    :param a: Accepts a land or sea territory instance, a unit instance, or a country instance
+    :param b:
+    :return:
+    """
     if hasattr(a, "country"):
         a = a.country
     if hasattr(b, "country"):
@@ -100,36 +106,49 @@ def _calculateHits(units, combatValueKey):
     return scoredHits
 
 
-def _calculateCasualties(units, hits, combatValueKey):
-    # there's a weighted chance of each unit dying. We sum the weights for all the units
-    summedHitChance = 0
-    casualties = []
+def totalDeathProbability(units, combatValueKey):
+    total = 0
     for u in units:
         info = u.unitInfo
         if info[combatValueKey] > 0:
-            summedHitChance += 1.0 / info[combatValueKey]
+            total += 1.0 / info[combatValueKey]
+    return total
 
-    if hits > 0 and summedHitChance == 0:
-        # no combat value, they all die. This will happen after EVERY other unit dies
+
+def _calculateCasualties(units, hits, combatValueKey):
+    # there's a weighted chance of each unit dying. We sum the weights for all the units
+    casualties = []
+    summedHitChance = totalDeathProbability(units, combatValueKey)
+
+    # kill random peeps. chance of dying is 1/attack or 1/defence
+    # using the sum of the weights, we take a random number that's less than the sum
+    # Then we add up the weights of each unit until the total exceeds our random number
+    # That unlucky unit is now dead
+    previousNumHits = -1  # use this variable to make sure someone dies every loop
+    while hits > 0 and summedHitChance > 0:
+        assert previousNumHits != hits
+        previousNumHits = hits
+
+        rand = random.random() * summedHitChance
+        runningTotal = 0
+        for unit in units:
+            combatValue = unit.unitInfo[combatValueKey]
+            if combatValue > 0:  # units with a combat value of 0 are immortal.
+                runningTotal += 1.0 / combatValue
+                if runningTotal >= rand:
+                    # this dude dies
+                    casualties.append(unit)
+                    units.remove(unit)
+                    hits -= 1
+                    break
+        # recalculate hit chance
+        summedHitChance = totalDeathProbability(units, combatValueKey)
+
+    if hits > 0:
+        # if the total death probability is zero, but there's still people to kill
+        # kill all remaining units. They would die anyways.
         while len(units) > 0:
             casualties.append(units.pop())
-    else:
-        # kill random peeps. chance of dying is 1/attack or 1/defence
-        # using the sum of the weights, we take a random number that's less than the sum
-        # Then we add up the weights of each unit until the total exceeds our random number
-        # That unlucky unit is now dead
-        while hits > 0:
-            runningTotal = 0
-            rand = random.random() * summedHitChance
-            for unit in units:
-                combatValue = unit.unitInfo[combatValueKey]
-                if combatValue > 0:  # units with a combat value of 0 are immortal.
-                    runningTotal += 1.0 / combatValue
-                    if runningTotal >= rand:
-                        casualties.append(unit)
-                        units.remove(unit)
-                        hits -= 1
-                        break
     return casualties
 
 

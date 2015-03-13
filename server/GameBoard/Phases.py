@@ -134,7 +134,7 @@ class ResolvePhase:
         if not conflict:
             return False  # or throw error
 
-        constraint = 100000
+        constraint = 1000
         while conflict.outcome == conflict.inProgress:
             # bit of safety
             constraint -= 1

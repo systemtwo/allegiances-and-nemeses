@@ -39,6 +39,7 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
             for(var i=0; i<targetAmount; i++) {
                 newArray.push(unitType);
             }
+            _b.getBoard().buyList(newArray); // set buy list
             _router.buyUnits(newArray);
         },
 
