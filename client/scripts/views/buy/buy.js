@@ -1,11 +1,9 @@
 define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "helpers", "gameAccessor", "router"],
     function(backbone, ko, _, template, _h, _b, _router) {
-    var BuyUnitView = backbone.View.extend({
-        buyList: [],
 
+    var BuyUnitView = backbone.View.extend({
         initialize: function() {
             this.viewModel = this.initViewModel();
-            this.buyList = _b.getBoard().buyList() || [];
             return this;
         },
         initViewModel: function(){
@@ -25,7 +23,7 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
 
         buyUnits: function (unitType, targetAmount) {
             var newArray = [];
-            this.buyList.forEach(function(boughtUnitType) {
+            _b.getBoard().buyList().forEach(function(boughtUnitType) {
                 if (boughtUnitType === unitType) {
                     if (targetAmount > 0) {
                         targetAmount -= 1;
@@ -41,15 +39,14 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
             for(var i=0; i<targetAmount; i++) {
                 newArray.push(unitType);
             }
-            this.buyList = newArray;
-            _router.buyUnits(this.buyList);
+            _router.buyUnits(newArray);
         },
 
         capForUnitType: function (unitType) {
             var board = _b.getBoard();
             var info = board.unitInfo(unitType);
             var remainingMoney = board.currentCountry.ipc - this.moneySpent();
-            var currentAmount = this.buyList.reduce(function (number, boughtUnitType) {
+            var currentAmount = _b.getBoard().buyList().reduce(function (number, boughtUnitType) {
                 if (boughtUnitType == unitType) {
                     return number + 1;
                 } else {
@@ -64,7 +61,7 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
         },
 
         moneySpent: function() {
-            return this.buyList.reduce(function (total, unitType) {
+            return _b.getBoard().buyList().reduce(function (total, unitType) {
                 var data = _b.getBoard().unitInfo(unitType);
                 return total + data.cost;
             }, 0);
@@ -80,10 +77,7 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
                 height: Math.min(500, window.innerHeight),
                 buttons: {
                     "Ok": function () {
-                        _router.buyUnits(that.buyList).done(function () {
-                            _b.getBoard().nextPhase();
-                            that.$el.dialog("destroy");
-                        });
+                        _b.getBoard().nextPhase();
                     }
                 }
             });
@@ -91,7 +85,7 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
             this.$(".buyAmount").each(function (index, input) {
                 input = $(input);
                 var unitType = input.data("type");
-                input.val(_.filter(that.buyList, function(boughtUnitType){
+                input.val(_.filter(_b.getBoard().buyList(), function(boughtUnitType){
                     return boughtUnitType === unitType
                 }).length);
                 input.counter({
