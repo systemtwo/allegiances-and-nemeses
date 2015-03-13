@@ -28,42 +28,28 @@ class BuyPhase:
         self.board = board
         self.name = "BuyPhase"
 
-    # deprecated
-    def buyUnit(self, unitType):
-        info = self.board.unitInfo(unitType)
-        if self.money() + info.cost <= self.moneyCap:
-            self.buyList.append((unitType, info.cost))
-
     def setBuyList(self, buyList):
-        sumCost = 0
-        unitList = []
-        # buyList is of type [{unitType: String, amount: int}]
-        for unitType in buyList:
-            unitInfo = self.board.unitInfo(unitType)
-            sumCost += unitInfo.cost
-            unitList.append((unitType, unitInfo.cost))
+        sumCost = self.costOfUnits(buyList)
 
         if sumCost <= self.moneyCap:
-            self.buyList = unitList
+            self.board.buyList = buyList[:]
             return True
         else:
             return False
 
-    def cancel(self, unitType):
-        for x in self.buyList:
-            if x[0] == unitType:
-                self.buyList.remove(x)
-                break
+    def costOfUnits(self, unitList):
+        sumCost = 0
+        # buyList is of type [{unitType: String, amount: int}]
+        for unitType in unitList:
+            unitInfo = self.board.unitInfo(unitType)
+            sumCost += unitInfo.cost
+        return sumCost
 
     def money(self):
-        total = 0
-        for (unitType, cost) in self.buyList:
-            total += cost
-        return total
+        return self.costOfUnits(self.buyList)
 
     def nextPhase(self):
         board = self.board
-        board.buyList = [unitType for (unitType, cost) in self.buyList]
         board.currentPhase = AttackPhase(board)
         return board.currentPhase
 

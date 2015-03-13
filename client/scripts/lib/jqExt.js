@@ -84,7 +84,6 @@ define(["jquery-ui"], function() {
             "mousedown .ui-counter-button": function( event ) {
                 $( event.currentTarget ).hasClass( "ui-counter-up" ) ? this.increment() : this.decrement();
                 event.preventDefault();
-                this._trigger( "change", event );
             }
         },
 

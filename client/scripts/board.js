@@ -96,12 +96,12 @@ define(["components", "helpers", "router", "gameAccessor", "phases/phaseHelper"]
         return this.currentPhase.constructor.name;
     };
 
-    Game.prototype.clearBuyList = function() {
-        this.boardData.buyList = [];
-    };
-
-    Game.prototype.setBuyList = function(buyList) {
-        this.boardData.buyList = buyList;
+    Game.prototype.buyList = function(buyList) {
+        if (buyList) {
+            this.boardData.buyList = buyList;
+        } else {
+            return this.boardData.buyList;
+        }
     };
 
     Game.prototype.unitInfo = function(unitType) {

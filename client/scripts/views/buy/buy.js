@@ -5,6 +5,7 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
 
         initialize: function() {
             this.viewModel = this.initViewModel();
+            this.buyList = _b.getBoard().buyList() || [];
             return this;
         },
         initViewModel: function(){
@@ -41,6 +42,7 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
                 newArray.push(unitType);
             }
             this.buyList = newArray;
+            _router.buyUnits(this.buyList);
         },
 
         capForUnitType: function (unitType) {
@@ -89,6 +91,9 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
             this.$(".buyAmount").each(function (index, input) {
                 input = $(input);
                 var unitType = input.data("type");
+                input.val(_.filter(that.buyList, function(boughtUnitType){
+                    return boughtUnitType === unitType
+                }).length);
                 input.counter({
                     min: 0,
                     max: function(){ return that.capForUnitType(unitType)},
@@ -98,6 +103,12 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
                     }
                 });
             });
+        },
+
+        remove: function() {
+            backbone.View.prototype.remove.apply(this, arguments);
+            if (this.$el.data("dialog"))
+                this.$el.dialog("destroy");
         }
     });
     return BuyUnitView;

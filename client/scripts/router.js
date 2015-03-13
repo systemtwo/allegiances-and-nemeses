@@ -27,7 +27,7 @@ define(["gameAccessor"], function(_b) {
             action: "buy",
             boughtUnits: boughtUnits
         }).done(function() {
-            _b.getBoard().setBuyList(boughtUnits);
+            _b.getBoard().buyList(boughtUnits);
         })
     }
     function fetchBoard(boardId) {
