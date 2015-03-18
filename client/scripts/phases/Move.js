@@ -12,7 +12,7 @@ define(["gameAccessor", "phases/movementMixin", "helpers"],
         return "Noncombat Move";
     };
     MovementPhase.prototype.movableUnit = function(unit) {
-        return movementMixin.movableUnit(unit) && unit.isFlying() || unit.hasNotMoved();
+        return movementMixin.movableUnit(unit) && (unit.isFlying() || unit.hasNotMoved());
     };
 
     return MovementPhase;

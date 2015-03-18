@@ -22,7 +22,8 @@ function(_b, _helpers, _render, _dialogs, MoveUnitView) {
          * @returns {boolean}
          */
         movableUnit: function(unit) {
-            return unit.unitInfo.move > 0;
+            return unit.unitInfo.move > 0 &&
+                _b.getBoard().currentCountry == unit.country;
         },
 
         /**
