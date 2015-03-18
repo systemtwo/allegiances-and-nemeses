@@ -118,6 +118,9 @@ class Board:
         for unit in self.units:
             unit.reset()
 
+        for territory in self.territories:
+            territory.reset()
+
         nextIndex = self.countries.index(self.currentCountry) + 1
         if nextIndex > len(self.countries):
             self.currentCountry = self.countries[0]

@@ -79,7 +79,7 @@ class BaseMovePhase(object):
             return False
 
     def canMove(self, unit, destination):
-        return Util.distance(unit.territory, destination, unit) is not -1
+        return Util.distance(unit.territory, destination, unit) is not -1 and unit.country is self.board.currentCountry
 
 
 # Units are added to a moveList, but unit.territory does not get modified if they are attacking a territory.
@@ -214,16 +214,21 @@ class MovementPhase(BaseMovePhase):
     # can move units that haven't moved in the attack phase, or planes that need to land
     # can't move into enemy territories
     def canMove(self, unit, destination):
-        if not Util.allied(destination, unit.country):
+        if not Util.allied(destination, unit.country)\
+                or not super(MovementPhase, self).canMove(unit, destination):
             return False
 
-        if not unit.hasMoved():
-            return super(MovementPhase, self).canMove(unit, destination)
-        elif unit.isFlying():
+        if unit.isFlying():
+            # Gotta have an airport to land in or sometin
+            if hasattr(destination, "originalCountry") and not Util.allied(destination.originalCountry, unit.country):
+                return False
+
             previousMove = Util.distance(unit.originalTerritory, unit.territory, unit)
             assert previousMove is not -1
             newMove = Util.distance(unit.territory, destination, unit)
             return newMove is not -1 and previousMove + newMove <= unit.unitInfo.movement
+        else:
+            return not unit.hasMoved()
 
     def nextPhase(self):
         board = self.board
