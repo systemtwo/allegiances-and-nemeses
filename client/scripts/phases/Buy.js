@@ -8,6 +8,7 @@ define(["gameAccessor", "helpers", "views/buy/buy"], function(_b, _helpers, BuyV
 
     BuyPhase.prototype.endPhase = function() {
         this.buyView.remove();
+        return true;
     };
 
     return BuyPhase;

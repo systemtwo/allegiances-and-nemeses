@@ -8,7 +8,7 @@ define(["gameAccessor", "helpers", "render", "dialogs", "router"], function(_b, 
 
     // Begin placing unit of unitType
     // returns false on error
-    PlacementPhase.prototype.placeUnit = function(boughtUnit) {
+    PlacementPhase.prototype.selectBoughtUnit = function(boughtUnit) {
         var that = this;
         var board = _b.getBoard();
         // Find all territories with:
@@ -29,7 +29,7 @@ define(["gameAccessor", "helpers", "render", "dialogs", "router"], function(_b, 
         });
 
         if (!validTerritories.length) {
-            console.error("No valid territories, cannot place unit");
+            alert("No valid territories, cannot place unit");
             return false;
         }
         this.placing = boughtUnit;
@@ -38,13 +38,17 @@ define(["gameAccessor", "helpers", "render", "dialogs", "router"], function(_b, 
     };
 
     PlacementPhase.prototype.clickNothing = function() {
-        _render.setSelectableTerritories([]);
+        this.placeUnit(""); // cancel the unit placement, and reset it to be not placed
     };
 
     PlacementPhase.prototype.onTerritorySelect = function(territory) {
+        this.placeUnit(territory.name);
+    };
+
+    PlacementPhase.prototype.placeUnit = function(territoryName) {
         var that = this,
             previousTerritory = this.placing.territory;
-        this.placing.territory = territory.name;
+        this.placing.territory = territoryName;
          // We rely here on the placing object to be a member of the boards buylist
         if (!_.contains(_b.getBoard().buyList(), this.placing)) {
             throw Error("Trying to place a unit not in the buy list")
@@ -58,5 +62,16 @@ define(["gameAccessor", "helpers", "render", "dialogs", "router"], function(_b, 
             alert("Invalid Territory");
         });
     };
+
+    PlacementPhase.prototype.endPhase = function() {
+        if (_.some(_b.getBoard().buyList(), function(bought) {
+                return !bought.territory;
+            })) {
+            return confirm("You have unplaced units. End your turn anyways?")
+        } else {
+            return true;
+        }
+    };
+
     return PlacementPhase;
 });

@@ -39,6 +39,7 @@ define(["gameAccessor", "helpers", "dialogs", "router"], function(_b, _helpers, 
 
     ResolvePhase.prototype.endPhase = function () {
         _dialogs.closeConflicts();
+        return true;
     };
     return ResolvePhase;
 });

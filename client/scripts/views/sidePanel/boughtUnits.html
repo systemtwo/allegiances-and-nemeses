@@ -8,8 +8,6 @@
     <img src="" data-bind="attr: { src: $root.getImageSrc($data.unitType) },
         click: $root.clickUnit,
         css: {disabledUnit: !$root.canPlace($data.unitType)}" />
-    <!-- ko: if territory -->
-    <span data-bind="text: territory"></span>
-    <!-- /ko -->
+    <span data-bind="text: (territory || 'Not Placed')"></span>
 </div>
 </script>

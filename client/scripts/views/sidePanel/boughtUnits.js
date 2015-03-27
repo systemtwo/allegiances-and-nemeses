@@ -13,8 +13,8 @@ define(["backbone", "underscore", "knockout", "text!views/sidePanel/boughtUnits.
                 this.boughtUnits = ko.observableArray(_b.getBoard().boardData.buyList);
                 this.clickUnit = function (boughtUnit) {
                     var currentPhase = _b.getBoard().currentPhase;
-                    if (currentPhase && _.isFunction(currentPhase.placeUnit)) {
-                        currentPhase.placeUnit(boughtUnit);
+                    if (currentPhase && _.isFunction(currentPhase.selectBoughtUnit)) {
+                        currentPhase.selectBoughtUnit(boughtUnit);
                     } else {
                         // could show unit info here, or simply do nothing
                     }

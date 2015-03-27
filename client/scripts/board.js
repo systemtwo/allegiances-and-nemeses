@@ -253,12 +253,15 @@ define(["backbone", "components", "helpers", "router", "gameAccessor", "phases/p
     };
 
     Game.prototype.nextPhase = function() {
-        var that = this;
+        var that = this, success = true;
         if (this.currentPhase.endPhase)
-            this.currentPhase.endPhase();
-        _router.nextPhase().done(function(boardData) {
-            that.parse(JSON.parse(boardData));
-        })
+            success = this.currentPhase.endPhase();
+
+        if (success) {
+            _router.nextPhase().done(function(boardData) {
+                that.parse(JSON.parse(boardData));
+            })
+        }
     };
 
     return {
