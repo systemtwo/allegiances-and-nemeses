@@ -11,8 +11,9 @@ requirejs.config({
     }
 });
 
+// TODO dschwarz clean this file when we implement a user module system. Until then it's rarely used
 // Start the main app logic.
-requirejs(["nunjucks", "globals", "render", "board", "helpers"], function(nj, _g, _r, board, _h) {
+requirejs(["nunjucks", "gameAccessor", "render", "board", "helpers"], function(nj, _g, _r, board, _h) {
     // Local namespace
     var territoryCatalogue = [];
     var currentTerritory;

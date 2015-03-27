@@ -1,15 +1,30 @@
 <div>
     <div class="dialog-sub-title">
-        <button id="autoresolve-all" class="btn btn-primary">Autoresolve All</button>
+        <button id="autoresolve-all" class="btn btn-primary">Resolve All</button>
     </div>
     <div>
         {% for conflict in conflicts %}
-        <div>
+        <div class="conflict-row" data-name="{{ conflict.territoryName }}">
             <span class="territory-name">{{ conflict.territoryName }}</span>
-            <span class="conflict-actions" data-name="{{ conflict.territoryName }}">
-                <button class="resolve-conflict">Resolve</button>
-                <button class="autoresolve-conflict">Auto</button>
+            <span>
+                <button class="details btn btn-xs"><span class="glyphicon glyphicon-new-window" aria-hidden="true"></span></button>
             </span>
+
+            {% if conflict.outcome == "inProgress" %}
+
+            <span class="conflict-actions">
+                <button class="autoresolve-conflict btn btn-default">Resolve</button>
+            </span>
+            {% else %}
+            <span class="conflict-outcome label {% if conflict.outcome == "attackerWin" %} label-warning">
+                    Occupied
+                {% elif conflict.outcome == "defenderWin" %} label-info">
+                    Defended
+                {% elif conflict.outcome == "draw" %} label-info">
+                    Stalemate
+                {% endif %}
+            </span>
+            {% endif %}
         </div>
         {% endfor %}
     </div>

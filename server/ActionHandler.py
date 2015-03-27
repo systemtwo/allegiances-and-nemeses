@@ -42,22 +42,19 @@ class ActionHandler(BaseAuthHandler):
         if "nextPhase" == action:
             # TODO improve error handling
             self.assertPhase(requestData["currentPhase"], board)
-            newPhase = board.currentPhase.nextPhase()
-            if hasattr(newPhase, "unresolvedConflicts"):
-                self.write(json.dumps({"conflicts": newPhase.unresolvedConflicts}))
+            board.currentPhase.nextPhase()
+            self.write(json.dumps(board.toDict()))
 
         elif "buy" == action:
             # buy units, with validation
-            self.assertPhase("BuyPhase", board)
             success = board.currentPhase.setBuyList(requestData["boughtUnits"])
-            if success:
-                board.currentPhase.nextPhase()
-            self.write(json.dumps({"success": success}))
+            if not success:
+                self.send_error()
 
-        elif "move" == action:
+        elif "moveMany" == action:
             self.assertMovePhase(board)
-            unitIds = [uuid.UUID(id) for id in requestData["unitList"]]
-            units = [unit for unit in board.units if unit.id in unitIds]
+            unitIds = requestData["unitList"]
+            units = [board.unitById(uuid.UUID(unitId)) for unitId in unitIds]
             assert len(unitIds) == len(units), "Could not find matching unit for every id"
             destinationTerritory = board.territoryByName(requestData["to"])
             success = board.currentPhase.moveUnits(units, destinationTerritory)
@@ -65,26 +62,30 @@ class ActionHandler(BaseAuthHandler):
             if not success:
                 self.send_error(400)
 
-        elif "selectConflict" == action:
-            self.assertPhase("ResolvePhase", board)
-            territory = board.territoryByName(requestData["territory"])
-            board.currentPhase.selectConflict(territory)
-            
+        elif "move" == action:
+            self.assertMovePhase(board)
+            unitId = uuid.UUID(requestData["unitId"])
+            unit = board.unitById(unitId)
+            assert unit is not None, "Could not find unit for id"
+            destinationTerritory = board.territoryByName(requestData["to"])
+            success = board.currentPhase.move(unit, destinationTerritory)
+            if not success:
+                self.send_error(400)
+
         elif "battleTick" == action:
             self.assertPhase("ResolvePhase", board)
             territory = board.territoryByName(requestData["territory"])
-            assert(territory == board.currentPhase.currentConflict)
 
         elif "retreat" == action:
             self.assertPhase("ResolvePhase", board)
             fromTerritory = board.territoryByName(requestData["from"])
             toTerritory = board.territoryByName(requestData["to"])
-            assert(fromTerritory == board.currentPhase.currentConflict)
             board.currentPhase.retreat(fromTerritory, toTerritory)
 
         elif "autoResolve" == action:
             self.assertPhase("ResolvePhase", board)
             territory = board.territoryByName(requestData["territory"])
+            assert territory is not None, "Invalid territory name %r" % requestData["territory"]
             board.currentPhase.autoResolve(territory)
 
         elif "autoResolveAll" == action:
@@ -93,13 +94,14 @@ class ActionHandler(BaseAuthHandler):
 
         elif "placeUnit" == action:
             self.assertPhase("PlacementPhase", board)
-            board.currentPhase.place(requestData["unitType"], requestData["territory"])
+            territory = board.territoryByName(requestData["territory"])
+            board.currentPhase.place(requestData["unitType"], territory)
 
         elif "getEventLog" == action:
             pass  # TODO
 
         else:
-            print("unsupported action")
+            self.send_error()
 
     def assertMovePhase(self, board):
         if board.currentPhase.name not in ["AttackPhase", "MovementPhase"]:

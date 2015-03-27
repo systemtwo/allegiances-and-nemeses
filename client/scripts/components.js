@@ -1,8 +1,9 @@
-define(["globals"], function(_g) {
+define(["gameAccessor"], function(_b) {
 
-    var Unit = function(id, unitType, country, territory, originalTerritory) {
+    var Unit = function(id, unitType, unitInfo, country, territory, originalTerritory) {
         this.id = id;
         this.unitType = unitType;
+        this.unitInfo = unitInfo;
         this.country = country;
         this.territory = territory;
         this.beginningOfPhaseTerritory = territory; // start of phase (1/6th of a turn)
@@ -31,44 +32,59 @@ define(["globals"], function(_g) {
 
     Territory.prototype.units = function () {
         var that = this;
-        return _g.board.units.filter(function(u) {
-            return u.territory === that
+        var board = _b.getBoard();
+        var units = board.boardData.units;
+        return units.filter(function(u) {
+            return u.territory === that;
+        });
+    };
+    Territory.prototype.enemyUnits = function (country) {
+        var that = this;
+        return _b.getBoard().boardData.units.filter(function(u) {
+            return country.team == u.country.team && u.territory === that;
         })
     };
 
     Territory.prototype.hasFactory = function() {
-        for(var i=0; i < _g.board.units.length; i++) {
-            if (_g.board.units[i].type == "factory") {
+        var units = this.units();
+        for(var i=0; i < units.length; i++) {
+            if (units[i].unitType == "factory") {
                 return true;
             }
         }
         return false;
     };
 
-    Territory.prototype.countryUnits = function(country) {
+    Territory.prototype.unitsForCountry = function(country) {
         var that = this;
-        return _g.getBoard().units.filter(function(u) {
-            return u.territory === that && u.country === country;
+        var boardUnits = _b.getBoard().unitsForCountry(country);
+        return boardUnits.filter(function(u) {
+            return u.territory === that;
         })
     };
 
-
-
-    var Conflict = function(territory) {
-        this.outcomes = {
+    var conflictOutcomes = {
+            DRAW: "draw",
             DEFENDER: "defenderWin",
             ATTACKER: "attackerWin",
             IN_PROGRESS: "inProgress"
         };
+
+    /**
+     * Not currently in use - only for IDE to detect properties
+     * @constructor
+     */
+    var Conflict = function() {
         this.attackers = [];
         this.defenders = [];
-        this.battleReports = [];
-        this.outcome = this.outcomes.IN_PROGRESS;
-        this.territory = territory;
+        this.reports = [];
+        this.outcome = "";
+        this.territoryName = null;
     };
 
-    var Country = function(name, team, ipc) {
+    var Country = function(name, displayName, team, ipc) {
         this.name = name;
+        this.displayName = displayName;
         this.ipc = ipc;
         this.team = team;
         return this;
@@ -78,6 +94,7 @@ define(["globals"], function(_g) {
         Country: Country,
         Conflict: Conflict,
         Territory: Territory,
-        Unit: Unit
+        Unit: Unit,
+        conflictOutcomes: conflictOutcomes
     }
 });

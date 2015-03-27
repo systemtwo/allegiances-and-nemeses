@@ -1,4 +1,6 @@
-define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _router) {
+define(["gameAccessor", "helpers", "router"], function(_asdf, _h, _router) {
+    // TODO replace nj with ko
+
     // Distance from edge of board top left to the top left corner of camera
     var offset = {
         x: 0,
@@ -10,229 +12,12 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
         y: 0
     };
 
-    function phaseName(name) {
-        $("#phaseName").text("| " + name);
-    }
-
-    function showBoardList(boards, onSelect) {
-        var windowContents = $(nj.render("static/templates/boardList.html", {boards: boards}));
-        windowContents.dialog({
-            title: "Boards",
-            buttons: {
-                "New Board": function() {
-                    _router.newBoard().done(function(response) {
-                        response = JSON.parse(response);
-                        // Add it to the list
-                        // Important update this when updating boardList.html
-                        windowContents.find("#boardSelect").append($('<option>').val(response.boardId).text(response.name))
-                    });
-                },
-                "Load": function() {
-                    var boardId = windowContents.find("#boardSelect").val();
-                    onSelect(boardId, function closeBoardList() {
-                            bindPhaseButton();
-                            windowContents.dialog("close");
-                        }
-                    );
-                }
-            }
-        })
-    }
-
-    function showRecruitmentWindow(buyPhase) {
-        var sum = $("<span>").text(0);
-        var windowContents = $(nj.render("static/templates/recruitment.html", {units: _g.unitCatalogue })).prepend(sum);
-
-        windowContents.find(".buyAmount").each(function(index, input) {
-            input = $(input);
-            var unitType = input.data("type");
-            var info = _h.unitInfo(unitType);
-
-            function getMax(){
-                var remainingMoney = _g.currentCountry.ipc - buyPhase.money();
-                var currentAmount = _g.buyList[unitType] ? _g.buyList[unitType].amount : 0;
-                var newMax = Math.floor(remainingMoney/ info.cost) + currentAmount;
-                if (newMax < 0) {
-                    console.error("Spent more than allowed")
-                }
-                return newMax;
-            }
-            input.counter({
-                min: 0,
-                max: getMax,
-                change: function () {
-                    buyPhase.buyUnits(unitType, input.counter("value"));
-                    sum.text(buyPhase.money())
-                }
-            });
-        });
-
-        windowContents.dialog({
-            title: "Unit List",
-            modal: false,
-            closeOnEscape: false,
-            width: 600, // TODO base off of window width/user pref
-            height: Math.min(500, window.innerHeight), // TODO base off of window width/user pref
-            buttons: {
-                "Ok": function () {
-                    _g.currentPhase.nextPhase(function() {
-                        windowContents.dialog("close");
-                    });
-                },
-                "Minimize": function () {
-                    $(this).dialog("close");
-                }
-            }
-        })
-
-    }
-
-    /**
-     * Shows the list of units bought, indicates which are available to be placed, and which have already been placed
-     */
-    function showPlacementWindow() {
-
-    }
-
-    /**
-     * Shows the list of units that can be moved, and which territories they come from.
-     */
-    var moveWindow = null;
-    function showMoveWindow(enabledUnits, disabledUnits, from, destination) {
-        if (moveWindow) {
-            moveWindow.dialog("destroy");
-        }
-        disabledUnits = disabledUnits || []; // optional parameter
-
-        // Sort into buckets territory->unitType->{amount, imageSource, reason}
-        var unableUnitDict = {};
-        var ableUnitDict = {};
-        function eachUnit(u, dict, reason) { // key is enabled or disabled
-            var tName = u.beginningOfPhaseTerritory.name; // maybe this should be beginning of turn territory
-//            if (tName !== u.beginningOfTurnTerritory.name) {
-//                tName = u.beginningOfTurnTerritory.name + "->" + tName; // Units that have moved in a previous phase have reduced move
-//            }
-            if (!(tName in dict))
-                dict[tName] = {};
-
-            var unitData = dict[tName][u.unitType];
-            if (unitData) {
-                unitData.amount += 1;
-            } else {
-                dict[tName][u.unitType] = {
-                    amount: 1,
-                    imageSource: getImageSource(u.unitType, u.country),
-                    reason: reason // only defined for disabled units
-                };
-            }
-        }
-        enabledUnits.forEach(function(unit) {
-            eachUnit(unit, ableUnitDict);
-        });
-        disabledUnits.forEach(function(unitObject) {
-            eachUnit(unitObject.unit, unableUnitDict, unitObject.reason);
-        });
-        moveWindow = $(nj.render("static/templates/moveUnits.html", {
-            able: ableUnitDict,
-            unable: unableUnitDict,
-            ableLength: Object.keys(ableUnitDict).length,
-            unableLength: Object.keys(unableUnitDict).length
-        }));
-        // attach listeners to enabled units
-        moveWindow.find(".unitBlock.able").mousedown(function onUnitClick(e) {
-            e.preventDefault();
-            var row = $(e.currentTarget);
-            var amountElement = row.find(".selectedAmount");
-            console.assert(!isNaN(parseInt(amountElement.text())), "Amount selected is NaN");
-            var newVal = (parseInt(amountElement.text()) || 0) + 1; // increment by one
-            if (newVal > parseInt(row.data("max"))) {
-                newVal = 0; // cycle back to 0
-            }
-            amountElement.text(newVal);
-        });
-
-        moveWindow.dialog({
-            title: "Move Units from " + from.name + " to " + destination.name,
-            modal: false,
-            width: 600,
-            buttons: {
-                "Move All": function() {
-                    var unitList = [];
-                    for (var tName in ableUnitDict) {
-                        if (ableUnitDict.hasOwnProperty(tName)) {
-                            var units = ableUnitDict[tName];
-                            for (var unitType in units) {
-                                if (units.hasOwnProperty(unitType)) {
-                                    unitList.push({
-                                        unitType: unitType,
-                                        originalTerritoryName: tName,
-                                        amount: units[unitType].amount
-                                    })
-                                }
-                            }
-                        }
-                    }
-                    _g.currentPhase.moveUnits(unitList);
-                    $(this).dialog("close");
-                },
-                "Move": function () {
-                    var selectedUnits = [];
-                    moveWindow.find(".unitBlock.able").each(function() {
-                        var row = $(this);
-                        selectedUnits.push({
-                            unitType: row.data("type"),
-                            originalTerritoryName: row.data("territory").toString(),
-                            amount: parseInt(row.find(".selectedAmount").text())
-                        })
-                    });
-                    _g.currentPhase.moveUnits(selectedUnits);
-                    $(this).dialog("close");
-                },
-                "Cancel": function () {
-                    $(this).dialog("close");
-                }
-            }
-        })
-    }
-
-    function showConflictList(conflicts) {
-        var conflictList = $(nj.render("static/templates/conflictList.html"), {
-            conflicts: conflicts
-        });
-
-        conflictList.find(".conflict-actions").each(function(actionSection) {
-            var tName = actionSection.data("name");
-            actionSection.find(".resolve-conflict").each(function(button) {
-                button.click(function onResolveClick() {
-                    _g.currentPhase.showBattle(tName);
-                });
-            });
-            actionSection.find(".autoresolve-conflict").each(function(button) {
-                button.click(function onResolveClick() {
-                    _g.currentPhase.autoResolve(tName);
-                });
-            });
-        });
-
-        $("#autoresolve-all", conflictList).click(function() {
-            _g.currentPhase.autoResolveAll();
-        });
-
-        conflictList.dialog({
-            title: "Conflicts"
-        });
-    }
-
-    function showBattle(conflict) {
-        console.warn("TODO Show battle dialog")
-    }
-
     function initMap() {
         var canvas = document.getElementById("board");
 
         function resizeBoard() {
-            canvas.width = Math.min(window.innerWidth*0.8, _g.board.getMapWidth());
-            canvas.height = Math.min(window.innerHeight*0.8, _g.board.mapImage.height);
+            canvas.width = Math.min(window.innerWidth*0.8, _asdf.getBoard().getMapWidth());
+            canvas.height = Math.min(window.innerHeight*0.8, _asdf.getBoard().mapImage.height);
             drawMap();
         }
 
@@ -240,9 +25,6 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
         window.onresize = resizeBoard;
 
         listenToMap(canvas);
-
-        // test code
-        window.globals = _g;
     }
 
 
@@ -303,12 +85,12 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
 
             if (t && territoryIsSelectable(t)) {
                 // pass to phase controller
-                if (_g.currentPhase && _g.currentPhase.onTerritorySelect) {
-                    _g.currentPhase.onTerritorySelect(t);
+                if (_asdf.getBoard().currentPhase && _asdf.getBoard().currentPhase.onTerritorySelect) {
+                    _asdf.getBoard().currentPhase.onTerritorySelect(t);
                 }
             } else {
-                if (_g.currentPhase && _g.currentPhase.clickNothing) {
-                    _g.currentPhase.clickNothing();
+                if (_asdf.getBoard().currentPhase && _asdf.getBoard().currentPhase.clickNothing) {
+                    _asdf.getBoard().currentPhase.clickNothing();
                 }
             }
             previousMouse.x = e.pageX;
@@ -326,9 +108,9 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
 
     // Keeps the offset within reasonable bounds
     function adjustOffset() {
-        var singleBoardWidth = _g.board.getMapWidth();
+        var singleBoardWidth = _asdf.getBoard().getMapWidth();
         var canvas = document.getElementById("board");
-        if (_g.board.wrapsHorizontally) {
+        if (_asdf.getBoard().wrapsHorizontally) {
             if (offset.x < 0) {
                 offset.x += singleBoardWidth;
             } else if (offset.x + canvas.width > 2 * singleBoardWidth) {
@@ -343,8 +125,8 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
         }
         if (offset.y < 0) {
             offset.y = 0;
-        } else if (offset.y + canvas.height > _g.board.mapImage.height) {
-            offset.y =  _g.board.mapImage.height - canvas.height;
+        } else if (offset.y + canvas.height > _asdf.getBoard().mapImage.height) {
+            offset.y =  _asdf.getBoard().mapImage.height - canvas.height;
         }
 
     }
@@ -369,7 +151,7 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
         var canvas = document.getElementById("board");
         canvas.width = canvas.width; // Force redraw
         var ctx = canvas.getContext("2d");
-        ctx.drawImage(_g.board.mapImage, -offset.x, -offset.y);
+        ctx.drawImage(_asdf.getBoard().mapImage, -offset.x, -offset.y);
 
         // Draw a line from a territory to the mouse
         if (arrowOrigin) {
@@ -381,18 +163,18 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
                 x: previousMouse.x - canvas.offsetLeft + offset.x,
                 y: previousMouse.y - canvas.offsetTop + offset.y
             };
-            if (end.x > _g.board.mapImage.width/2) {
-                end.x -= _g.board.mapImage.width/2;
+            if (end.x > _asdf.getBoard().mapImage.width/2) {
+                end.x -= _asdf.getBoard().mapImage.width/2;
             }
             drawLine(origin, end);
         }
         if (showSkeleton) {
-            _g.board.territories.forEach(function(t) {
+            _asdf.getBoard().boardData.territories.forEach(function(t) {
                 drawRect(t.x, t.y, t.width, t.height);
             });
             ctx.stroke();
 
-            _g.connections.forEach(function (c) {
+            _asdf.getBoard().info.connections.forEach(function (c) {
                 drawLine(c[0], c[1])
             });
         }
@@ -408,7 +190,7 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
 
     // begin and end just need x and y in board coordinates
     function drawLine(begin, end) {
-        var singleMapWidth = _g.board.mapImage.width/2;
+        var singleMapWidth = _asdf.getBoard().mapImage.width/2;
         var canvas = document.getElementById("board");
         var ctx = canvas.getContext("2d");
         var beginX = (begin.x + begin.width/2 || begin.x) - offset.x;
@@ -447,7 +229,7 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
         y -= offset.y;
         var canvas = document.getElementById("board");
         var ctx = canvas.getContext("2d");
-        var singleMapWidth = _g.board.mapImage.width/2;
+        var singleMapWidth = _asdf.getBoard().mapImage.width/2;
 
         if (x + width < 0) {
             x += singleMapWidth;
@@ -461,13 +243,13 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
     function drawArc(centerX, centerY, width, height, fill) {
         fill = fill || false;
         var ratio = height/width;
-        var singleMapWidth = _g.board.mapImage.width/2;
+        var singleMapWidth = _asdf.getBoard().mapImage.width/2;
         var canvas = document.getElementById("board");
         var ctx = canvas.getContext("2d");
         centerX -= offset.x;
         centerY -= offset.y;
 
-        if (_g.board.wrapsHorizontally) {
+        if (_asdf.getBoard().wrapsHorizontally) {
             // Right side of circle past canvas left side
             if (centerX + width/2 < 0) {
                 centerX += singleMapWidth;
@@ -509,14 +291,14 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
         return selectableTerritories.indexOf(t) !== -1;
     }
     function territoryAtPoint(x, y) {
-        var singleBoardWidth = _g.board.getMapWidth();
-        if (_g.board.wrapsHorizontally) {
+        var singleBoardWidth = _asdf.getBoard().getMapWidth();
+        if (_asdf.getBoard().wrapsHorizontally) {
             if (x > singleBoardWidth) {
                 x = x - singleBoardWidth;
             }
         }
 
-        var territoryList = _g.getBoard().territories;
+        var territoryList = _asdf.getBoard().boardData.territories;
         for (var i=0; i<territoryList.length; i++) {
             var t = territoryList[i];
             if (t.x < x &&
@@ -527,30 +309,7 @@ define(["nunjucks", "globals", "helpers", "router"], function(nj, _g, _h, _route
             }
         }
     }
-
-    function getImageSource(unitType, country) {
-        return "static/images/" + unitType + ".png";
-    }
-
-    function nextPhaseButtonVisible(visibleFlag) {
-        $("#nextPhase").toggle(visibleFlag);
-    }
-
-    function bindPhaseButton() {
-        $("#nextPhase").click(function onNextPhaseClick() {
-            _g.currentPhase.nextPhase();
-        });
-    }
-
     return {
-        phaseName: phaseName,
-        showBoardList: showBoardList,
-        showBattle: showBattle,
-        showPlacementWindow: showPlacementWindow,
-        showRecruitmentWindow: showRecruitmentWindow,
-        showMoveWindow: showMoveWindow,
-        showConflictList: showConflictList,
-        nextPhaseButtonVisible: nextPhaseButtonVisible,
         initMap: initMap,
         drawMap: drawMap,
         drawRect: drawRect,

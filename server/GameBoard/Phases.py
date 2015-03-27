@@ -1,6 +1,6 @@
 import random
 from Components import Conflict
-from Unit import Unit
+from Unit import Unit, BoughtUnit
 import Util
 
 
@@ -28,43 +28,43 @@ class BuyPhase:
         self.board = board
         self.name = "BuyPhase"
 
-    # deprecated
-    def buyUnit(self, unitType):
-        info = self.board.unitInfo(unitType)
-        if self.money() + info.cost <= self.moneyCap:
-            self.buyList.append((unitType, info.cost))
-
     def setBuyList(self, buyList):
-        sumCost = 0
-        unitList = []
-        # buyList is of type [{unitType: String, amount: int}]
-        for buyInfo in buyList:
-            unitInfo = self.board.unitInfo(buyInfo["unitType"])
-            sumCost += buyInfo["amount"] * unitInfo.cost
-            for _ in range(buyInfo["amount"]):
-                unitList.append((buyInfo["unitType"], unitInfo.cost))
+        """
+        Sets the buy list for the board
+        :param buyList: Array of BoughtUnits or Objects containing unitType and territory (the name of the territory)
+        :return:
+        """
+        parsedBuyList = []
+        for bought in buyList:
+            if hasattr(bought, "unitType"):
+                parsedBuyList.append(bought)
+            elif isinstance(bought, dict) and u'unitType' in bought and u'territory' in bought:
+                territory = self.board.territoryByName(bought[u"territory"])
+                parsedBuyList.append(BoughtUnit(bought[u"unitType"], territory))
+            else:
+                raise Exception("Invalid buy list", buyList)
+
+        sumCost = self.costOfUnits(parsedBuyList)
 
         if sumCost <= self.moneyCap:
-            self.buyList = unitList
+            self.board.buyList = parsedBuyList[:]  # copy in buyList
             return True
         else:
             return False
 
-    def cancel(self, unitType):
-        for x in self.buyList:
-            if x[0] == unitType:
-                self.buyList.remove(x)
-                break
+    def costOfUnits(self, unitList):
+        sumCost = 0
+        # buyList is of type [{unitType: String, amount: int}]
+        for bought in unitList:
+            unitInfo = self.board.unitInfo(bought.unitType)
+            sumCost += unitInfo.cost
+        return sumCost
 
     def money(self):
-        total = 0
-        for (unitType, cost) in self.buyList:
-            total += cost
-        return total
+        return self.costOfUnits(self.buyList)
 
     def nextPhase(self):
         board = self.board
-        board.buyList = [unitType for (unitType, cost) in self.buyList]
         board.currentPhase = AttackPhase(board)
         return board.currentPhase
 
@@ -94,7 +94,7 @@ class BaseMovePhase(object):
             return False
 
     def canMove(self, unit, destination):
-        return Util.distance(unit.territory, destination, unit) is not -1
+        return Util.distance(unit.territory, destination, unit) is not -1 and unit.country is self.board.currentCountry
 
 
 # Units are added to a moveList, but unit.territory does not get modified if they are attacking a territory.
@@ -120,12 +120,8 @@ class AttackPhase(BaseMovePhase):
                 unit.originalTerritory = unit.territory
                 unit.territory = dest
 
-        board.attackMoveList = self.moveList
-        if not hostileTerToAttackers:
-            board.currentPhase = MovementPhase(board)
-        else:
-            conflicts = [Conflict(territory, attackers) for territory, attackers in hostileTerToAttackers.iteritems()]
-            board.currentPhase = ResolvePhase(conflicts, board)
+        conflicts = [Conflict(territory, attackers) for territory, attackers in hostileTerToAttackers.iteritems()]
+        board.currentPhase = ResolvePhase(conflicts, board)
         return board.currentPhase
 
 
@@ -140,10 +136,6 @@ class ResolvePhase:
         self.conflicts = conflicts
         self.board = board
         self.name = "ResolvePhase"
-        self.currentConflict = None  # change to hold a conflict, not a territory
-
-    def selectTerritory(self, territory):
-        self.currentConflict = territory
 
     # TODO update logic. May autoresolve a partially resolved conflict
     def autoResolve(self, territory):
@@ -157,28 +149,38 @@ class ResolvePhase:
         if not conflict:
             return False  # or throw error
 
-        defenders = territory.units()
-
-        constraint = 100000
-        while True:
+        constraint = 1000
+        while conflict.outcome == conflict.inProgress:
             # bit of safety
             constraint -= 1
             if constraint == 0:
                 print("Auto-resolve does not complete")
                 break
 
-            outcome = Util.battle(conflict.attackers, defenders)
+            outcome = Util.battle(conflict.attackers, conflict.defenders)
             conflict.reports.append(outcome)
+            # may want to revisit this
             for u in outcome.deadDefenders:
                 self.board.removeUnit(u)
+            for u in outcome.deadAttackers:
+                self.board.removeUnit(u)
+
+            combatSum = 0
+            for u in conflict.attackers:
+                combatSum += u.unitInfo.attack
+            for u in conflict.defenders:
+                combatSum += u.unitInfo.defence
+            if combatSum == 0:
+                conflict.outcome = Conflict.draw
+                break
 
             if len(conflict.attackers) == 0:
                 # defenders win
-                conflict.resolution = Conflict.defenderWin
+                conflict.outcome = Conflict.defenderWin
                 break
-            elif len(defenders) == 0:
+            elif len(conflict.defenders) == 0:
                 # attackers win if no defenders, and 1+ attackers
-                conflict.resolution = Conflict.attackerWin
+                conflict.outcome = Conflict.attackerWin
 
                 # can only take the territory if 1+ attackers are land attackers
                 landAttackers = [u for u in conflict.attackers if u.isLand()]
@@ -207,10 +209,10 @@ class ResolvePhase:
         :param conflictTerritory: Territory territory to retreat from
         :param destination: Territory territory to retreat to
         """
-        assert(conflictTerritory == self.currentConflict)
+        pass
 
     def nextPhase(self):
-        unresolvedConflicts = [c for c in self.conflicts if c.resolution == Conflict.noResolution]
+        unresolvedConflicts = [c for c in self.conflicts if c.outcome == Conflict.inProgress]
         if unresolvedConflicts:
             # throw error instead?
             raise NameError("Cannot advance to next phase before resolving conflicts")
@@ -227,16 +229,21 @@ class MovementPhase(BaseMovePhase):
     # can move units that haven't moved in the attack phase, or planes that need to land
     # can't move into enemy territories
     def canMove(self, unit, destination):
-        if not Util.allied(destination, unit.country):
+        if not Util.allied(destination, unit.country)\
+                or not super(MovementPhase, self).canMove(unit, destination):
             return False
 
-        if unit not in self.board.attackMoveList:
-            return super(MovementPhase, self).canMove(unit, destination)
-        elif unit.isFlying():
+        if unit.isFlying():
+            # Gotta have an airport to land in or sometin
+            if hasattr(destination, "originalCountry") and not Util.allied(destination.originalCountry, unit.country):
+                return False
+
             previousMove = Util.distance(unit.originalTerritory, unit.territory, unit)
             assert previousMove is not -1
             newMove = Util.distance(unit.territory, destination, unit)
             return newMove is not -1 and previousMove + newMove <= unit.unitInfo.movement
+        else:
+            return not unit.hasMoved()
 
     def nextPhase(self):
         board = self.board
@@ -249,21 +256,43 @@ class PlacementPhase:
     def __init__(self, board):
         self.toPlace = board.buyList[:]  # list of units to place on the board
         self.placedList = []
+        self.board = board
         self.name = "PlacementPhase"
 
-    def place(self, unitType, territory, board):
-        if unitType in self.toPlace and territory.hasFactory():
-            alreadyPlaced = [u for u in self.placedList if u.territory == territory]
-            if len(alreadyPlaced) < territory.income:
-                newUnit = Unit(board.unitInfo(unitType), board.currentCountry, territory)
-                self.toPlace.remove(unitType)
-                self.placedList.append(newUnit)
+    def setBuyList(self, buyList):
+        """
+        Updates the buyList with where units should be place
+        Does not allow the more units to be bought or sold
+        :param buyList: Array of BoughtUnits or Objects containing unitType and territory (the name of the territory)
+        :return:
+        """
+        currentListCopy = self.board.buyList[:]
 
-    def nextPhase(self, board):
+        parsedBuyList = []
+        for bought in buyList:
+            if hasattr(bought, "unitType"):
+                boughtUnit = bought
+            elif isinstance(bought, dict) and u'unitType' in bought and u'territory' in bought:
+                territory = self.board.territoryByName(bought[u"territory"])
+                boughtUnit = BoughtUnit(bought[u"unitType"], territory)
+            else:
+                raise Exception("Invalid buy list", buyList)
+
+            if boughtUnit in currentListCopy:
+                currentListCopy.remove(boughtUnit)
+                parsedBuyList.append(boughtUnit)
+            else:
+                raise Exception("Sneaky bugger trying to change the buy list")
+
+        self.board.buyList = parsedBuyList[:]  # copy in buyList
+        return True  # true for success, to match setBuyList in the buy phase
+
+    def nextPhase(self):
         for u in self.placedList:
-            board.units.append(u)
-        board.currentCountry.colllectIncome()
+            unitInfo = self.board.unitInfo(u.unitType)
+            self.board.units.append(Unit(unitInfo, self.board.currentCountry, u.territory))
+        self.board.currentCountry.collectIncome()
 
-        board.nextTurn()
-        board.currentPhase = BuyPhase(board.currentCountry, board)
-        return board.currentPhase
+        self.board.nextTurn()
+        self.board.currentPhase = BuyPhase(self.board.currentCountry.ipc, self.board)
+        return self.board.currentPhase

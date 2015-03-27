@@ -79,12 +79,22 @@
     "terrainType": "sea"
 },
 
-"destroyer": {
-    "description": "Small, fast warships that hunt submarines.",
+"cruiser": {
+    "description": "Strong, dependable ship of the line.",
 
     "cost": 12,
     "attack": 3,
     "defence": 3,
+    "move": 2,
+    "terrainType": "sea"
+},
+
+"destroyer": {
+    "description": "Small, fast warships that hunt submarines.",
+
+    "cost": 8,
+    "attack": 2,
+    "defence": 2,
     "move": 2,
     "terrainType": "sea"
 },

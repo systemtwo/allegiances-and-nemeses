@@ -11,7 +11,6 @@ class Board:
         self.name = boardName
         self.players = []
         self.units = []
-        self.attackMoveList = []
         self.buyList = []
         self.moduleName = moduleName
 
@@ -20,7 +19,7 @@ class Board:
             self.moduleInfo = json.load(file)
 
         with open(Util.countryFileName(moduleName)) as countryInfo:
-            self.countries = [Country(c["name"], c["team"], None, self) for c in json.load(countryInfo)]
+            self.countries = [Country(c["name"], c["displayName"], c["team"], None, self) for c in json.load(countryInfo)]
 
         with open(Util.unitFileName(moduleName)) as unitInfo:
             self.unitCatalogue = json.load(unitInfo)
@@ -61,8 +60,10 @@ class Board:
             unitSetup = json.load(unitFile)
             for countryName, territoryUnitMap in unitSetup.iteritems():
                 country = self.getCountryByName(countryName)
+                assert country is not None, "Invalid country name %r" % countryName
                 for tName, unitTypes in territoryUnitMap.iteritems():
                     territory = self.territoryByName(tName)
+                    assert territory is not None, "Invalid territory name %r" % tName
                     for unitType in unitTypes:
                         self.units.append(Unit(self.unitInfo(unitType), country, territory))
 
@@ -89,7 +90,9 @@ class Board:
             "connections": self.connections,
             "players": self.players,
             "units": [u.toDict() for u in self.units],
+            "buyList": [bought.toDict() for bought in self.buyList],
             "currentPhase": self.currentPhase.name,
+            "currentCountry": self.currentCountry.name,
 
             # Module info
             "unitCatalogue": self.unitCatalogue,
@@ -106,13 +109,20 @@ class Board:
                     break
 
     def isPlayersTurn(self, userId):
-        return self.currentCountry.player == userId
+        return True
+        # return self.currentCountry.player == userId
 
     # Proceed to the next country's turn. This is different than advancing a phase (1/6th of a turn)
     def nextTurn(self):
-        self.countries = []
+        self.buyList = []
+        for unit in self.units:
+            unit.reset()
+
+        for territory in self.territories:
+            territory.reset()
+
         nextIndex = self.countries.index(self.currentCountry) + 1
-        if nextIndex > len(self.countries):
+        if nextIndex >= len(self.countries):
             self.currentCountry = self.countries[0]
         else:
             self.currentCountry = self.countries[nextIndex]
@@ -125,6 +135,7 @@ class Board:
         return unitList
 
     def territoryByName(self, name):
+        name = str(name)
         for t in self.territories:
             if t.name == name:
                 return t
@@ -138,6 +149,12 @@ class Board:
 
     def removeUnit(self, u):
         self.units.remove(u)
+
+    def unitById(self, id):
+        for unit in self.units:
+            if unit.id == id:
+                return unit
+        return None
 
     def unitInfo(self, unitType):
         if unitType not in self.unitInfoDict:

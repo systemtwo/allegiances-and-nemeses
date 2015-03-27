@@ -6,7 +6,8 @@
             "infantry",
             "tank",
             "tank",
-            "fighter"
+            "fighter",
+            "factory"
         ],
         "Karelia": [
             "infantry",
@@ -24,7 +25,9 @@
             "infantry",
             "infantry",
             "infantry",
-            "tank"
+            "tank",
+            "aa",
+            "factory"
         ],
         "Kazakh": [
             "infantry",
@@ -49,15 +52,66 @@
         "Soviet Far East": [
             "infantry",
             "infantry"
+        ],
+        "4": [
+            "sub"
+        ],
+        "3": [
+            "transport",
+            "transport",
+            "transport",
+            "transport",
+            "transport",
+            "transport",
+            "transport",
+            "transport"
         ]
     },
     "germany": {
-        "West Russia": [
+        "Germany": [
             "infantry",
+            "infantry",
+            "infantry",
+            "tank",
+            "tank",
+            "fighter",
+            "bomber",
+            "aa",
+            "factory"
+        ],
+        "France": [
+            "infantry",
+            "infantry",
+            "tank",
+            "tank",
+            "fighter",
+            "aa"
+        ],
+        "Norway": [
+            "infantry",
+            "infantry",
+            "infantry",
+            "fighter"
+        ],
+        "Italy": [
             "infantry",
             "infantry",
             "artillery",
-            "tank"
+            "tank",
+            "aa",
+            "factory"
+        ],
+        "Eastern Europe": [
+            "infantry",
+            "infantry",
+            "tank",
+            "fighter"
+        ],
+        "Balkans": [
+            "infantry",
+            "infantry",
+            "tank",
+            "fighter"
         ],
         "Belorussia": [
             "infantry",
@@ -69,8 +123,239 @@
             "infantry",
             "infantry",
             "artillery",
-            "fighter",
+            "tank",
+            "fighter"
+        ],
+        "West Russia": [
+            "infantry",
+            "infantry",
+            "infantry",
+            "artillery",
             "tank"
+        ],
+        "Morocco Algeria": [
+            "infantry",
+            "artillery"
+        ],
+        "Libya": [
+            "infantry",
+            "tank"
+        ],
+        "5": [
+            "destroyer",
+            "sub",
+            "sub",
+            "transport"
+        ],
+        "8": [
+            "sub"
+        ],
+        "14": [
+            "battleship",
+            "transport"
+        ]
+    },
+    "uk": {
+        "United Kingdom": [
+            "infantry",
+            "infantry",
+            "artillery",
+            "tank",
+            "fighter",
+            "fighter",
+            "bomber",
+            "aa",
+            "factory"
+        ],
+        "Eastern Canada": [
+            "tank"
+        ],
+        "Western Canada": [
+            "infantry"
+        ],
+        "New Zealand": [
+            "infantry"
+        ],
+        "Australia": [
+            "infantry",
+            "infantry",
+            "infantry"
+        ],
+        "India": [
+            "infantry",
+            "infantry",
+            "infantry",
+            "aa"
+        ],
+        "Persia": [
+            "infantry"
+        ],
+        "Trans-Jordan": [
+            "infantry"
+        ],
+        "Anglo-Egypt Sudan": [
+            "infantry",
+            "tank",
+            "fighter"
+        ],
+        "Union of South Africa": [
+            "infantry"
+        ],
+        "2": [
+            "battleship",
+            "transport"
+        ],
+        "1": [
+            "transport"
+        ],
+        "40": [
+            "sub",
+            "transport"
+        ],
+        "35": [
+            "carrier",
+            "fighter",
+            "cruiser",
+            "transport"
+        ],
+        "11": [
+            "cruiser"
+        ]
+    },
+    "japan": {
+        "Japan": [
+            "infantry",
+            "infantry",
+            "infantry",
+            "infantry",
+            "artillery",
+            "tank",
+            "fighter",
+            "bomber",
+            "aa",
+            "factory"
+        ],
+        "Manchuria": [
+            "infantry",
+            "infantry",
+            "fighter"
+        ],
+        "Kwangtung": [
+            "infantry",
+            "infantry",
+            "infantry"
+        ],
+        "French Indo-China": [
+            "infantry",
+            "infantry",
+            "fighter"
+        ],
+        "East Indies": [
+            "infantry",
+            "infantry"
+        ],
+        "Borneo": [
+            "infantry"
+        ],
+        "Philippine Islands": [
+            "infantry",
+            "infantry"
+        ],
+        "Okinawa": [
+            "infantry"
+        ],
+        "Wake Island": [
+            "infantry"
+        ],
+        "Caroline Islands": [
+            "infantry"
+        ],
+        "New Guinea": [
+            "infantry"
+        ],
+        "Solomon Islands": [
+            "infantry"
+        ],
+        "60": [
+            "battleship",
+            "transport"
+        ],
+        "59": [
+            "transport"
+        ],
+        "37": [
+            "carrier",
+            "fighter",
+            "fighter",
+            "battleship"
+        ],
+        "50": [
+            "carrier",
+            "fighter",
+            "cruiser"
+        ],
+        "45": [
+            "sub"
+        ]
+    },
+    "us": {
+        "Western United States": [
+            "infantry",
+            "infantry",
+            "fighter",
+            "aa",
+            "factory"
+        ],
+        "Central United States": [
+            "infantry",
+            "infantry"
+        ],
+        "Eastern United States": [
+            "infantry",
+            "infantry",
+            "artillery",
+            "tank",
+            "fighter",
+            "bomber",
+            "aa",
+            "factory"
+        ],
+        "Alaska": [
+            "infantry"
+        ],
+        "Midway": [
+            "infantry"
+        ],
+        "Hawaiian Islands": [
+            "infantry",
+            "infantry",
+            "fighter"
+        ],
+        "China": [
+            "infantry",
+            "infantry",
+            "fighter"
+        ],
+        "Sinkiang": [
+            "infantry",
+            "infantry"
+        ],
+        "55": [
+            "battleship",
+            "transport"
+        ],
+        "52": [
+            "carrier",
+            "fighter",
+            "sub"
+        ],
+        "10": [
+            "cruiser",
+            "transport",
+            "transport"
+        ],
+        "20": [
+            "destroyer"
         ]
     }
 }

@@ -1,22 +1,27 @@
 [
     {
         "name": "ussr",
+        "displayName": "U.S.S.R.",
         "team": "allies"
     },
     {
         "name": "germany",
+        "displayName": "Germany",
         "team": "axis"
     },
     {
         "name": "uk",
+        "displayName": "United Kingdom",
         "team": "allies"
     },
     {
         "name": "japan",
+        "displayName": "Japan",
         "team": "axis"
     },
     {
         "name": "us",
+        "displayName": "United States",
         "team": "allies"
     }
 ]

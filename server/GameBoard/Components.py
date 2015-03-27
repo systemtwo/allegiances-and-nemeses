@@ -1,8 +1,9 @@
 class Conflict(object):
     # awesome if we could figure out another way for pycharm to pick up these enums
-    noResolution = "none"
+    inProgress = "inProgress"
     attackerWin = "attackerWin"
     defenderWin = "defenderWin"
+    draw = "draw"
 
     def __init__(self, territory, initialAttackers):
         """
@@ -11,13 +12,15 @@ class Conflict(object):
         """
         self.territory = territory
         self.attackers = initialAttackers
+        self.defenders = territory.units()
         self.reports = []
-        self.resolution = Conflict.noResolution
+        self.outcome = Conflict.inProgress
 
     def toDict(self):
         return {
             "territoryName": self.territory.name,
             "attackers": [u.toDict() for u in self.attackers],
+            "defenders": [u.toDict() for u in self.defenders],
             "reports": [r.toDict() for r in self.reports],
-            "resolution": self.resolution
+            "outcome": self.outcome
         }

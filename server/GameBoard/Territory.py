@@ -44,6 +44,9 @@ class BaseTerritory:
     def enemyUnits(self, country):
         return [u for u in self.units() if not Util.allied(u.country, country)]
 
+    def reset(self):
+        pass
+
 
 class LandTerritory(BaseTerritory):
     def __init__(self, board, name, income, country):
@@ -54,7 +57,11 @@ class LandTerritory(BaseTerritory):
         self.board = board
         self.income = income
         self.country = country
+        self.originalCountry = country
         self.type = "land"
+
+    def reset(self):
+        self.originalCountry = self.country
 
     def toDict(self):
         return {

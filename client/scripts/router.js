@@ -1,7 +1,7 @@
-define(["globals"], function(_g) {
+define(["gameAccessor"], function(_b) {
     // All router functions return the request object, which can then have done and fail handlers added to it
     function sendAction(data) {
-        return $.ajax("/boards/" + _g.board.id + "/action", {
+        return $.ajax("/boards/" + _b.getBoard().id + "/action", {
             method: "POST",
             data: JSON.stringify(data),
             contentType: 'application/json'
@@ -19,15 +19,13 @@ define(["globals"], function(_g) {
     function nextPhase() {
         return sendAction({
             action: "nextPhase",
-            currentPhase: _g.currentPhase.constructor.name // get the class name
+            currentPhase: _b.getBoard().currentPhaseName() // get the class name
         });
     }
-    function endBuyPhase(boughtUnits) {
+    function setBuyList(boughtUnits) {
         return sendAction({
             action: "buy",
             boughtUnits: boughtUnits
-        }).done(function() {
-            console.log(arguments)
         })
     }
     function fetchBoard(boardId) {
@@ -37,17 +35,22 @@ define(["globals"], function(_g) {
     function fetchBoards() {
         return $.getJSON("/boards");
     }
-    function validateMove(start, end, unitIds, onfail) {
+    function validateMove(start, end, unitId, onfail) {
         return sendAction({
             action: "move",
             from: start.name,
             to: end.name,
-            unitList: unitIds
+            unitId: unitId
         }).fail(onfail)
     }
 
-    function getConflicts(boardId) {
-        return $.getJSON("/conflicts/" + boardId);
+    function updateConflicts(boardId) {
+        var promise = new $.Deferred();
+        $.getJSON("/conflicts/" + boardId).done(function(conflicts) {
+             _b.getBoard().boardData.conflicts = conflicts;
+            promise.resolve();
+        });
+        return promise;
     }
 
     function selectConflict(territoryName, onFail) {
@@ -77,7 +80,6 @@ define(["globals"], function(_g) {
     function autoResolve(territoryName) {
         // NO RETREAT. TO THE DEATH, BROTHERS!
         // Success will return a BattleReport
-        // Will fail if battling in the non-current conflict
         return sendAction({
             action: "autoResolve",
             territory: territoryName
@@ -109,10 +111,10 @@ define(["globals"], function(_g) {
     }
     return {
         newBoard: newBoard,
-        endBuyPhase: endBuyPhase,
+        setBuyList: setBuyList,
         fetchBoard: fetchBoard,
         fetchBoards: fetchBoards,
-        getConflicts: getConflicts,
+        updateConflicts: updateConflicts,
         validateMove: validateMove,
         selectConflict: selectConflict,
         battle: battle,
