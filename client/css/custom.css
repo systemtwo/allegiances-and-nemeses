@@ -1,7 +1,9 @@
+/* Override library styles */
 .ui-dialog-titlebar-close {
     display: none
 }
 
+/* General Styles */
 .flex-row {
     display: flex;
     flex-direction: row;
@@ -13,82 +15,69 @@
 .flex-grow {
     flex-grow: 1;
 }
+.flex {
+    display: flex;
+    flex-wrap: wrap;
+}
 .vertical-rule {
     width: 0;
     border-left: black solid medium;
 }
-
+.floatRight {
+    float: right;
+}
 .title {
     font-size: 36px;
     font-weight: 500;
 }
 
-.move-unit-pane {
-    flex-grow: 1;
-    flex-basis: 50%;
-}
 
-.dialog-sub-title {
-    text-align: center;
-}
-
-#editTerritoryPanel {
-    background-color: #ffe45c;
-    float: right;
-    /* Map is 80% width */
-    width: 17%;
-    padding: 5px;
-}
-
-.units {
-    overflow: auto;
-}
-
+/* COMPONENT STYLES*/
 .disabledUnit {
     opacity: 0.5;
 }
 
+/* Move unit window */
+.move-unit-pane {
+    flex-grow: 1;
+    flex-basis: 50%;
+}
+.units {
+    overflow: auto;
+}
 .unitBlock {
     float: left;
 }
 .sectionHeader {
     display: table;
 }
-
-.flex {
-    display: flex;
-    flex-wrap: wrap;
-}
-
 .territoryBlock {
     flex: 1 1;
     min-width: 100px;
 }
 
-.floatRight {
-    float: right;
-}
 
 /* Conflict list */
+.dialog-sub-title {
+    text-align: center;
+}
 .conflict-row {
     width: 500px;
     height: 50px;
     margin: 5px;
     font-size: 18px;
 }
-
 .conflict-actions,.conflict-outcome {
     width: 220px;
     float: right;
 }
-
 .conflict-actions button {
     margin: 0 5px;
 }
-
 .conflict-outcome {
     font-size: 18px;
 }
+
 
 /* Battle window */
 .battle-info {
@@ -101,16 +90,13 @@
     border-right: 1px solid black;
     padding-right: 0;
 }
-
 .casualty-title {
     height: 60px;
 }
-
 .reports {
     flex: 1 1;
     overflow-y: scroll;
 }
-
 .report {
     cursor: zoom-out;
     border-bottom: 1px solid black;
@@ -118,12 +104,21 @@
 .report.collapsed {
     cursor: zoom-in;
 }
-
 .report.collapsed .casualty-details {
     display: none;
 }
-
 .casualty-details img {
     width: 20px;
     height: 20px;
+}
+/* COMPONENT STYLES END */
+
+
+/* Map editor */
+#editTerritoryPanel {
+    background-color: #ffe45c;
+    float: right;
+    /* Map is 80% width */
+    width: 17%;
+    padding: 5px;
 }
