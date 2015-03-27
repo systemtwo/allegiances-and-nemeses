@@ -1,4 +1,4 @@
-define(["components", "helpers", "router", "gameAccessor", "phases/phaseHelper"], function(_c, _helpers, _router, _b, phaseHelper) {
+define(["backbone", "components", "helpers", "router", "gameAccessor", "phases/phaseHelper"], function(backbone, _c, _helpers, _router, _b, phaseHelper) {
     var Game = function(id, boardInfo) {
         _b.setBoard(this);
         this.id = id;
@@ -23,6 +23,7 @@ define(["components", "helpers", "router", "gameAccessor", "phases/phaseHelper"]
         this.parse(boardInfo);
         return this;
     };
+    _.extend(Game.prototype, backbone.Events); // mixin the events module
 
     Game.prototype.parse = function(boardInfo) {
         var that = this;
@@ -31,9 +32,10 @@ define(["components", "helpers", "router", "gameAccessor", "phases/phaseHelper"]
             countries: [],
             territories: [],
             units: [],
-            buyList: boardInfo.buyList,
+            buyList: [],
             conflicts: boardInfo.conflicts
         };
+        this.buyList(boardInfo.buyList); // set the buy list
         // Info about the game that will remain constant
         this.info = {
             players: boardInfo.players,
@@ -66,6 +68,7 @@ define(["components", "helpers", "router", "gameAccessor", "phases/phaseHelper"]
         this.currentPhase = phaseHelper.createPhase(boardInfo.currentPhase);
 
         this.initConnections(boardInfo);
+        this.trigger("change");
     };
 
     Game.prototype.initConnections = function(connectionJson) {
@@ -98,6 +101,11 @@ define(["components", "helpers", "router", "gameAccessor", "phases/phaseHelper"]
 
     Game.prototype.buyList = function(buyList) {
         if (buyList) {
+            _.some(buyList, function verify(boughtUnitInfo) {
+                if (!boughtUnitInfo.unitType) {
+                    throw Error("Bought unit is not an object containing unitType", boughtUnitInfo)
+                }
+            });
             this.boardData.buyList = buyList;
         } else {
             return this.boardData.buyList;

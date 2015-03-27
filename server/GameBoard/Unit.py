@@ -82,6 +82,26 @@ class Unit:
         }
 
 
+class BoughtUnit:
+    def __init__(self, unitType, territory):
+        self.unitType = unitType
+        self.territory = territory
+
+    # For our current purposes, bought units have very loose equality checks
+    def __eq__(self, other):
+        return isinstance(other, BoughtUnit) and other.unitType == self.unitType
+
+    def toDict(self):
+        tName = ""
+        if self.territory is not None:
+            tName = self.territory.name
+        return {
+            "unitType": self.unitType,
+            "territory": tName
+        }
+
+
+
 class UnitInfo:
     def __init__(self, unitType, dictionary):
         self.unitType = unitType

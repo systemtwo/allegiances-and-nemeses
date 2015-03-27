@@ -1,6 +1,6 @@
 import random
 from Components import Conflict
-from Unit import Unit
+from Unit import Unit, BoughtUnit
 import Util
 
 
@@ -29,10 +29,25 @@ class BuyPhase:
         self.name = "BuyPhase"
 
     def setBuyList(self, buyList):
-        sumCost = self.costOfUnits(buyList)
+        """
+        Sets the buy list for the board
+        :param buyList: Array of BoughtUnits or Objects containing unitType and territory (the name of the territory)
+        :return:
+        """
+        parsedBuyList = []
+        for bought in buyList:
+            if hasattr(bought, "unitType"):
+                parsedBuyList.append(bought)
+            elif isinstance(bought, dict) and u'unitType' in bought and u'territory' in bought:
+                territory = self.board.territoryByName(bought[u"territory"])
+                parsedBuyList.append(BoughtUnit(bought[u"unitType"], territory))
+            else:
+                raise Exception("Invalid buy list", buyList)
+
+        sumCost = self.costOfUnits(parsedBuyList)
 
         if sumCost <= self.moneyCap:
-            self.board.buyList = buyList[:]
+            self.board.buyList = parsedBuyList[:]  # copy in buyList
             return True
         else:
             return False
@@ -40,8 +55,8 @@ class BuyPhase:
     def costOfUnits(self, unitList):
         sumCost = 0
         # buyList is of type [{unitType: String, amount: int}]
-        for unitType in unitList:
-            unitInfo = self.board.unitInfo(unitType)
+        for bought in unitList:
+            unitInfo = self.board.unitInfo(bought.unitType)
             sumCost += unitInfo.cost
         return sumCost
 
@@ -244,17 +259,38 @@ class PlacementPhase:
         self.board = board
         self.name = "PlacementPhase"
 
-    def place(self, unitType, territory):
-        if unitType in self.toPlace and territory.hasFactory():
-            alreadyPlaced = [u for u in self.placedList if u.territory == territory]
-            if len(alreadyPlaced) < territory.income:
-                newUnit = Unit(self.board.unitInfo(unitType), self.board.currentCountry, territory)
-                self.toPlace.remove(unitType)
-                self.placedList.append(newUnit)
+    def setBuyList(self, buyList):
+        """
+        Updates the buyList with where units should be place
+        Does not allow the more units to be bought or sold
+        :param buyList: Array of BoughtUnits or Objects containing unitType and territory (the name of the territory)
+        :return:
+        """
+        currentListCopy = self.board.buyList[:]
+
+        parsedBuyList = []
+        for bought in buyList:
+            if hasattr(bought, "unitType"):
+                boughtUnit = bought
+            elif isinstance(bought, dict) and u'unitType' in bought and u'territory' in bought:
+                territory = self.board.territoryByName(bought[u"territory"])
+                boughtUnit = BoughtUnit(bought[u"unitType"], territory)
+            else:
+                raise Exception("Invalid buy list", buyList)
+
+            if boughtUnit in currentListCopy:
+                currentListCopy.remove(boughtUnit)
+                parsedBuyList.append(boughtUnit)
+            else:
+                raise Exception("Sneaky bugger trying to change the buy list")
+
+        self.board.buyList = parsedBuyList[:]  # copy in buyList
+        return True  # true for success, to match setBuyList in the buy phase
 
     def nextPhase(self):
         for u in self.placedList:
-            self.board.units.append(u)
+            unitInfo = self.board.unitInfo(u.unitType)
+            self.board.units.append(Unit(unitInfo, self.board.currentCountry, u.territory))
         self.board.currentCountry.collectIncome()
 
         self.board.nextTurn()

@@ -207,15 +207,6 @@ define(["nunjucks", "gameAccessor", "router", "helpers"], function(nj, _b, _rout
             images: _b.getBoard().info.imageMap
         }));
 
-        $(".place-unit", window).click(function (event) {
-            var target = $(event.currentTarget);
-            if (_b.getBoard().currentPhase.onUnitSelect) {
-                var result = _b.getBoard().currentPhase.onUnitSelect(target.data("type"));
-                if (result) {
-                    window.dialog("destroy");
-                }
-            }
-        });
 
         window.dialog({
             title: "Units to Place",

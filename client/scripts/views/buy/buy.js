@@ -23,32 +23,36 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
 
         buyUnits: function (unitType, targetAmount) {
             var newArray = [];
-            _b.getBoard().buyList().forEach(function(boughtUnitType) {
+            _b.getBoard().buyList().forEach(function(boughtUnit) {
+                var boughtUnitType = boughtUnit.unitType;
                 if (boughtUnitType === unitType) {
                     if (targetAmount > 0) {
                         targetAmount -= 1;
-                        newArray.push(boughtUnitType);
+                        newArray.push(boughtUnit); // copy to new array
                     } else {
                         // don't push, we've met the target
                     }
                 } else {
-                    newArray.push(boughtUnitType);
+                    newArray.push(boughtUnit); // copy all other units in the array
                 }
             });
             // push to meet target
             for(var i=0; i<targetAmount; i++) {
-                newArray.push(unitType);
+                newArray.push({
+                    unitType: unitType,
+                    territory: ""
+                });
             }
             _b.getBoard().buyList(newArray); // set buy list
-            _router.buyUnits(newArray);
+            _router.setBuyList(newArray);
         },
 
         capForUnitType: function (unitType) {
             var board = _b.getBoard();
             var info = board.unitInfo(unitType);
             var remainingMoney = board.currentCountry.ipc - this.moneySpent();
-            var currentAmount = _b.getBoard().buyList().reduce(function (number, boughtUnitType) {
-                if (boughtUnitType == unitType) {
+            var currentAmount = _b.getBoard().buyList().reduce(function (number, boughtUnit) {
+                if (boughtUnit.unitType == unitType) {
                     return number + 1;
                 } else {
                     return number;
@@ -62,8 +66,8 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
         },
 
         moneySpent: function() {
-            return _b.getBoard().buyList().reduce(function (total, unitType) {
-                var data = _b.getBoard().unitInfo(unitType);
+            return _b.getBoard().buyList().reduce(function (total, boughtUnit) {
+                var data = _b.getBoard().unitInfo(boughtUnit.unitType);
                 return total + data.cost;
             }, 0);
         },
@@ -86,8 +90,8 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
             this.$(".buyAmount").each(function (index, input) {
                 input = $(input);
                 var unitType = input.data("type");
-                input.val(_.filter(_b.getBoard().buyList(), function(boughtUnitType){
-                    return boughtUnitType === unitType
+                input.val(_.filter(_b.getBoard().buyList(), function(boughtUnit){
+                    return boughtUnit.unitType === unitType
                 }).length);
                 input.counter({
                     min: 0,

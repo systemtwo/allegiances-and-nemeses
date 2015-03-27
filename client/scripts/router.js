@@ -22,7 +22,7 @@ define(["gameAccessor"], function(_b) {
             currentPhase: _b.getBoard().currentPhaseName() // get the class name
         });
     }
-    function buyUnits(boughtUnits) {
+    function setBuyList(boughtUnits) {
         return sendAction({
             action: "buy",
             boughtUnits: boughtUnits
@@ -111,7 +111,7 @@ define(["gameAccessor"], function(_b) {
     }
     return {
         newBoard: newBoard,
-        buyUnits: buyUnits,
+        setBuyList: setBuyList,
         fetchBoard: fetchBoard,
         fetchBoards: fetchBoards,
         updateConflicts: updateConflicts,

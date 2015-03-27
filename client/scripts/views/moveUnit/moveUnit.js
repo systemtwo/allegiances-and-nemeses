@@ -1,6 +1,5 @@
 define(["backbone", "knockout", "text!views/moveUnit/moveUnit.html", "helpers", "gameAccessor", "router"],
     function(backbone, ko, template, _h, _b, _router) {
-    // pass in a list of units into the view
     var MoveUnitView = backbone.View.extend({
         /**
          *
@@ -40,10 +39,11 @@ define(["backbone", "knockout", "text!views/moveUnit/moveUnit.html", "helpers", 
                 };
 
                 this.canMove = function(unit) {
+                    var currentPhase = _b.getBoard().currentPhase;
                     if (unit.territory == view.fromTerritory)
-                        return _b.getBoard().currentPhase.canMove(unit, view.destinationTerritory);
+                        return currentPhase.canMove(unit, view.destinationTerritory);
                     else
-                        return _b.getBoard().currentPhase.canMove(unit, view.fromTerritory);
+                        return currentPhase.canMove(unit, view.fromTerritory);
                 };
 
                 this.clickUnit = function(unit) {

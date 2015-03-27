@@ -90,7 +90,7 @@ class Board:
             "connections": self.connections,
             "players": self.players,
             "units": [u.toDict() for u in self.units],
-            "buyList": self.buyList,
+            "buyList": [bought.toDict() for bought in self.buyList],
             "currentPhase": self.currentPhase.name,
             "currentCountry": self.currentCountry.name,
 
@@ -122,7 +122,7 @@ class Board:
             territory.reset()
 
         nextIndex = self.countries.index(self.currentCountry) + 1
-        if nextIndex > len(self.countries):
+        if nextIndex >= len(self.countries):
             self.currentCountry = self.countries[0]
         else:
             self.currentCountry = self.countries[nextIndex]

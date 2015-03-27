@@ -47,7 +47,6 @@ class ActionHandler(BaseAuthHandler):
 
         elif "buy" == action:
             # buy units, with validation
-            self.assertPhase("BuyPhase", board)
             success = board.currentPhase.setBuyList(requestData["boughtUnits"])
             if not success:
                 self.send_error()

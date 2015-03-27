@@ -1,0 +1,15 @@
+<div class="flex-column">
+    <h3>Purchased Units</h3>
+    <div data-bind="template: {name: 'bought-unit-template', foreach: boughtUnits}"></div>
+</div>
+
+<script type="text/html" id="bought-unit-template">
+<div class="unit-image-container">
+    <img src="" data-bind="attr: { src: $root.getImageSrc($data.unitType) },
+        click: $root.clickUnit,
+        css: {disabledUnit: !$root.canPlace($data.unitType)}" />
+    <!-- ko: if territory -->
+    <span data-bind="text: territory"></span>
+    <!-- /ko -->
+</div>
+</script>
