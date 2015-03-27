@@ -18,6 +18,11 @@
     border-left: black solid medium;
 }
 
+.title {
+    font-size: 36px;
+    font-weight: 500;
+}
+
 .move-unit-pane {
     flex-grow: 1;
     flex-basis: 50%;

@@ -259,6 +259,7 @@ define(["backbone", "components", "helpers", "router", "gameAccessor", "phases/p
 
         if (success) {
             _router.nextPhase().done(function(boardData) {
+                _helpers.helperText(""); // reset the helper text
                 that.parse(JSON.parse(boardData));
             })
         }

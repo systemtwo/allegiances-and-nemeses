@@ -1,15 +1,27 @@
-define(["gameAccessor", "helpers", "dialogs", "router"], function(_b, _helpers, _dialogs, _router) {
+define(["gameAccessor", "helpers", "dialogs", "router", "components"], function(_b, _helpers, _dialogs, _router, _c) {
 
     // Resolve all attacks made during the movement phase
     function ResolvePhase() {
         _helpers.phaseName("Resolve Conflicts");
         this.updateConflicts();
+        _helpers.helperText("Fight for control of territories");
         return this;
     }
 
     ResolvePhase.prototype.updateConflicts = function () {
+        var that = this;
         _router.updateConflicts(_b.getBoard().id).done(function () {
             _dialogs.showConflictList();
+            if (!that.hasUnresolvedConflicts()) {
+                _helpers.helperText("All conflicts are resolved. End the turn");
+            }
+        });
+    };
+
+    ResolvePhase.prototype.hasUnresolvedConflicts = function () {
+        var conflicts = _b.getBoard().boardData.conflicts;
+        return _.some(conflicts, function isUnresolved(conflict) {
+            return conflict.outcome === _c.conflictOutcomes.IN_PROGRESS;
         });
     };
 
@@ -38,8 +50,12 @@ define(["gameAccessor", "helpers", "dialogs", "router"], function(_b, _helpers, 
     };
 
     ResolvePhase.prototype.endPhase = function () {
-        _dialogs.closeConflicts();
-        return true;
+        if (!this.hasUnresolvedConflicts() || confirm("Automatically resolve remaining conflicts?")) {
+            _dialogs.closeConflicts();
+            return true;
+        } else {
+            return false;
+        }
     };
     return ResolvePhase;
 });

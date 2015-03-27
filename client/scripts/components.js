@@ -63,22 +63,22 @@ define(["gameAccessor"], function(_b) {
         })
     };
 
+    var conflictOutcomes = {
+            DRAW: "draw",
+            DEFENDER: "defenderWin",
+            ATTACKER: "attackerWin",
+            IN_PROGRESS: "inProgress"
+        };
 
     /**
      * Not currently in use - only for IDE to detect properties
      * @constructor
      */
     var Conflict = function() {
-        this.outcomes = {
-            DRAW: "draw",
-            DEFENDER: "defenderWin",
-            ATTACKER: "attackerWin",
-            IN_PROGRESS: "inProgress"
-        };
         this.attackers = [];
         this.defenders = [];
         this.reports = [];
-        this.outcome = this.outcomes.IN_PROGRESS;
+        this.outcome = "";
         this.territoryName = null;
     };
 
@@ -94,6 +94,7 @@ define(["gameAccessor"], function(_b) {
         Country: Country,
         Conflict: Conflict,
         Territory: Territory,
-        Unit: Unit
+        Unit: Unit,
+        conflictOutcomes: conflictOutcomes
     }
 });

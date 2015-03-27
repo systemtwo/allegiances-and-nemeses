@@ -1,9 +1,11 @@
 define(["gameAccessor", "helpers", "render", "dialogs", "views/moveUnit/moveUnit"],
 function(_b, _helpers, _render, _dialogs, MoveUnitView) {
-    var notEnoughMovesReason = "Not enough move points";
-    var alreadyAttackedReason = "Already used to attack";
-
     var movementMixin = {
+        strings: {
+            selectStart: "Select a territory to move from",
+            selectDest: "Select a territory to move to",
+            moveUnits: "Click on units to move them"
+        },
         initialize: function () {
             _helpers.phaseName(this.phaseName());
             this.states = {
@@ -14,6 +16,7 @@ function(_b, _helpers, _render, _dialogs, MoveUnitView) {
             this.setSelectableOriginTerritories();
             this.state = this.states.START;
             this.origin = null;
+            _helpers.helperText(this.strings.selectStart)
         },
 
         /**
@@ -32,12 +35,14 @@ function(_b, _helpers, _render, _dialogs, MoveUnitView) {
         setSelectableOriginTerritories: function () {
             var board = _b.getBoard();
             _render.setTerritoriesWithUnitsSelectable(board.unitsForCountry(board.currentCountry).filter(this.movableUnit));
+            _helpers.helperText(this.strings.selectStart);
         },
 
         setSelectableDestinationTerritories: function (originTerritory) {
             var controlledUnits = originTerritory.unitsForCountry(_b.getBoard().currentCountry).filter(this.movableUnit);
             // Make selectable any territory that a unit currently in the clicked territory can move to
-            _render.setSelectableTerritories(_b.getBoard().territoriesInRange(controlledUnits, _b.getBoard().currentCountry));
+            _render.setSelectableTerritories(_b.getBoard().territoriesInRange(controlledUnits));
+            _helpers.helperText(this.strings.selectDest);
         },
 
         onTerritorySelect: function (territory) {
@@ -49,6 +54,7 @@ function(_b, _helpers, _render, _dialogs, MoveUnitView) {
 
             } else if (this.state == this.states.DEST) {
                 this.showUnitSelectionWindow(territory);
+                _helpers.helperText(this.strings.moveUnits);
                 this.state = this.states.SELECT_UNITS;
             } else if (this.state == this.states.SELECT_UNITS) {
                 // clicked a new territory anyway instead of selecting units

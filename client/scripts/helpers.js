@@ -13,7 +13,8 @@ define(["gameAccessor"], function(_b) {
     };
 
     exports.helperText = function(text) {
-        $("#helperText").text("- " + text);
+        text = text ? "- " + text : "";
+        $("#helperText").text(text);
     };
 
     exports.getImageSource = function(unitType, country) {

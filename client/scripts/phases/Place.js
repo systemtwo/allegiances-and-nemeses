@@ -3,8 +3,17 @@ define(["gameAccessor", "helpers", "render", "dialogs", "router"], function(_b, 
         _helpers.phaseName("Place Units");
         _render.setSelectableTerritories([]);
         this.placing = null; // The BoughtUnit being placed
+        this.setInitialText();
         return this;
     }
+
+    PlacementPhase.prototype.setInitialText = function() {
+        if (this.hasUnplacedUnits()) {
+            _helpers.helperText("Select a purchased unit to place");
+        } else {
+            _helpers.helperText("All units placed. You can end your turn and collect income");
+        }
+    };
 
     // Begin placing unit of unitType
     // returns false on error
@@ -34,6 +43,12 @@ define(["gameAccessor", "helpers", "render", "dialogs", "router"], function(_b, 
         }
         this.placing = boughtUnit;
         _render.setSelectableTerritories(validTerritories);
+
+        if (board.unitInfo(boughtUnit.unitType).terrainType == "land") {
+            _helpers.helperText("Place your " + boughtUnit.unitType + " in a territory with a factory.");
+        } else {
+            _helpers.helperText("Place your " + boughtUnit.unitType + " in a sea zone adjacent to a territory with a factory.");
+        }
         return true;
     };
 
@@ -56,6 +71,7 @@ define(["gameAccessor", "helpers", "render", "dialogs", "router"], function(_b, 
 
         _router.setBuyList(_b.getBoard().buyList()).done(function() {
             _b.getBoard().trigger("change");
+            that.setInitialText();
             _render.setSelectableTerritories([]);
         }).fail(function() {
             that.placing.territory = previousTerritory;
@@ -63,10 +79,14 @@ define(["gameAccessor", "helpers", "render", "dialogs", "router"], function(_b, 
         });
     };
 
-    PlacementPhase.prototype.endPhase = function() {
-        if (_.some(_b.getBoard().buyList(), function(bought) {
+    PlacementPhase.prototype.hasUnplacedUnits = function () {
+        return _.some(_b.getBoard().buyList(), function(bought) {
                 return !bought.territory;
-            })) {
+            })
+    };
+
+    PlacementPhase.prototype.endPhase = function() {
+        if (this.hasUnplacedUnits()) {
             return confirm("You have unplaced units. End your turn anyways?")
         } else {
             return true;
