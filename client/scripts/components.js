@@ -82,8 +82,9 @@ define(["gameAccessor"], function(_b) {
         this.territoryName = null;
     };
 
-    var Country = function(name, team, ipc) {
+    var Country = function(name, displayName, team, ipc) {
         this.name = name;
+        this.displayName = displayName;
         this.ipc = ipc;
         this.team = team;
         return this;

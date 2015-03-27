@@ -51,7 +51,7 @@ define(["backbone", "components", "helpers", "router", "gameAccessor", "phases/p
         });
 
         this.boardData.countries = boardInfo.countries.map(function(countryInfo) {
-            return new _c.Country(countryInfo.name, countryInfo.team, countryInfo.ipc)
+            return new _c.Country(countryInfo.name, countryInfo.displayName, countryInfo.team, countryInfo.ipc)
         });
 
         console.table(this.boardData.countries);
@@ -67,6 +67,7 @@ define(["backbone", "components", "helpers", "router", "gameAccessor", "phases/p
         this.currentCountry = that.getCountry(boardInfo.currentCountry);
         this.currentPhase = phaseHelper.createPhase(boardInfo.currentPhase);
 
+        _helpers.countryName(this.currentCountry.displayName);
         this.initConnections(boardInfo);
         this.trigger("change");
     };

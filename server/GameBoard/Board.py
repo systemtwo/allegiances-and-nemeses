@@ -19,7 +19,7 @@ class Board:
             self.moduleInfo = json.load(file)
 
         with open(Util.countryFileName(moduleName)) as countryInfo:
-            self.countries = [Country(c["name"], c["team"], None, self) for c in json.load(countryInfo)]
+            self.countries = [Country(c["name"], c["displayName"], c["team"], None, self) for c in json.load(countryInfo)]
 
         with open(Util.unitFileName(moduleName)) as unitInfo:
             self.unitCatalogue = json.load(unitInfo)
