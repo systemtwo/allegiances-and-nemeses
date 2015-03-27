@@ -26,10 +26,13 @@ define(["backbone", "underscore", "knockout", "text!views/sidePanel/boughtUnits.
                     return true;
                 };
 
+                this.inPlacePhase = ko.observable(_b.getBoard().currentPhaseName() === "PlacementPhase");
+
                 _b.getBoard().on("change", function() {
                     // force an update
                     vm.boughtUnits([]);
                     vm.boughtUnits(_b.getBoard().buyList());
+                    vm.inPlacePhase(_b.getBoard().currentPhaseName() === "PlacementPhase");
                 })
             };
 

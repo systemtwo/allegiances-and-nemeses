@@ -19,6 +19,9 @@
     display: flex;
     flex-wrap: wrap;
 }
+.flex-spaced {
+    justify-content: space-between;
+}
 .vertical-rule {
     width: 0;
     border-left: black solid medium;
@@ -30,7 +33,10 @@
     font-size: 36px;
     font-weight: 500;
 }
-
+.side-panel {
+    background-color: lightgray;
+    padding: 15px;
+}
 
 /* COMPONENT STYLES*/
 .disabledUnit {
@@ -56,6 +62,17 @@
     min-width: 100px;
 }
 
+/* Bought unit section in side panel */
+.bought-units-container .bought-unit-list:not(.placing-units) {
+    display: flex;
+    flex-wrap: wrap;
+}
+.bought-units-container .bought-unit-list:not(.placing-units) .placement-territory {
+    display: none;
+}
+.bought-units-container .placing-units .bought-unit {
+    cursor: pointer;
+}
 
 /* Conflict list */
 .dialog-sub-title {

@@ -1,13 +1,9 @@
-<div class="flex-column">
-    <h3>Purchased Units</h3>
-    <div data-bind="template: {name: 'bought-unit-template', foreach: boughtUnits}"></div>
-</div>
+<div class="bought-unit-list" data-bind="css: {'placing-units': inPlacePhase}, template: {name: 'bought-unit-template', foreach: boughtUnits}"></div>
 
 <script type="text/html" id="bought-unit-template">
-<div class="unit-image-container">
-    <img src="" data-bind="attr: { src: $root.getImageSrc($data.unitType) },
-        click: $root.clickUnit,
+<div class="bought-unit" data-bind="click: $root.clickUnit">
+    <img class="bought-unit-image" src="" data-bind="attr: { src: $root.getImageSrc($data.unitType) },
         css: {disabledUnit: !$root.canPlace($data.unitType)}" />
-    <span data-bind="text: (territory || 'Not Placed')"></span>
+    <span class="placement-territory" data-bind="text: (territory || 'Not Placed')"></span>
 </div>
 </script>

@@ -10,20 +10,22 @@
         <script data-main="static/scripts/start" src="static/scripts/lib/require.js"></script>
     </head>
     <body>
-        <div>
-            <span class="title">
-                War: The Board Game
-                <span id="countryName"></span>
-                <span id="phaseName"></span>
-            </span>
-            <span id="helperText"></span>
-        </div>
-        <div class="flex-row">
-            <div class="flex-grow">
-                <canvas id="board">
-                </canvas>
+        <div class="flex-row flex-spaced">
+            <div class="flex-column">
+                <div>
+                    <span class="title">
+                        War: The Board Game
+                        <span id="countryName"></span>
+                        <span id="phaseName"></span>
+                    </span>
+                    <span id="helperText"></span>
+                </div>
+                <div class="flex-grow">
+                    <canvas id="board">
+                    </canvas>
+                </div>
             </div>
-            <div id="side-panel-container"></div>
+            <div id="side-panel-container" class="flex-column"></div>
         </div>
     </body>
 </html>

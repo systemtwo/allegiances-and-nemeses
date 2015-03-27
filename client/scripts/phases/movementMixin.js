@@ -4,7 +4,7 @@ function(_b, _helpers, _render, _dialogs, MoveUnitView) {
         strings: {
             selectStart: "Select a territory to move from",
             selectDest: "Select a territory to move to",
-            moveUnits: "Click on units to move them"
+            moveUnits: "Click units to move them"
         },
         initialize: function () {
             _helpers.phaseName(this.phaseName());
