@@ -214,11 +214,9 @@ class ResolvePhase:
     def nextPhase(self):
         unresolvedConflicts = [c for c in self.conflicts if c.outcome == Conflict.inProgress]
         if unresolvedConflicts:
-            # throw error instead?
-            raise NameError("Cannot advance to next phase before resolving conflicts")
-        else:
-            self.board.currentPhase = MovementPhase(self.board)
-            return self.board.currentPhase
+            self.autoResolveAll()
+        self.board.currentPhase = MovementPhase(self.board)
+        return self.board.currentPhase
 
 
 class MovementPhase(BaseMovePhase):
@@ -255,7 +253,6 @@ class MovementPhase(BaseMovePhase):
 class PlacementPhase:
     def __init__(self, board):
         self.toPlace = board.buyList[:]  # list of units to place on the board
-        self.placedList = []
         self.board = board
         self.name = "PlacementPhase"
 
@@ -288,7 +285,7 @@ class PlacementPhase:
         return True  # true for success, to match setBuyList in the buy phase
 
     def nextPhase(self):
-        for u in self.placedList:
+        for u in self.board.buyList:
             unitInfo = self.board.unitInfo(u.unitType)
             self.board.units.append(Unit(unitInfo, self.board.currentCountry, u.territory))
         self.board.currentCountry.collectIncome()
