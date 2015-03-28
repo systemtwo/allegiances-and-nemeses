@@ -146,46 +146,66 @@ define(["gameAccessor", "helpers", "router"], function(_asdf, _h, _router) {
     function setShowSkeleton(bool) {
         showSkeleton = bool;
     }
+    // Firefox bug workaround
+    function ffDrawImage(onSuccess) {
+        var canvas = document.getElementById("board");
+        var ctx = canvas.getContext("2d");
+        try {
+            ctx.drawImage(_asdf.getBoard().mapImage, -offset.x, -offset.y);
+            onSuccess();
+        } catch (e) {
+            if (e.name == "NS_ERROR_NOT_AVAILABLE") {
+                // Wait a bit before trying again; you may wish to change the
+                // length of this delay.
+                setTimeout(function() {
+                    ffDrawImage(onSuccess)
+                }, 100);
+            } else {
+                throw e;
+            }
+        }
+    }
+
     function drawMap() {
         adjustOffset();
         var canvas = document.getElementById("board");
         canvas.width = canvas.width; // Force redraw
         var ctx = canvas.getContext("2d");
-        ctx.drawImage(_asdf.getBoard().mapImage, -offset.x, -offset.y);
-
-        // Draw a line from a territory to the mouse
-        if (arrowOrigin) {
-            var origin = {
-                x: arrowOrigin.x + arrowOrigin.width/2,
-                y: arrowOrigin.y + arrowOrigin.height/2
-            };
-            var end = {
-                x: previousMouse.x - canvas.offsetLeft + offset.x,
-                y: previousMouse.y - canvas.offsetTop + offset.y
-            };
-            if (end.x > _asdf.getBoard().mapImage.width/2) {
-                end.x -= _asdf.getBoard().mapImage.width/2;
+        ffDrawImage(function onSuccess() {
+            // Draw a line from a territory to the mouse
+            if (arrowOrigin) {
+                var origin = {
+                    x: arrowOrigin.x + arrowOrigin.width/2,
+                    y: arrowOrigin.y + arrowOrigin.height/2
+                };
+                var end = {
+                    x: previousMouse.x - canvas.offsetLeft + offset.x,
+                    y: previousMouse.y - canvas.offsetTop + offset.y
+                };
+                if (end.x > _asdf.getBoard().mapImage.width/2) {
+                    end.x -= _asdf.getBoard().mapImage.width/2;
+                }
+                drawLine(origin, end);
             }
-            drawLine(origin, end);
-        }
-        if (showSkeleton) {
-            _asdf.getBoard().boardData.territories.forEach(function(t) {
-                drawRect(t.x, t.y, t.width, t.height);
-            });
-            ctx.stroke();
+            if (showSkeleton) {
+                _asdf.getBoard().boardData.territories.forEach(function(t) {
+                    drawRect(t.x, t.y, t.width, t.height);
+                });
+                ctx.stroke();
 
-            _asdf.getBoard().info.connections.forEach(function (c) {
-                drawLine(c[0], c[1])
-            });
-        }
+                _asdf.getBoard().info.connections.forEach(function (c) {
+                    drawLine(c[0], c[1])
+                });
+            }
 
-        ctx.save();
-        ctx.globalAlpha = 0.3;
-        ctx.fillStyle = 'yellow';
-        selectableTerritories.forEach(function(t) {
-            drawArc(t.x + t.width/2, t.y + t.height/2, t.width*1.2, t.height*1.2, true);
+            ctx.save();
+            ctx.globalAlpha = 0.3;
+            ctx.fillStyle = 'yellow';
+            selectableTerritories.forEach(function(t) {
+                drawArc(t.x + t.width/2, t.y + t.height/2, t.width*1.2, t.height*1.2, true);
+            });
+            ctx.restore();
         });
-        ctx.restore();
     }
 
     // begin and end just need x and y in board coordinates
