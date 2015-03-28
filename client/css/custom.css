@@ -2,6 +2,17 @@
 .ui-dialog-titlebar-close {
     display: none
 }
+.ui-dialog {
+    border: none;
+    padding: 0;
+}
+.ui-dialog.ui-corner-all, .ui-dialog .ui-corner-all {
+    border-radius: 0;
+}
+.ui-dialog-titlebar {
+    background: forestgreen;
+    border: none;
+}
 
 /* General Styles */
 .flex-row {
