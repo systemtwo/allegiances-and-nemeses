@@ -33,6 +33,7 @@
     font-size: 36px;
     font-weight: 500;
 }
+
 .side-panel {
     background-color: lightgray;
     padding: 15px;
@@ -63,9 +64,8 @@
 }
 
 /* Bought unit section in side panel */
-.bought-units-container .bought-unit-list:not(.placing-units) {
-    display: flex;
-    flex-wrap: wrap;
+.bought-units-container .bought-unit-list:not(.placing-units) .bought-unit {
+    float: left;
 }
 .bought-units-container .bought-unit-list:not(.placing-units) .placement-territory {
     display: none;
