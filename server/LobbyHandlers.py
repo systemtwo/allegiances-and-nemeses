@@ -6,6 +6,7 @@ import tornado.web
 from voluptuous import Schema, Required, All, Range, Length, MultipleInvalid
 
 from AuthHandlers import BaseAuthHandler
+import Sessions
 
 
 ## Lobby Route Handlers **
@@ -66,15 +67,19 @@ class LobbyCreateHandler(BaseLobbyHandler):
         #ie. Does it exist?
 
 
-        gameId = self.gamesManager.newGame(validUserInput["roomName"], validUserInput["players"], validUserInput["module"], self.current_user)
+        userSession = Sessions.SessionManager.getSession(self.current_user)
+        gameId = self.gamesManager.newGame(validUserInput["roomName"], validUserInput["players"], validUserInput["module"], userSession.getValue("userid"))
 
         #Add the player
-        self.gamesManager.getGame(gameId).addPlayer(self.current_user)
+        self.gamesManager.getGame(gameId).addPlayer(userSession.getValue("userid"))
+
+        #self.gamesManager.getGame(gameId).addPlayer(self.current_user)
         
         self.redirect("/lobby/" + str(gameId))
         return
 
-"""Serves a page that has the details of the game listing"""
+"""Serves a page that has the details of the game listing (GameInfo)"""
+#FIXME: Consider renaming this class
 class LobbyGameHandler(BaseLobbyHandler):
     @tornado.web.authenticated
     def get(self, **params):
@@ -127,18 +132,21 @@ class LobbyGameHandler(BaseLobbyHandler):
             self.send_error(400)
             return
 
-        #Make it so that only the game creator can change the settings
-        if (self.current_user is not self.gamesManager.getGame(validUserInput['gameId']).creatorId):
-            self.send_error(403)
-            return
+        #FIXME: I disabled this for debugging purposes
+        ##Make it so that only the game creator can change the settings
+        #if (self.current_user is not self.gamesManager.getGame(validUserInput['gameId']).creatorId):
+            #self.send_error(403)
+            #return
 
 
         game = self.gamesManager.getGame(validUserInput['gameId'])
 
+        #FIXME
         #Before we set the user countries, we clear all player<->country associations
         for player in game.listPlayers():
             game.clearPlayerCountries(self.current_user)
 
+        #FIXME
         #We grab each country entry, and put it in the player's list
         for country in game.countries:
             player = self.get_argument("country-selection-" + str(country['id']))
@@ -171,7 +179,8 @@ class LobbyGameJoinHandler(BaseLobbyHandler):
 
         self.gamesManager.getGame(validUserInput['gameId'])
 
-        if (self.gamesManager.getGame(validUserInput['gameId']).addPlayer(self.current_user)):
+        userSession = Sessions.SessionManager.getSession(self.current_user)
+        if (self.gamesManager.getGame(validUserInput['gameId']).addPlayer(userSession.getValue("userid"))):
             self.redirect("/lobby/" + str(validUserInput['gameId']))
             #self.write("Joining game :D")
         else:

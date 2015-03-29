@@ -38,7 +38,7 @@ class Game:
         self.players[country] = None
 
     def listPlayers(self):
-        return [{"id": userId, "name": "Player " + str(userId)} for userId in self.players]
+        return [{"id": userId, "name": str(userId)} for userId in self.players]
 
     def addPlayerCountry(self, userId, newCountry):
         if (userId not in self.players or type(self.players[userId]) == list):
