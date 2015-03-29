@@ -18,6 +18,8 @@ class BaseAuthHandler(tornado.web.RequestHandler):
 class LoginHandler(tornado.web.RequestHandler):
     def get(self):
         self.set_secure_cookie("session", uuid.uuid4().hex)
+        
+        #TODO: Fix this. An attacker can use this to use the server to redirect somewhere else
         self.redirect(self.get_argument("next", u"/"))
         return
 
