@@ -67,6 +67,10 @@ class LobbyCreateHandler(BaseLobbyHandler):
 
 
         gameId = self.gamesManager.newGame(validUserInput["roomName"], validUserInput["players"], validUserInput["module"], self.current_user)
+
+        #Add the player
+        self.gamesManager.getGame(gameId).addPlayer(self.current_user)
+        
         self.redirect("/lobby/" + str(gameId))
         return
 
@@ -98,7 +102,7 @@ class LobbyGameHandler(BaseLobbyHandler):
         #TODO: Fix renderArguments so that the point to the actual data
         renderArguments = {}
         renderArguments['gameName'] = game.name
-        renderArguments['players'] = [{"id": 1, "name":'a'}, {"id": 2, "name": 'b'}]
+        renderArguments['players'] = game.listPlayers() 
         renderArguments['countries'] = game.countries
         self.render(os.path.join("..", self.LOBBY_HTML_PATH, "lobbyinfo.html"), **renderArguments)
 
@@ -133,7 +137,7 @@ class LobbyGameHandler(BaseLobbyHandler):
 
         #Before we set the user countries, we clear all player<->country associations
         for player in game.listPlayers():
-            game.clearPlayerCountries()
+            game.clearPlayerCountries(self.current_user)
 
         #We grab each country entry, and put it in the player's list
         for country in game.countries:

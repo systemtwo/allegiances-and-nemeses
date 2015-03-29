@@ -29,8 +29,8 @@ class Game:
         
         if (userId not in self.players):
             self.players[userId] = []
+            self.currPlayers += 1
 
-        self.currPlayers += 1
         return True
 
     def removePlayer(self, country):
@@ -38,7 +38,7 @@ class Game:
         self.players[country] = None
 
     def listPlayers(self):
-        return [userId for userId in self.players]
+        return [{"id": userId, "name": "Player " + str(userId)} for userId in self.players]
 
     def addPlayerCountry(self, userId, newCountry):
         if (userId not in self.players or type(self.players[userId]) == list):
