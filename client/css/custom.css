@@ -45,6 +45,10 @@
     font-weight: 500;
 }
 
+#side-panel-container {
+    width: 15%;
+}
+
 .side-panel {
     background-color: lightgray;
     padding: 15px;
