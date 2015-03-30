@@ -33,6 +33,14 @@
 .flex-spaced {
     justify-content: space-between;
 }
+.noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
 .vertical-rule {
     width: 0;
     border-left: black solid medium;
