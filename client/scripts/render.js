@@ -202,7 +202,7 @@ define(["gameAccessor", "helpers", "router"], function(_b, _h, _router) {
             ctx.globalAlpha = 0.3;
             ctx.fillStyle = 'yellow';
             selectableTerritories.forEach(function(t) {
-                drawArc(t.x + t.width/2, t.y + t.height/2, t.width*1.2, t.height*1.2, true);
+                drawArc(t.x + t.width/2 , t.y + t.height/2, t.width*1.3, t.height*1.3, true);
             });
             ctx.restore();
         });
