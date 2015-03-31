@@ -11,16 +11,19 @@
     </div>
     <table class="table">
         <tr>
+            <th></th>
             <th>Unit</th>
             <th>Cost</th>
             <th>Move</th>
             <th>Attack</th>
             <th>Defend</th>
-            <th></th>
         </tr>
 
         <!-- ko foreach:  unitTypes-->
         <tr>
+            <td>
+              <input data-bind="attr: {'data-type': $data, value: $root.amount($data)}" class="buyAmount" value="0">
+            </td>
             <td data-bind="text: $data"></td>
             <!-- ko with: $root.unitInfo($data) -->
             <td data-bind="text: cost"></td>
@@ -28,9 +31,6 @@
             <td data-bind="text: attack"></td>
             <td data-bind="text: defence"></td>
             <!-- /ko -->
-            <td>
-              <input data-bind="attr: {'data-type': $data}" class="buyAmount" value="0"/>
-            </td>
         </tr>
         <!-- /ko -->
     </table>

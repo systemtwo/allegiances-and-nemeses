@@ -15,7 +15,19 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
                 this.unitTypes = Object.keys(board.info.unitCatalogue);
                 this.unitInfo = function(unitType) {
                     return board.unitInfo(unitType) || {};
-                }
+                };
+                this.amount = function (unitType) {
+                    return _.filter(_b.getBoard().buyList(), function(unit) {
+                        return unit.unitType === unitType;
+                    }).length
+                };
+
+                this.increment = function() {
+
+                };
+                this.decrement = function() {
+
+                };
             };
 
             return new MoveUnitVM();
