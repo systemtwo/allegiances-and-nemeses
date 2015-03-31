@@ -52,13 +52,6 @@ define(["gameAccessor"], function(_b) {
         });
         return promise;
     }
-
-    function selectConflict(territoryName, onFail) {
-        return sendAction({
-            action: "selectConflict",
-            territory: territoryName
-        }).fail(onFail);
-    }
     function battle(territoryName) {
         // Perform one tick of a battle
         // Success will return a BattleReport
@@ -116,7 +109,6 @@ define(["gameAccessor"], function(_b) {
         fetchBoards: fetchBoards,
         updateConflicts: updateConflicts,
         validateMove: validateMove,
-        selectConflict: selectConflict,
         battle: battle,
         autoResolve: autoResolve,
         autoResolveAll: autoResolveAll,
