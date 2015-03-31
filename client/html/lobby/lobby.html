@@ -7,7 +7,6 @@
         <link href="/static/css/custom.css" rel="stylesheet" type="text/css" media="all">
         <script src="/static/scripts/lib/jquery-1.11.1.js"></script>
         <script src="/static/scripts/lib/jquery-ui.js"></script>
-        <script src="/static/scripts/lib/jqExt.js"></script>
     </head>
 
     <body class="">
@@ -15,6 +14,45 @@
         <h2>Lobby</h2>
 
         <a href="/lobby/create">Create Game</a>
+        <br />
+
+        <table class="table table-hover">
+            <thead>
+            <tr>
+                <td>
+                    ID
+                </td>
+                <td>
+                    Name
+                </td>
+                <td>
+                    Players
+                </td>
+                <td>
+                    Link
+                </td>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for item in listings %}
+            <tr>
+                <td>
+                    {{item['id']}}
+                </td>
+                <td>
+                    <a href="/lobby/{{item['id']}}">{{item['game'].name}}</a>
+                </td>
+                <td>
+                    {{item['game'].currPlayers}}/{{item['game'].maxPlayers}}
+                </td>
+                <td>
+                    <a href="/lobby/{{item['id']}}/join">Join</a>
+                </td>
+            </tr>
+            {% end %}
+            </tbody>
+        </table>
 
     </body>
 </html>

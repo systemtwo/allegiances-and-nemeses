@@ -7,11 +7,11 @@ import os.path
 import json
 
 import utils
-import BoardsManager
+import GamesManager
 from MapEditorHandler import MapEditorHandler
 from ActionHandler import ActionHandler
 from AuthHandlers import LoginHandler, LogoutHandler, BaseAuthHandler
-from LobbyHandlers import LobbyHandler, LobbyCreateHandler, LobbyGameHandler, LobbyNewHandler, LobbyGameJoinHandler, LobbyGameBeginHandler, LobbyGameUpdateHandler, LobbyGameDeleteHandler, ListingsManager
+from LobbyHandlers import LobbyHandler, LobbyCreateHandler, LobbyGameHandler, LobbyGameJoinHandler, LobbyGameBeginHandler, LobbyGameUpdateHandler, LobbyGameDeleteHandler
 
 
 
@@ -29,11 +29,11 @@ class BoardsHandler(BaseAuthHandler):
     actions = utils.Enum(["ALL", "NEW", "ID", "CONFLICTS"])
     nextBoardId = 0
 
-    def initialize(self, config, action, boardsManager):
+    def initialize(self, config, action, gamesManager):
         super(BoardsHandler, self).initialize(config=config)
         self.config = config
         self.action = action
-        self.boardsManager = boardsManager
+        self.gamesManager = gamesManager
         
         self.setAuthenticateUser = config.USER_AUTH
 
@@ -41,13 +41,13 @@ class BoardsHandler(BaseAuthHandler):
     def get(self, **params):
         if self.action == self.actions.ALL:
             #Return list of active boards
-            boards = self.boardsManager.listBoards()
+            boards = self.gamesManager.listGames()
             self.write(json.dumps(boards))
             return
 
         elif self.action == self.actions.ID:
             #Return info about board with id boardId
-            board = self.boardsManager.getBoard(int(params["boardId"]))
+            board = self.gamesManager.getBoard(int(params["boardId"]))
 
             if not board:
                 self.set_status(404)
@@ -69,39 +69,8 @@ class BoardsHandler(BaseAuthHandler):
 
     @tornado.web.authenticated
     def post(self, **params):
-        if self.action == self.actions.NEW:
-            #Make a new board
-
-            #Validate settings from request
-            schema = Schema({
-                Required("module", default="default"): unicode,
-                Required("boardName", default="Unnamed Board"): unicode,
-                Required("players", default=2): All(int, Range(min=2, max=5))
-            })
-
-            try:
-                request = self.request.body or "{}"
-                settings = schema(json.loads(request))
-
-            except MultipleInvalid as e:
-                self.set_status(400) #400 Bad Request
-                return
-
-            #Create and add the board to the working list of boards
-            createdId = self.boardsManager.newBoard(settings["boardName"], settings["module"])
-
-            #TODO: Configure map (module), number of players here
-            for i in xrange(settings["players"]):
-                #self.boardsManager.getBoard(createdId).addPlayer()
-                pass
-
-            #Tell the client the id of the newly created board
-            # ideally, I want to get the name from the board object itself
-            self.write(json.dumps({"boardId": createdId, "name": settings["boardName"]}))
-
-        else:
-            self.set_status(405)
-            self.write("Method Not Allowed")
+        self.set_status(405)
+        self.write("Method Not Allowed")
         return
 
 
@@ -109,8 +78,7 @@ class Server:
     def __init__(self, config):
         html_path = os.path.join(config.STATIC_CONTENT_PATH, "html")
 
-        self.boardsManager = BoardsManager.BoardsManager()
-        self.listingsManager = ListingsManager()
+        self.gamesManager = GamesManager.GamesManager()
 
         self.app = tornado.web.Application([
             (r"/", IndexHandler, dict(html_path=html_path)),
@@ -122,27 +90,27 @@ class Server:
             (r"/modules/(?P<moduleName>[A-z]+)", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.MODULE_INFO)),
 
             #Board control
-            (r"/boards/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ALL, boardsManager=self.boardsManager)),
-            (r"/boards/new/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.NEW, boardsManager=self.boardsManager)),
-            (r"/boards/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID, boardsManager=self.boardsManager)), #Consider using named regex here
-            (r"/conflicts/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.CONFLICTS, boardsManager=self.boardsManager)),
-            (r"/boards/(?P<boardId>[0-9]+)/action/?", ActionHandler, dict(config=config, boardsManager=self.boardsManager)),
+            #Consider renaming to /games/
+            (r"/boards/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ALL, gamesManager=self.gamesManager)),
+            (r"/boards/new/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.NEW, gamesManager=self.gamesManager)),
+            (r"/boards/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID, gamesManager=self.gamesManager)), #Consider using named regex here
+            (r"/conflicts/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.CONFLICTS, gamesManager=self.gamesManager)),
+            (r"/boards/(?P<boardId>[0-9]+)/action/?", ActionHandler, dict(config=config, gamesManager=self.gamesManager)),
 
             #User auth
             (r"/login/?", LoginHandler),
             (r"/logout/?", LogoutHandler),
 
             #Lobby web routes
-            (r"/lobby/?", LobbyHandler, dict(config=config, boardsManager=self.boardsManager, listingsManager=self.listingsManager)),
-            (r"/lobby/create/?", LobbyCreateHandler, dict(config=config, boardsManager=self.boardsManager, listingsManager=self.listingsManager)),
-            (r"/lobby/(?P<listingId>[0-9]+)/?", LobbyGameHandler, dict(config=config, boardsManager=self.boardsManager, listingsManager=self.listingsManager)),
+            (r"/lobby/?", LobbyHandler, dict(config=config, gamesManager=self.gamesManager)),
+            (r"/lobby/create/?", LobbyCreateHandler, dict(config=config, gamesManager=self.gamesManager)),
+            (r"/lobby/(?P<gameId>[0-9]+)/?", LobbyGameHandler, dict(config=config, gamesManager=self.gamesManager)),
 
             #Lobby API routes
-            (r"/lobby/new/?", LobbyNewHandler, dict(config=config, boardsManager=self.boardsManager, listingsManager=self.listingsManager)),
-            (r"/lobby/(?P<listingId>[0-9]+)/join/?", LobbyGameJoinHandler, dict(config=config, boardsManager=self.boardsManager, listingsManager=self.listingsManager)),
-            (r"/lobby/(?P<listingId>[0-9]+)/begin/?", LobbyGameBeginHandler, dict(config=config, boardsManager=self.boardsManager, listingsManager=self.listingsManager)),
-            (r"/lobby/(?P<listingId>[0-9]+)/update/?", LobbyGameUpdateHandler, dict(config=config, boardsManager=self.boardsManager, listingsManager=self.listingsManager)),
-            (r"/lobby/(?P<listingId>[0-9]+)/delete/?", LobbyGameDeleteHandler, dict(config=config, boardsManager=self.boardsManager, listingsManager=self.listingsManager)),
+            (r"/lobby/(?P<gameId>[0-9]+)/join/?", LobbyGameJoinHandler, dict(config=config, gamesManager=self.gamesManager)),
+            (r"/lobby/(?P<gameId>[0-9]+)/begin/?", LobbyGameBeginHandler, dict(config=config, gamesManager=self.gamesManager)),
+            (r"/lobby/(?P<gameId>[0-9]+)/update/?", LobbyGameUpdateHandler, dict(config=config, gamesManager=self.gamesManager)),
+            (r"/lobby/(?P<gameId>[0-9]+)/delete/?", LobbyGameDeleteHandler, dict(config=config, gamesManager=self.gamesManager)),
 
 			#Static files
             (r"/shared/(.*)", utils.NoCacheStaticFileHandler, {"path": config.SHARED_CONTENT_PATH}),

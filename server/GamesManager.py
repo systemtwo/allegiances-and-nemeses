@@ -1,15 +1,14 @@
-import GameBoard
+import Game
 
-"""A class to manage game boards"""
-class BoardsManager():
+"""A class to manage games"""
+class GamesManager:
     def __init__(self):
-        self.boards = {}
+        self.games = {}
         self.lastId = 0
-        print("Init'd")
     
-    def getBoard(self, boardId):
-        if boardId in self.boards:
-            return self.boards[boardId]
+    def getGame(self, gameId):
+        if gameId in self.games:
+            return self.games[gameId]
         else:
             return None
 
@@ -19,12 +18,12 @@ class BoardsManager():
             return None
         return [conflict.toDict() for conflict in board.currentPhase.conflicts]
 
-    def newBoard(self, boardName, module):
+    def newGame(self, gameName, numPlayers, moduleName, creatorId):
         self.lastId += 1
-        self.boards[self.lastId] = GameBoard.Board(boardName, module)
+        self.games[self.lastId] = Game.Game(gameName, numPlayers, moduleName, creatorId)
         return self.lastId
 
-    def listBoards(self):
+    def listGames(self):
         #Have this return a more lightweight representation instead, like board 
         #title and ids
-        return [{"id": boardId, "name": self.boards[boardId].name} for boardId in self.boards]
+        return [{"id": gameId, "game": self.games[gameId]} for gameId in self.games]

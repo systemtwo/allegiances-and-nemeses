@@ -15,4 +15,4 @@ COOKIE_SECRET = "some_secret_value"
 
 
 #Debugging
-USER_AUTH = False
+USER_AUTH = True
