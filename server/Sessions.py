@@ -17,7 +17,6 @@ class _SessionManager():
             ##Delete the session if it is past its expiry time
             #self.sessions.pop(sessionId, None)
 
-        print "Getting session for id:", sessionId
 
         
 
@@ -35,7 +34,7 @@ class _SessionManager():
         return str(int(time.time())) + str(uuid.uuid4())
 
 #Session object that holds user data on the server side
-#This is meant for short term storage
+#This is meant for short term data storage
 class Session:
     SESSION_TIME_TO_LIVE = 24 * 3600 #Session has one day to "live"
 
