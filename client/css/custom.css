@@ -72,6 +72,11 @@
     opacity: 0.5;
 }
 
+/* Buy Units */
+.buy-unit-image {
+    width: 30px;
+}
+
 /* Move unit window */
 .move-unit-pane {
     flex-grow: 1;

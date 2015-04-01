@@ -9,13 +9,27 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
         initViewModel: function(){
             var view = this;
             var MoveUnitVM = function() {
-                var board = _b.getBoard();
+                var board = _b.getBoard(),
+                    terrainPriority = ["land", "air", "sea"];
                 this.totalCost = ko.observable(view.moneySpent());
                 this.currentMoney = board.currentCountry.ipc;
-                this.unitTypes = Object.keys(board.info.unitCatalogue);
-                this.unitInfo = function(unitType) {
-                    return board.unitInfo(unitType) || {};
-                };
+                this.unitInfoList = _.chain(board.info.unitCatalogue)
+                    .map(function(info, unitType) {
+                        return {
+                            unitType: unitType,
+                            imageSrc: _h.getImageSource(unitType, board.currentCountry),
+                            unitInfo: info
+                        }
+                    })
+                    .sort(function(a, b) {
+                        var priorityA = terrainPriority.indexOf(a.unitInfo.terrainType);
+                        var priorityB = terrainPriority.indexOf(b.unitInfo.terrainType);
+                        return (priorityA - priorityB) ||
+                            (a.unitInfo.cost - b.unitInfo.cost) ||
+                            (a.unitType < b.unitType ? -1 : 1);
+                    })
+                    .value();
+
                 this.amount = function (unitType) {
                     return _.filter(_b.getBoard().buyList(), function(unit) {
                         return unit.unitType === unitType;

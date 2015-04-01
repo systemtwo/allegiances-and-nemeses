@@ -11,7 +11,7 @@
     </div>
     <table class="table">
         <tr>
-            <th></th>
+            <th>Quantity</th>
             <th>Unit</th>
             <th>Cost</th>
             <th>Move</th>
@@ -19,13 +19,15 @@
             <th>Defend</th>
         </tr>
 
-        <!-- ko foreach:  unitTypes-->
+        <!-- ko foreach:  unitInfoList -->
         <tr>
             <td>
-              <input data-bind="attr: {'data-type': $data, value: $root.amount($data)}" class="buyAmount" value="0">
+              <input data-bind="attr: {'data-type': unitType, value: $root.amount(unitType)}" class="buyAmount" value="0">
             </td>
-            <td data-bind="text: $data"></td>
-            <!-- ko with: $root.unitInfo($data) -->
+            <td>
+                <img class="buy-unit-image" src="" data-bind="attr: { src: imageSrc, title: unitType}"/>
+            </td>
+            <!-- ko with: unitInfo -->
             <td data-bind="text: cost"></td>
             <td data-bind="text: move"></td>
             <td data-bind="text: attack"></td>
