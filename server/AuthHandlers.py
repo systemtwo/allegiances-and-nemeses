@@ -9,7 +9,6 @@ class BaseAuthHandler(tornado.web.RequestHandler):
     def get_current_user(self):
         if self.authenticateUser:
             sessionCookie = self.get_secure_cookie("session")
-            print "Session cookie is:", sessionCookie
             #FIXME: I feel that there is a better way to do this
             #We check to see if the user has a session active, if not, we will cause 
             #a new session to be created

@@ -152,6 +152,8 @@ class LobbyGameHandler(BaseLobbyHandler):
             player = self.get_argument("country-selection-" + str(country['id']))
             game.addPlayerCountry(player, country['id'])
 
+        game.startGame()
+
         
 
 

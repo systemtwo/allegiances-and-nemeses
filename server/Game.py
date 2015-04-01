@@ -78,5 +78,7 @@ class Game:
     def loadCountries(self, countries):
         #Mock method 
         self.countries = [{"id": 1, "name": "Canada"}, {"id": 2, "name": "USA"}]
-        pass
+
+    def startGame(self):
+        self.started = True
 
