@@ -82,15 +82,16 @@ class Board:
                 return c
 
     def addPlayer(self, userId, countries):
+        print countries
         for country in countries:
             for c in self.countries:
+                print c.name
                 if country == c.name:
                     c.player = userId
                     break
 
     def isPlayersTurn(self, userId):
-        return True
-        # return self.currentCountry.player == userId
+        return self.currentCountry.player == userId
 
     # Proceed to the next country's turn. This is different than advancing a phase (1/6th of a turn)
     def nextTurn(self):

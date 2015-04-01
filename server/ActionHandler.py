@@ -3,6 +3,7 @@ import tornado.web
 from voluptuous import Schema, Required, All, Range, MultipleInvalid
 
 from AuthHandlers import BaseAuthHandler
+import Sessions
 
 import json
 import uuid
@@ -30,7 +31,8 @@ class ActionHandler(BaseAuthHandler):
             return
 
         #See if it is the user's turn
-        if not board.isPlayersTurn(self.current_user):
+        userSession = Sessions.SessionManager.getSession(self.current_user)
+        if not board.isPlayersTurn(userSession.getValue("userid")):
             self.send_error(403)  # Forbidden
             return
 
