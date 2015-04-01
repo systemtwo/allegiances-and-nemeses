@@ -7,7 +7,7 @@ rootDirectory = os.path.dirname(__file__)
 
 STATIC_CONTENT_PATH = os.path.join("client")
 SHARED_CONTENT_PATH = os.path.join("shared")
-MODS_PATH = os.path.join("shared/mods")
+MODS_PATH = os.path.join("/shared/mods")
 ABS_MODS_PATH = os.path.join(rootDirectory, "shared/mods")
 DEFAULT_IMAGE_PATH = "/static/css/images/defaultMap.jpg"
 

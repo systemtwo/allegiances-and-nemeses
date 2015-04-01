@@ -1,5 +1,5 @@
 requirejs.config({
-    baseUrl: 'static/scripts',
+    baseUrl: '/static/scripts',
     paths: {
         "nunjucks": "lib/nunjucks",
         "backbone": "lib/backbone",
