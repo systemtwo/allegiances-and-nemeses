@@ -13,24 +13,19 @@ requirejs.config({
 // Start the main app logic.
 requirejs(['board', "render", "dialogs", "router", "views/sidePanel/sidePanel", "lib/jqExt"],
 function ( game, _render, _dialogs, _router, sidePanel) {
-    _router.fetchBoards().done(function(boards) {
-        _dialogs.showBoardList(boards, onBoardSelect);
-    });
+    var pathParts = window.location.pathname.split("/");
+    var boardId = pathParts[pathParts.length - 1];
+    _router.fetchBoard(boardId).done(function(boardInfo) {
+        var board = new game.Game(boardId, boardInfo);
 
-    function onBoardSelect(boardId, onSuccess) {
-        _router.fetchBoard(boardId).done(function(boardInfo) {
-            var board = new game.Game(boardId, boardInfo);
-
-            console.time("Map Load");
-            board.setImage(boardInfo.imagePath, function onMapLoad() {
-                console.timeEnd("Map Load");
-                _render.initMap();
-            });
-            var side = new sidePanel.SidePanel({
-                el: $("#side-panel-container")
-            });
-            side.render();
-            onSuccess(); // closes the dialog
+        console.time("Map Load");
+        board.setImage(boardInfo.imagePath, function onMapLoad() {
+            console.timeEnd("Map Load");
+            _render.initMap();
         });
-    }
+        var side = new sidePanel.SidePanel({
+            el: $("#side-panel-container")
+        });
+        side.render();
+    });
 });

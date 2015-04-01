@@ -2,7 +2,10 @@ import tornado.web
 
 import Sessions
 
+
+# noinspection PyAttributeOutsideInit
 class BaseAuthHandler(tornado.web.RequestHandler):
+
     def initialize(self, config):
         self.authenticateUser = config.USER_AUTH
 

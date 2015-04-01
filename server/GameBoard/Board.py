@@ -7,8 +7,7 @@ import Util
 
 
 class Board:
-    def __init__(self, boardName, moduleName):
-        self.name = boardName
+    def __init__(self, moduleName):
         self.players = []
         self.units = []
         self.buyList = []
@@ -82,25 +81,6 @@ class Board:
             if c.name == terInfo["country"]:
                 return c
 
-    def toDict(self):
-        return {
-            "name": self.name,
-            "countries": [c.toDict() for c in self.countries],
-            "territoryInfo": self.territoryInfo,  # doesn't have CURRENT territory owners, only initial
-            "connections": self.connections,
-            "players": self.players,
-            "units": [u.toDict() for u in self.units],
-            "buyList": [bought.toDict() for bought in self.buyList],
-            "currentPhase": self.currentPhase.name,
-            "currentCountry": self.currentCountry.name,
-
-            # Module info
-            "unitCatalogue": self.unitCatalogue,
-            "wrapsHorizontally": self.moduleInfo["wrapsHorizontally"],
-            "imageName": self.moduleInfo["imageName"],
-            "moduleName": self.moduleName
-        }
-
     def addPlayer(self, userId, countries):
         for country in countries:
             for c in self.countries:
@@ -159,5 +139,21 @@ class Board:
     def unitInfo(self, unitType):
         if unitType not in self.unitInfoDict:
             return None
-
         return self.unitInfoDict[unitType]
+
+    def toDict(self):
+        return {
+            "countries": [c.toDict() for c in self.countries],
+            "territoryInfo": self.territoryInfo,  # doesn't have CURRENT territory owners, only initial
+            "connections": self.connections,
+            "units": [u.toDict() for u in self.units],
+            "buyList": [bought.toDict() for bought in self.buyList],
+            "currentPhase": self.currentPhase.name,
+            "currentCountry": self.currentCountry.name,
+
+            # Module info
+            "unitCatalogue": self.unitCatalogue,
+            "wrapsHorizontally": self.moduleInfo["wrapsHorizontally"],
+            "imageName": self.moduleInfo["imageName"],
+            "moduleName": self.moduleName
+        }

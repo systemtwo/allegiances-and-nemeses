@@ -18,7 +18,7 @@ define(["gameAccessor"], function(_b) {
     };
 
     exports.getImageSource = function(unitType, country) {
-        return "static/images/" + unitType + ".png";
+        return "/static/images/" + unitType + ".png";
     };
 
     return exports;

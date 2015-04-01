@@ -27,7 +27,7 @@ class IndexHandler(tornado.web.RequestHandler):
 
 class BoardsHandler(BaseAuthHandler):
     #TODO: Consider spliting this class to handle the different scenarios
-    actions = utils.Enum(["ALL", "NEW", "ID", "CONFLICTS"])
+    actions = utils.Enum(["NEW", "ID", "CONFLICTS"])
     nextBoardId = 0
 
     def initialize(self, config, action, gamesManager):
@@ -35,21 +35,15 @@ class BoardsHandler(BaseAuthHandler):
         self.config = config
         self.action = action
         self.gamesManager = gamesManager
-        
+
         self.setAuthenticateUser = config.USER_AUTH
 
     @tornado.web.authenticated
     def get(self, **params):
-        if self.action == self.actions.ALL:
-            #Return list of active boards
-            boards = self.gamesManager.listGames()
-            self.write(json.dumps(boards))
-            return
-
-        elif self.action == self.actions.ID:
+        if self.action == self.actions.ID:
             #Return info about board with id boardId
-            board = self.gamesManager.getBoard(int(params["boardId"]))
-
+            game = self.gamesManager.getGame(int(params["boardId"]))
+            board = game.board
             if not board:
                 self.set_status(404)
                 self.write("Board not found")
@@ -61,7 +55,7 @@ class BoardsHandler(BaseAuthHandler):
             self.write(json.dumps(boardInfo))
 
         elif self.action == self.actions.CONFLICTS:
-            conflicts = self.boardsManager.getConflicts(int(params["boardId"]))
+            conflicts = self.gamesManager.getConflicts(int(params["boardId"]))
             if conflicts is None:
                 self.set_status(400)
                 return
@@ -92,9 +86,7 @@ class Server:
 
             #Board control
             #Consider renaming to /games/
-            (r"/boards/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ALL, gamesManager=self.gamesManager)),
-            (r"/boards/new/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.NEW, gamesManager=self.gamesManager)),
-            (r"/boards/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID, gamesManager=self.gamesManager)), #Consider using named regex here
+            (r"/boardInfo/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID, gamesManager=self.gamesManager)), #Consider using named regex here
             (r"/conflicts/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.CONFLICTS, gamesManager=self.gamesManager)),
             (r"/boards/(?P<boardId>[0-9]+)/action/?", ActionHandler, dict(config=config, gamesManager=self.gamesManager)),
 
@@ -117,7 +109,7 @@ class Server:
             (r"/lobby/(?P<gameId>[0-9]+)/update/?", LobbyGameUpdateHandler, dict(config=config, gamesManager=self.gamesManager)),
             (r"/lobby/(?P<gameId>[0-9]+)/delete/?", LobbyGameDeleteHandler, dict(config=config, gamesManager=self.gamesManager)),
 
-			#Static files
+            #Static files
             (r"/shared/(.*)", utils.NoCacheStaticFileHandler, {"path": config.SHARED_CONTENT_PATH}),
             (r"/static/(.*)", utils.NoCacheStaticFileHandler, {"path": config.STATIC_CONTENT_PATH}), #This is not a great way of doing this TODO: Change this to be more intuative
         ],

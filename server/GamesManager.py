@@ -12,6 +12,13 @@ class GamesManager:
         else:
             return None
 
+    def getBoard(self, gameId):
+        game = self.getGame(gameId)
+        if game is None:
+            return None
+        else:
+            return game.board
+
     def getConflicts(self, boardId):
         board = self.getBoard(boardId)
         if not hasattr(board.currentPhase, "conflicts"):

@@ -108,7 +108,7 @@ class LobbyGameHandler(BaseLobbyHandler):
         renderArguments = {}
         renderArguments['gameName'] = game.name
         renderArguments['players'] = game.listPlayers() 
-        renderArguments['countries'] = game.countries
+        renderArguments['countries'] = game.getCountries()
         self.render(os.path.join("..", self.LOBBY_HTML_PATH, "lobbyinfo.html"), **renderArguments)
 
     # Change the game settings, eg. Player <-> Country mapping
@@ -148,9 +148,9 @@ class LobbyGameHandler(BaseLobbyHandler):
 
         #FIXME
         #We grab each country entry, and put it in the player's list
-        for country in game.countries:
-            player = self.get_argument("country-selection-" + str(country['id']))
-            game.addPlayerCountry(player, country['id'])
+        for country in game.getCountries():
+            player = self.get_argument("country-selection-" + str(country.name))
+            game.addPlayerCountry(player, country.name)
 
         game.startGame()
         #FIXME: use os.path.join or something

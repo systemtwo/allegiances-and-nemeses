@@ -30,10 +30,7 @@ define(["gameAccessor"], function(_b) {
     }
     function fetchBoard(boardId) {
         console.assert(boardId !== null, "Board Id not set");
-        return $.getJSON("/boards/" + boardId);
-    }
-    function fetchBoards() {
-        return $.getJSON("/boards");
+        return $.getJSON("/boardInfo/" + boardId);
     }
     function validateMove(start, end, unitId, onfail) {
         return sendAction({
@@ -106,7 +103,6 @@ define(["gameAccessor"], function(_b) {
         newBoard: newBoard,
         setBuyList: setBuyList,
         fetchBoard: fetchBoard,
-        fetchBoards: fetchBoards,
         updateConflicts: updateConflicts,
         validateMove: validateMove,
         battle: battle,

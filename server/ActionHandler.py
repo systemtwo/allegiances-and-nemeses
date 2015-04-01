@@ -8,15 +8,14 @@ import json
 import uuid
 
 
-
 class ActionHandler(BaseAuthHandler):
-    def initialize(self, config, boardsManager):
+    def initialize(self, config, gamesManager):
         super(ActionHandler, self).initialize(config=config)
-        self.boardsManager = boardsManager
+        self.gamesManager = gamesManager
 
     @tornado.web.authenticated
     def post(self, **params):
-        board = self.boardsManager.getBoard(int(params["boardId"]))
+        board = self.gamesManager.getBoard(int(params["boardId"]))
         if not board:
             self.send_error(404)
             return

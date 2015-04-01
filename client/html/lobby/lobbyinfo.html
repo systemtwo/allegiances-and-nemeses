@@ -35,10 +35,10 @@
             {% for country in countries %}
                 <tr>
                     <td>
-                        {{country['name']}}
+                        {{country.name}}
                     </td>
                     <td>
-                        <select name="country-selection-{{country['id']}}">
+                        <select name="country-selection-{{country.name}}">
                             {% for player in players %}
                             <option value="{{player['id']}}" {% if False %} {% end %}>{{player['name']}}</option>
                             {% end %}
