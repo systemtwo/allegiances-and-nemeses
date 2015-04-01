@@ -276,7 +276,7 @@ requirejs(["nunjucks", "gameAccessor", "render", "board", "helpers"], function(n
             $("#editTerritoryPanel").empty().hide();
         } else {
             var hasHitbox = t.x && t.y && t.width && t.height;
-            var contents = $(nj.render("/static/templates/editTerritory.html", {territory: t, countries: _g.board.countries, hasHitbox: hasHitbox}));
+            var contents = $(nj.render("static/templates/editTerritory.html", {territory: t, countries: _g.board.countries, hasHitbox: hasHitbox}));
             $("#editTerritoryPanel").show().html(contents);
             var onChange = function(){
                 // Save the territory

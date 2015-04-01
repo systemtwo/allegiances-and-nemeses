@@ -1,8 +1,20 @@
 define(["nunjucks", "gameAccessor", "router", "helpers"], function(nj, _b, _router, _helpers) {
+
+    function replaceCloseButton(event, ui) {
+        var widget = $(this).dialog("widget");
+        $(".ui-dialog-titlebar-close", widget).remove();
+        $(".ui-dialog-titlebar", widget).append(
+            $("<span>")
+                .addClass("glyphicon glyphicon-remove close-icon")
+                .click(function () {
+                    widget.remove();
+                })
+        )
+    }
     var conflictWindow = null;
     function showConflictList() {
         closeConflicts();
-        var conflictList = $(nj.render("/static/templates/conflictList.html", {
+        var conflictList = $(nj.render("static/templates/conflictList.html", {
             conflicts: _b.getBoard().boardData.conflicts
         }));
 
@@ -52,7 +64,7 @@ define(["nunjucks", "gameAccessor", "router", "helpers"], function(nj, _b, _rout
         var conflict = _b.getBoard().getConflictByTerritoryName(tName);
 
         // render a dialog for it
-        var dialog = $(nj.render("/static/templates/battleground.html", {
+        var dialog = $(nj.render("static/templates/battleground.html", {
             conflict: conflict,
             images: _b.getBoard().info.imageMap
         }));
@@ -62,31 +74,15 @@ define(["nunjucks", "gameAccessor", "router", "helpers"], function(nj, _b, _rout
         });
         dialog.dialog({
             title: "Battle for " + conflict.territoryName,
+            create: replaceCloseButton,
             width: 600,
             height: 400
-        });
-    }
-
-    /**
-     * Shows the list of units bought, indicates which are available to be placed, and which have already been placed
-     */
-    function showPlacementWindow(units) {
-        var window = $(nj.render("/static/templates/place.html", {
-            units: units,
-            images: _b.getBoard().info.imageMap
-        }));
-
-
-        window.dialog({
-            title: "Units to Place",
-            modal: false
         });
     }
 
     return {
         showConflictList: showConflictList,
         closeConflicts: closeConflicts,
-        showBattle: showBattle,
-        showPlacementWindow: showPlacementWindow
+        showBattle: showBattle
     }
 });

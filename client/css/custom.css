@@ -2,6 +2,11 @@
 .ui-dialog-titlebar-close {
     display: none
 }
+.close-icon {
+    line-height: 22px;
+    float: right;
+    cursor: pointer;
+}
 .ui-dialog {
     border: none;
     padding: 0;
