@@ -12,6 +12,7 @@ from MapEditorHandler import MapEditorHandler
 from ActionHandler import ActionHandler
 from AuthHandlers import LoginHandler, LogoutHandler, BaseAuthHandler
 from LobbyHandlers import LobbyHandler, LobbyCreateHandler, LobbyGameHandler, LobbyGameJoinHandler, LobbyGameBeginHandler, LobbyGameUpdateHandler, LobbyGameDeleteHandler
+from GameHandler import GameHandler
 
 
 
@@ -96,6 +97,10 @@ class Server:
             (r"/boards/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID, gamesManager=self.gamesManager)), #Consider using named regex here
             (r"/conflicts/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.CONFLICTS, gamesManager=self.gamesManager)),
             (r"/boards/(?P<boardId>[0-9]+)/action/?", ActionHandler, dict(config=config, gamesManager=self.gamesManager)),
+
+            #Serve the static game page
+            (r"/game/?", GameHandler, dict(config=config)),
+            (r"/game/(?P<boardId>[0-9]+)/?", GameHandler, dict(config=config)),
 
             #User auth
             (r"/login/?", LoginHandler),

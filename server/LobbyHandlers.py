@@ -153,6 +153,8 @@ class LobbyGameHandler(BaseLobbyHandler):
             game.addPlayerCountry(player, country['id'])
 
         game.startGame()
+        #FIXME: use os.path.join or something
+        self.redirect(u"/game/" + str(validUserInput["gameId"]))
 
         
 
