@@ -35,7 +35,7 @@ class Game:
         return [{"id": userId, "name": str(userId)} for userId in self.players]
 
     def addPlayerCountry(self, userId, newCountry):
-        if userId not in self.players or type(self.players[userId]) == list:
+        if userId not in self.players or type(self.players[userId]) != list:
             return False
 
         #Make sure we don't add the country twice
@@ -71,7 +71,16 @@ class Game:
         return self.board.countries
 
     def startGame(self):
+        if self.started:
+            return False
+
         self.started = True
+        #Set up the players
+        for user in self.players:
+            print "Adding player", user
+            self.board.addPlayer(user, self.players[user])
+
+        return True
 
     def toDict(self):
         return {

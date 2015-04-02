@@ -141,15 +141,17 @@ class LobbyGameHandler(BaseLobbyHandler):
 
         game = self.gamesManager.getGame(validUserInput['gameId'])
 
+
         #FIXME
         #Before we set the user countries, we clear all player<->country associations
-        for player in game.listPlayers():
-            game.clearPlayerCountries(self.current_user)
+        #for player in game.listPlayers():
+            #game.clearPlayerCountries(self.current_user)
 
         #FIXME
         #We grab each country entry, and put it in the player's list
         for country in game.getCountries():
             player = self.get_argument("country-selection-" + str(country.name))
+            game.addPlayer(player)
             game.addPlayerCountry(player, country.name)
 
         game.startGame()
