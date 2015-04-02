@@ -11,7 +11,7 @@ requirejs.config({
 });
 
 // Start the main app logic.
-requirejs(['board', "render", "dialogs", "router", "views/sidePanel/sidePanel", "lib/jqExt"],
+requirejs(['board', "render", "dialogs", "router", "views/sidePanel/sidePanel", "jquery-ui"],
 function ( game, _render, _dialogs, _router, sidePanel) {
     var pathParts = window.location.pathname.split("/");
     var boardId = pathParts[pathParts.length - 1];
