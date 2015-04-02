@@ -18,11 +18,26 @@
     background: forestgreen;
     border: none;
 }
+.ui-dialog.flex-dialog {
+    display: flex;
+    flex-direction: column;
+}
+.ui-dialog.flex-dialog > .ui-dialog-buttonpane, .ui-dialog .ui-dialog-titlebar {
+    flex-shrink: 0;
+}
+.ui-dialog.flex-dialog .ui-dialog-content{
+    width: auto !important;
+    height: auto !important;
+}
+
 
 /* General Styles */
 .flex-row {
     display: flex;
     flex-direction: row;
+}
+.flex-inline {
+    display: inline-flex;
 }
 .flex-column {
     display: flex;
@@ -75,6 +90,16 @@
 /* Buy Units */
 .buy-unit-image {
     width: 30px;
+}
+.unit-amount-controls {
+    margin-left: 10px;
+}
+.unit-amount-holder {
+    justify-content: center;
+    width: 30px;
+}
+.unit-amount-input {
+    text-align: center;
 }
 
 /* Move unit window */

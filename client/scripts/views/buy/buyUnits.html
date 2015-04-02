@@ -1,4 +1,4 @@
-<div>
+<div class="buy-units-container">
     <!-- Autofocus a hidden element -->
     <span class="ui-helper-hidden-accessible"><input type="text"/></span>
     <div>
@@ -22,7 +22,19 @@
         <!-- ko foreach:  unitInfoList -->
         <tr>
             <td>
-              <input data-bind="attr: {'data-type': unitType, value: $root.amount(unitType)}" class="buyAmount" value="0">
+                <div class="flex-row flex-inline noselect">
+                    <div class="flex-column unit-amount-holder">
+                        <input data-bind="textInput: amount" class="unit-amount-input" value="0">
+                    </div>
+                    <div class="flex-column unit-amount-controls">
+                        <div data-bind="click: increment">
+                            <span class="glyphicon glyphicon-chevron-up"></span>
+                        </div>
+                        <div data-bind="click: decrement">
+                            <span class="glyphicon glyphicon-chevron-down"></span>
+                        </div>
+                    </div>
+                </div>
             </td>
             <td>
                 <img class="buy-unit-image" src="" data-bind="attr: { src: imageSrc, title: unitType}"/>

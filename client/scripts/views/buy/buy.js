@@ -10,15 +10,30 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
             var view = this;
             var MoveUnitVM = function() {
                 var board = _b.getBoard(),
-                    terrainPriority = ["land", "air", "sea"];
+                    terrainPriority = ["land", "air", "sea"],
+                    vm = this;
                 this.totalCost = ko.observable(view.moneySpent());
                 this.currentMoney = board.currentCountry.ipc;
                 this.unitInfoList = _.chain(board.info.unitCatalogue)
                     .map(function(info, unitType) {
+                        var amount = ko.observable(view.amount(unitType));
+                        amount.subscribe(function(value) {
+                            view.buyUnits(unitType, value);
+                            vm.totalCost(view.moneySpent());
+                        });
                         return {
                             unitType: unitType,
                             imageSrc: _h.getImageSource(unitType, board.currentCountry),
-                            unitInfo: info
+                            unitInfo: info,
+                            amount: amount,
+                            increment: function(data, event) {
+                                var nextValue = amount() + 1;
+                                var cap = view.capForUnitType(unitType);
+                                amount(Math.min(nextValue, cap));
+                            },
+                            decrement: function(data, event) {
+                                amount(Math.max(amount() - 1, 0));
+                            }
                         }
                     })
                     .sort(function(a, b) {
@@ -29,22 +44,15 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
                             (a.unitType < b.unitType ? -1 : 1);
                     })
                     .value();
-
-                this.amount = function (unitType) {
-                    return _.filter(_b.getBoard().buyList(), function(unit) {
-                        return unit.unitType === unitType;
-                    }).length
-                };
-
-                this.increment = function() {
-
-                };
-                this.decrement = function() {
-
-                };
             };
 
             return new MoveUnitVM();
+        },
+
+        amount: function (unitType) {
+            return _.filter(_b.getBoard().buyList(), function(unit) {
+                return unit.unitType === unitType;
+            }).length
         },
 
         buyUnits: function (unitType, targetAmount) {
@@ -100,34 +108,22 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
 
         render: function() {
             var that = this;
+            var initialHeight = Math.min(500, window.innerHeight);
+            ko.applyBindings(this.viewModel, this.$el.append(template)[0]);
             this.$el.dialog({
                 title: "Unit List",
-                modal: false,
+                dialogClass: "flex-dialog",
                 closeOnEscape: false,
                 width: Math.min(600, window.innerWidth), // never larger than screen, or 600px
-                height: Math.min(500, window.innerHeight),
+                height: initialHeight,
                 buttons: {
                     "Ok": function () {
                         _b.getBoard().nextPhase();
                     }
                 }
             });
-            ko.applyBindings(this.viewModel, this.$el.append(template)[0]);
-            this.$(".buyAmount").each(function (index, input) {
-                input = $(input);
-                var unitType = input.data("type");
-                input.val(_.filter(_b.getBoard().buyList(), function(boughtUnit){
-                    return boughtUnit.unitType === unitType
-                }).length);
-                input.counter({
-                    min: 0,
-                    max: function(){ return that.capForUnitType(unitType)},
-                    change: function () {
-                        that.buyUnits(unitType, input.counter("value"));
-                        that.viewModel.totalCost(that.moneySpent());
-                    }
-                });
-            });
+            this.$el.dialog("widget")
+                .css("height", initialHeight);
         },
 
         remove: function() {
