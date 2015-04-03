@@ -21,9 +21,8 @@ class GamesManager:
 
     def getConflicts(self, boardId):
         board = self.getBoard(boardId)
-        if not hasattr(board.currentPhase, "conflicts"):
-            return None
-        return [conflict.toDict() for conflict in board.currentPhase.conflicts]
+
+        return [conflict.toDict() for conflict in board.conflicts()]
 
     def newGame(self, gameName, numPlayers, moduleName, creatorId):
         self.lastId += 1

@@ -70,6 +70,7 @@ class Board:
         for c in self.countries:
             c.collectIncome()
         self.currentCountry = self.countries[0]
+
         self.currentPhase = BuyPhase(self.currentCountry.ipc, self)
 
     def getStartingCountry(self, terInfo):
@@ -142,6 +143,15 @@ class Board:
             return None
         return self.unitInfoDict[unitType]
 
+    def conflicts(self):
+        if hasattr(self.currentPhase, "conflicts"):
+            if callable(self.currentPhase.conflicts):
+                return self.currentPhase.conflicts()
+            else:
+                return self.currentPhase.conflicts
+        else:
+            return [] # fix this
+
     def toDict(self):
         return {
             "countries": [c.toDict() for c in self.countries],
@@ -149,6 +159,7 @@ class Board:
             "connections": self.connections,
             "units": [u.toDict() for u in self.units],
             "buyList": [bought.toDict() for bought in self.buyList],
+            "conflicts": [c.toDict() for c in self.conflicts()],
             "currentPhase": self.currentPhase.name,
             "currentCountry": self.currentCountry.name,
 

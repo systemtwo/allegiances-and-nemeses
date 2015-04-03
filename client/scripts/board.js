@@ -72,6 +72,14 @@ define(["backbone", "components", "helpers", "router", "gameAccessor", "phases/p
         this.trigger("change");
     };
 
+    Game.prototype.updateConflicts = function () {
+        var that = this;
+        _router.getConflicts(this.id).done(function(conflicts) {
+            that.boardData.conflicts = conflicts;
+            that.trigger("change");
+        })
+    };
+
     Game.prototype.initConnections = function(connectionJson) {
         var that = this;
         connectionJson.connections.map(function(c) {

@@ -104,9 +104,7 @@ class AttackPhase(BaseMovePhase):
         super(AttackPhase, self).__init__(board)
         self.name = "AttackPhase"
 
-    def nextPhase(self):
-        board = self.board
-        # TODO conflict class
+    def conflicts(self):
         hostileTerToAttackers = {}  # list of territories being attacked, and the attacking units
         for unit in self.moveList:
             (origin, dest) = self.moveList[unit]
@@ -120,8 +118,11 @@ class AttackPhase(BaseMovePhase):
                 unit.originalTerritory = unit.territory
                 unit.territory = dest
 
-        conflicts = [Conflict(territory, attackers) for territory, attackers in hostileTerToAttackers.iteritems()]
-        board.currentPhase = ResolvePhase(conflicts, board)
+        return [Conflict(territory, attackers) for territory, attackers in hostileTerToAttackers.iteritems()]
+
+    def nextPhase(self):
+        board = self.board
+        board.currentPhase = ResolvePhase(self.conflicts(), board)
         return board.currentPhase
 
 

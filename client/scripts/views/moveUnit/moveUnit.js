@@ -64,6 +64,8 @@ define(["backbone", "knockout", "text!views/moveUnit/moveUnit.html", "helpers", 
                             unit.territory = origin;
                             undo(unit);
                             alert("Invalid move");
+                        }).done(function() {
+                            _b.getBoard().updateConflicts();
                         });
                     }
                 };

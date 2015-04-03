@@ -41,11 +41,15 @@ define(["gameAccessor"], function(_b) {
         }).fail(onfail)
     }
 
-    function updateConflicts(boardId) {
+    /**
+     * Resolves with an array of conflicts
+     * @param boardId
+     * @returns {jQuery.Deferred}
+     */
+    function getConflicts(boardId) {
         var promise = new $.Deferred();
         $.getJSON("/conflicts/" + boardId).done(function(conflicts) {
-             _b.getBoard().boardData.conflicts = conflicts;
-            promise.resolve();
+            promise.resolve(conflicts);
         });
         return promise;
     }
@@ -103,7 +107,7 @@ define(["gameAccessor"], function(_b) {
         newBoard: newBoard,
         setBuyList: setBuyList,
         fetchBoard: fetchBoard,
-        updateConflicts: updateConflicts,
+        getConflicts: getConflicts,
         validateMove: validateMove,
         battle: battle,
         autoResolve: autoResolve,

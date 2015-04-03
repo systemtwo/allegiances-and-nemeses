@@ -1,0 +1,38 @@
+<div class="conflict-list" data-bind="css: {'actions-enabled': actionsEnabled}">
+    <div class="dialog-sub-title actions-enabled-only">
+        <button id="autoresolve-all" class="btn btn-primary" data-bind="click: resolveAll">Resolve All</button>
+    </div>
+    <div data-bind="foreach: conflicts">
+        <div class="conflict-row">
+            <span class="territory-name" data-bind="text: territoryName"></span>
+            <span>
+                <button class="details btn btn-xs" data-bind="click: openBattle">
+                    <span class="glyphicon glyphicon-new-window" aria-hidden="true"></span>
+                </button>
+            </span>
+
+            <span data-bind="template: templateName"></span>
+        </div>
+    </div>
+</div>
+
+<script id="conflict-outcome-inProgress" type="text/html">
+    <span class="conflict-actions actions-enabled-only">
+        <button data-bind="click: resolve" class="autoresolve-conflict btn btn-default">Resolve</button>
+    </span>
+</script>
+<script id="conflict-outcome-attackerWin" type="text/html">
+    <span class="conflict-outcome label label-warning">
+        Occupied
+    </span>
+</script>
+<script id="conflict-outcome-defenderWin" type="text/html">
+    <span class="conflict-outcome label label-info">
+        Defended
+    </span>
+</script>
+<script id="conflict-outcome-draw" type="text/html">
+    <span class="conflict-outcome label label-default">
+        Stalemate
+    </span>
+</script>

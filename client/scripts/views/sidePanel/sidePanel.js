@@ -1,5 +1,5 @@
-define(["backbone", "knockout", "text!views/sidePanel/sidePanel.html", "gameAccessor", "views/sidePanel/boughtUnits"],
-    function(backbone, ko, template, _b, BoughtUnitView) {
+define(["backbone", "knockout", "text!views/sidePanel/sidePanel.html", "gameAccessor", "views/sidePanel/boughtUnits", "views/sidePanel/conflicts"],
+    function(backbone, ko, template, _b, BoughtUnitView, ConflictView) {
     var exports = {};
 
     exports.SidePanel = backbone.View.extend({
@@ -13,6 +13,11 @@ define(["backbone", "knockout", "text!views/sidePanel/sidePanel.html", "gameAcce
                 el: $(".bought-units-container", this.$el)
             });
             this.boughtUnitView.render();
+
+            this.conflictView = new ConflictView({
+                el: $(".conflicts-container", this.$el)
+            });
+            this.conflictView.render();
         },
 
         initViewModel: function() {

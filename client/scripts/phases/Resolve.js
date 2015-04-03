@@ -1,23 +1,22 @@
-define(["gameAccessor", "helpers", "dialogs", "router", "components", "render"],
-    function(_b, _helpers, _dialogs, _router, _c, _render) {
+define(["gameAccessor", "helpers", "router", "components", "render"],
+    function(_b, _helpers, _router, _c, _render) {
 
     // Resolve all attacks made during the movement phase
     function ResolvePhase() {
         _helpers.phaseName("Resolve Conflicts");
-        this.updateConflicts();
         _render.setSelectableTerritories([]);
-        _helpers.helperText("Fight for control of territories");
+        this.updateConflictText();
+        _b.getBoard().on("change", this.updateConflictText.bind(this));
         return this;
     }
 
-    ResolvePhase.prototype.updateConflicts = function () {
+    ResolvePhase.prototype.updateConflictText = function () {
         var that = this;
-        _router.updateConflicts(_b.getBoard().id).done(function () {
-            _dialogs.showConflictList();
-            if (!that.hasUnresolvedConflicts()) {
-                _helpers.helperText("All conflicts are resolved. End the turn");
-            }
-        });
+        if (!that.hasUnresolvedConflicts()) {
+            _helpers.helperText("All conflicts are resolved. End the turn");
+        } else {
+            _helpers.helperText("Fight for control of territories");
+        }
     };
 
     ResolvePhase.prototype.hasUnresolvedConflicts = function () {
@@ -27,37 +26,8 @@ define(["gameAccessor", "helpers", "dialogs", "router", "components", "render"],
         });
     };
 
-    ResolvePhase.prototype.retreat = function () {
-        // Notify the server about retreat. Only send request, then update game state from response.
-    };
-
-    ResolvePhase.prototype.battle = function () {
-        // send battle request to server
-        // Get result
-        // Update conflict with matching territory
-    };
-
-    ResolvePhase.prototype.autoResolve = function (tName) {
-        var that = this;
-        _router.autoResolve(tName).done(function () {
-            that.updateConflicts();
-        })
-    };
-
-    ResolvePhase.prototype.autoResolveAll = function () {
-        var that = this;
-        _router.autoResolveAll().done(function onAutoResolveSuccess() {
-            that.updateConflicts();
-        });
-    };
-
     ResolvePhase.prototype.endPhase = function () {
-        if (!this.hasUnresolvedConflicts() || confirm("Automatically resolve remaining conflicts?")) {
-            _dialogs.closeConflicts();
-            return true;
-        } else {
-            return false;
-        }
+        return !this.hasUnresolvedConflicts() || confirm("Automatically resolve remaining conflicts?");
     };
     return ResolvePhase;
 });

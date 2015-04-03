@@ -142,9 +142,8 @@
     margin: 5px;
     font-size: 18px;
 }
-.conflict-actions,.conflict-outcome {
-    width: 220px;
-    float: right;
+.conflict-list:not(.actions-enabled) .actions-enabled-only {
+    display: none;
 }
 .conflict-actions button {
     margin: 0 5px;
