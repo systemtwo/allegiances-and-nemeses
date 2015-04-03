@@ -10,6 +10,8 @@ class Unit:
         :param country: Country
         :param territory: Territory
         """
+        assert hasattr(territory, "name")
+        assert hasattr(country, "name")
         self.type = unitInfo.unitType
         self.unitInfo = unitInfo
         self.territory = territory

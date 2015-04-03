@@ -288,7 +288,8 @@ class PlacementPhase:
     def nextPhase(self):
         for u in self.board.buyList:
             unitInfo = self.board.unitInfo(u.unitType)
-            self.board.units.append(Unit(unitInfo, self.board.currentCountry, u.territory))
+            if u.territory is not None:
+                self.board.units.append(Unit(unitInfo, self.board.currentCountry, u.territory))
         self.board.currentCountry.collectIncome()
 
         self.board.nextTurn()
