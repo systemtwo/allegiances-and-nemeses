@@ -43,11 +43,12 @@ class BoardsHandler(BaseAuthHandler):
         if self.action == self.actions.ID:
             #Return info about board with id boardId
             game = self.gamesManager.getGame(int(params["boardId"]))
-            board = game.board
-            if not board:
+            if not game:
                 self.set_status(404)
                 self.write("Board not found")
                 return
+
+            board = game.board
 
             # Return the board info as json
             boardInfo = board.toDict()

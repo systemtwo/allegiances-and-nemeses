@@ -1,9 +1,11 @@
-define(["gameAccessor", "helpers", "dialogs", "router", "components"], function(_b, _helpers, _dialogs, _router, _c) {
+define(["gameAccessor", "helpers", "dialogs", "router", "components", "render"],
+    function(_b, _helpers, _dialogs, _router, _c, _render) {
 
     // Resolve all attacks made during the movement phase
     function ResolvePhase() {
         _helpers.phaseName("Resolve Conflicts");
         this.updateConflicts();
+        _render.setSelectableTerritories([]);
         _helpers.helperText("Fight for control of territories");
         return this;
     }

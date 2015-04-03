@@ -111,6 +111,7 @@ define(["backbone", "components", "helpers", "router", "gameAccessor", "phases/p
         } else {
             return this.boardData.buyList;
         }
+        this.trigger("change:buyList change");
     };
 
     Game.prototype.unitInfo = function(unitType) {

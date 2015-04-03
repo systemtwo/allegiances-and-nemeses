@@ -13,13 +13,22 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
                     terrainPriority = ["land", "air", "sea"],
                     vm = this;
                 this.totalCost = ko.observable(view.moneySpent());
+                board.on("change", function() {
+                    vm.totalCost(view.moneySpent());
+                });
                 this.currentMoney = board.currentCountry.ipc;
                 this.unitInfoList = _.chain(board.info.unitCatalogue)
                     .map(function(info, unitType) {
                         var amount = ko.observable(view.amount(unitType));
-                        amount.subscribe(function(value) {
+                        function onAmountChange(value) {
                             view.buyUnits(unitType, value);
-                            vm.totalCost(view.moneySpent());
+                        }
+                        var subscription = amount.subscribe(onAmountChange);
+
+                        board.on("change", function () {
+                            subscription.dispose();
+                            amount(view.amount(unitType));
+                            subscription = amount.subscribe(onAmountChange);
                         });
                         return {
                             unitType: unitType,
@@ -57,7 +66,9 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
 
         buyUnits: function (unitType, targetAmount) {
             var newArray = [];
-            _b.getBoard().buyList().forEach(function(boughtUnit) {
+            var board = _b.getBoard();
+            var originalBuyList = board.buyList();
+            originalBuyList.forEach(function(boughtUnit) {
                 var boughtUnitType = boughtUnit.unitType;
                 if (boughtUnitType === unitType) {
                     if (targetAmount > 0) {
@@ -77,8 +88,10 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
                     territory: ""
                 });
             }
-            _b.getBoard().buyList(newArray); // set buy list
-            _router.setBuyList(newArray);
+            board.buyList(newArray); // set buy list
+            _router.setBuyList(newArray).fail(function() {
+                board.buyList(originalBuyList); // replace caching with a call to fetch the server's buy list
+            });
         },
 
         capForUnitType: function (unitType) {
