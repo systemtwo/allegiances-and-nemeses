@@ -6,7 +6,8 @@ define(["gameAccessor", "helpers", "router", "components", "render"],
         _helpers.phaseName("Resolve Conflicts");
         _render.setSelectableTerritories([]);
         this.updateConflictText();
-        _b.getBoard().on("change", this.updateConflictText.bind(this));
+        this.onChange = this.updateConflictText.bind(this);
+        _b.getBoard().on("change", this.onChange);
         return this;
     }
 
@@ -27,6 +28,7 @@ define(["gameAccessor", "helpers", "router", "components", "render"],
     };
 
     ResolvePhase.prototype.endPhase = function () {
+        _b.getBoard().off("change", this.onChange);
         return !this.hasUnresolvedConflicts() || confirm("Automatically resolve remaining conflicts?");
     };
     return ResolvePhase;
