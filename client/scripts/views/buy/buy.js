@@ -125,7 +125,6 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
             ko.applyBindings(this.viewModel, this.$el.append(template)[0]);
             this.$el.dialog({
                 title: "Unit List",
-                dialogClass: "flex-dialog",
                 closeOnEscape: false,
                 width: Math.min(600, window.innerWidth), // never larger than screen, or 600px
                 height: initialHeight,
@@ -135,8 +134,6 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
                     }
                 }
             });
-            this.$el.dialog("widget")
-                .css("height", initialHeight);
         },
 
         remove: function() {
