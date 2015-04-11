@@ -16,6 +16,7 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
                 board.on("change", function() {
                     vm.totalCost(view.moneySpent());
                 });
+                this.isMyTurn = board.isCurrentPlayersTurn();
                 this.currentMoney = board.currentCountry.ipc;
                 this.unitInfoList = _.chain(board.info.unitCatalogue)
                     .map(function(info, unitType) {
@@ -68,11 +69,12 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
             var newArray = [];
             var board = _b.getBoard();
             var originalBuyList = board.buyList();
+            var target = Math.min(this.capForUnitType(unitType), targetAmount);
             originalBuyList.forEach(function(boughtUnit) {
                 var boughtUnitType = boughtUnit.unitType;
                 if (boughtUnitType === unitType) {
-                    if (targetAmount > 0) {
-                        targetAmount -= 1;
+                    if (target > 0) {
+                        target -= 1;
                         newArray.push(boughtUnit); // copy to new array
                     } else {
                         // don't push, we've met the target
@@ -82,7 +84,7 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
                 }
             });
             // push to meet target
-            for(var i=0; i<targetAmount; i++) {
+            for(var i=0; i < target; i++) {
                 newArray.push({
                     unitType: unitType,
                     territory: ""
@@ -134,12 +136,6 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
                     }
                 }
             });
-        },
-
-        remove: function() {
-            backbone.View.prototype.remove.apply(this, arguments);
-            if (this.$el.data("dialog"))
-                this.$el.dialog("destroy");
         }
     });
     return BuyUnitView;

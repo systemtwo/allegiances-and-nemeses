@@ -24,9 +24,9 @@
             <td>
                 <div class="flex-row flex-inline noselect">
                     <div class="flex-column unit-amount-holder">
-                        <input data-bind="textInput: amount" class="unit-amount-input" value="0">
+                        <input data-bind="value: amount, enable: $root.isMyTurn" class="unit-amount-input" value="0">
                     </div>
-                    <div class="flex-column unit-amount-controls">
+                    <div class="flex-column unit-amount-controls" data-bind="visible: $root.isMyTurn">
                         <div data-bind="click: increment">
                             <span class="glyphicon glyphicon-chevron-up"></span>
                         </div>

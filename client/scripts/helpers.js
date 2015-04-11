@@ -1,10 +1,11 @@
-define(["gameAccessor"], function(_b) {
+define(["enums"], function(enums) {
     var exports = {};
     /**
      * Sets phase name/description of current phase
-     * @param name
+     * @param constructorName The name of the phase
      */
-    exports.phaseName = function(name) {
+    exports.phaseName = function(constructorName) {
+        var name = enums.phaseDisplayNames[constructorName] || "Unknown Phase";
         $("#phaseName").text("| " + name);
     };
 

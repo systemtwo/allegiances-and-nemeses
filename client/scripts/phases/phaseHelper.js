@@ -1,11 +1,12 @@
-define(["phases/Buy", "phases/Attack", "phases/Resolve", "phases/Move", "phases/Place"],
-function(buy, attack, resolve, move, place) {
+define(["phases/Buy", "phases/Attack", "phases/Resolve", "phases/Move", "phases/Place", "phases/Observe"],
+function(buy, attack, resolve, move, place, observe) {
     var phaseMap = {
         "BuyPhase": buy,
         "AttackPhase": attack,
         "ResolvePhase": resolve,
         "MovementPhase": move,
-        "PlacementPhase": place
+        "PlacementPhase": place,
+        "ObservePhase": observe
     };
     return {
         createPhase: function (phaseName) {

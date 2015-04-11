@@ -19,6 +19,7 @@ define(["backbone", "components", "helpers", "router", "gameAccessor", "phases/p
         };
         this.currentCountry = null;
         this.currentPhase = null;
+        this.phaseName = "";
         this.mapImage = new Image();
         this.parse(boardInfo);
         return this;
@@ -65,11 +66,30 @@ define(["backbone", "components", "helpers", "router", "gameAccessor", "phases/p
         });
 
         this.currentCountry = that.getCountry(boardInfo.currentCountry);
-        this.currentPhase = phaseHelper.createPhase(boardInfo.currentPhase);
+        this.phaseName = boardInfo.currentPhase;
+        if (this.isCurrentPlayersTurn()) {
+            this.currentPhase = phaseHelper.createPhase(boardInfo.currentPhase);
+        } else {
+            this.currentPhase = phaseHelper.createPhase("ObservePhase");
+        }
+        _helpers.phaseName(this.phaseName);
 
         _helpers.countryName(this.currentCountry.displayName);
         this.initConnections(boardInfo);
         this.trigger("change");
+    };
+
+    Game.prototype.fetch = function () {
+        var that = this;
+        _router.fetchBoard(this.id).done(function(info) {
+            that.parse(info);
+        });
+    };
+
+    Game.prototype.isCurrentPlayersTurn = function () {
+        if (window.globalVar == undefined)
+            window.globalVar = confirm("is it my turn")
+        return window.globalVar;
     };
 
     Game.prototype.updateConflicts = function () {
@@ -105,7 +125,7 @@ define(["backbone", "components", "helpers", "router", "gameAccessor", "phases/p
     };
 
     Game.prototype.currentPhaseName = function() {
-        return this.currentPhase.constructor.name;
+        return this.phaseName;
     };
 
     Game.prototype.buyList = function(buyList) {

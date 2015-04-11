@@ -62,7 +62,7 @@ define(["backbone", "underscore", "knockout", "text!views/sidePanel/conflictList
 
         actionsEnabled: function () {
             var board = _b.getBoard();
-            return /*board.isCurrentPlayersTurn() && */board.currentPhaseName() == "ResolvePhase";
+            return board.isCurrentPlayersTurn() && board.currentPhaseName() == "ResolvePhase";
         },
 
         render: function() {
