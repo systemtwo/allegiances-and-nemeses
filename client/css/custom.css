@@ -35,7 +35,7 @@
 .flex-grow {
     flex-grow: 1;
 }
-.flex {
+.flex-wrap {
     display: flex;
     flex-wrap: wrap;
 }
@@ -126,13 +126,14 @@
     text-align: center;
 }
 .conflict-row {
-    width: 500px;
-    height: 50px;
     margin: 5px;
     font-size: 18px;
 }
 .conflict-list:not(.actions-enabled) .actions-enabled-only {
     display: none;
+}
+.conflict-outcome-container {
+    margin-left:auto;
 }
 .conflict-actions button {
     margin: 0 5px;
