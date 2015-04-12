@@ -1,0 +1,21 @@
+{
+"infantry": {
+    "description": "Soldiers who make up the backbone of any ground force.",
+
+    "cost": 3,
+    "attack": 1,
+    "defence": 2,
+    "move": 1,
+    "terrainType": "land"
+},
+
+"artillery": {
+    "description": "Heavy gun batteries that can support infantry attacks.",
+
+    "cost": 4,
+    "attack": 2,
+    "defence": 2,
+    "move": 1,
+    "terrainType": "land"
+}
+}

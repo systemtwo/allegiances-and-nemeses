@@ -1,0 +1,22 @@
+[
+    {
+        "name": "russia",
+        "displayName": "Russian Empire",
+        "team": "1"
+    },
+    {
+        "name": "central",
+        "displayName": "Germanic Alliance",
+        "team": "2"
+    },
+    {
+        "name": "western",
+        "displayName": "Western Powers",
+        "team": "3"
+    },
+    {
+        "name": "ottoman",
+        "displayName": "Ottoman Empire",
+        "team": "4"
+    }
+]

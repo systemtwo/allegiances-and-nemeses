@@ -1,26 +1,25 @@
 requirejs.config({
     baseUrl: '/static/scripts',
     paths: {
-        "nunjucks": "lib/nunjucks"
-    },
-    shim: {
-        "jQuery-ui": {
-            exports: "$",
-            deps: "jQuery"
-        }
+        "nunjucks": "lib/nunjucks",
+        "backbone": "lib/backbone",
+        "knockout": "lib/knockout-3.3.0.debug",
+        "underscore": "lib/underscore",
+        "jquery": "lib/jquery-1.11.1",
+        "jquery-ui": "lib/jquery-ui-1.11.3/jquery-ui"
     }
 });
 
 // TODO dschwarz clean this file when we implement a user module system. Until then it's rarely used
 // Start the main app logic.
-requirejs(["nunjucks", "gameAccessor", "render", "board", "helpers"], function(nj, _g, _r, board, _h) {
+requirejs(["nunjucks", "render", "gameAccessor"], function(nj, _r, _g) {
     // Local namespace
     var territoryCatalogue = [];
     var currentTerritory;
+    var boardInfo = {};
     setCurrentTerritory(null);
     var modes = {
         CREATE: "createTerritory",
-        HITBOX: "editTerritory",
         CONNECT: "connect",
         BROWSE: "doNothing"
     };
@@ -43,7 +42,7 @@ requirejs(["nunjucks", "gameAccessor", "render", "board", "helpers"], function(n
         $("#moduleLoad").click(function() {
             var moduleName = moduleSelect.val();
             if (moduleName) {
-                initBoard(moduleName);
+                initModule(moduleName);
             }
         });
         $("#createModule").click(function() {
@@ -107,18 +106,17 @@ requirejs(["nunjucks", "gameAccessor", "render", "board", "helpers"], function(n
         });
     }
 
-    function initBoard(moduleName) {
-        _g.board = new board.Board();
-
+    function initModule(moduleName) {
         $.getJSON("/modules/" + moduleName).done(function(moduleInfo) {
             // NOTE - territories and countries are stored as plain objects for the map editor,
             // and do NOT use the Territory and Country class
-            _g.board.wrapsHorizontally = moduleInfo.wrapsHorizontally;
-            _g.board.territories = territoryCatalogue = JSON.parse(moduleInfo.territories);
-            _g.board.countries = JSON.parse(moduleInfo.countries);
+            boardInfo.wrapsHorizontally = moduleInfo.wrapsHorizontally;
+            boardInfo.territories = territoryCatalogue = JSON.parse(moduleInfo.territories);
+            boardInfo.countries = JSON.parse(moduleInfo.countries);
 
-            _r.setSelectableTerritories(territoryCatalogue);
-            _g.connections = JSON.parse(moduleInfo.connections).map(function(c) {
+            var mapImage = new Image();
+            mapImage.src = moduleInfo.imagePath;
+            boardInfo.connections = JSON.parse(moduleInfo.connections).map(function(c) {
                 var first = null,
                     second = null;
                 territoryCatalogue.forEach(function(t) {
@@ -131,21 +129,35 @@ requirejs(["nunjucks", "gameAccessor", "render", "board", "helpers"], function(n
                 return [first, second];
             });
 
-            _g.board.setImage(moduleInfo.imagePath, function() {
-                _r.initMap();
-                $("#board").mousedown(mapClick);
+            // dummy board for render to hook into
+            _g.setBoard({
+                mapImage: mapImage,
+                getMapWidth: function() {
+                    if (boardInfo.wrapsHorizontally) {
+                        return mapImage.width/2;
+                    } else {
+                        return mapImage.width
+                    }
+                },
+                info: {
+                    connections: boardInfo.connections
+                }
             });
+            mapImage.onload = function() {
+                _r.initMap();
+                $("#board").find("path").mousedown(territoryClick);
+            };
+            _r.setSelectableTerritories(territoryCatalogue);
         });
     }
 
     var secondClick = false, firstClick = {}, connectionStart = null;
     // Override the click handler on the canvas element with this function, when in map editor mode
-    function mapClick(e) {
+    function territoryClick(t) {
         if (e.button == "2") {
             return; // DO NOTHING
         }
         var canvas = document.getElementById("board");
-        var t = _r.territoryAtPoint(e.pageX - canvas.offsetLeft + _r.offset.x, e.pageY - canvas.offsetTop + _r.offset.y);
 
         if (currentMode == modes.BROWSE) {
             if (t) {
@@ -165,75 +177,9 @@ requirejs(["nunjucks", "gameAccessor", "render", "board", "helpers"], function(n
                 connectionStart = null;
                 _r.hideArrow();
             }
-        } else if ((currentMode === modes.HITBOX) && t && _r.territoryIsSelectable(t)) {
-            selectTerritory(t);
-        } else if (currentMode === modes.HITBOX && currentTerritory) {
-            if (secondClick) {
-                secondClick = false;
-                var rect = createRect(firstClick, {x: e.pageX, y: e.pageY});
-                currentTerritory.x = rect.x;
-                currentTerritory.y = rect.y;
-                currentTerritory.width = rect.width;
-                currentTerritory.height = rect.height;
-                // rerender side bar with new hitbox
-                setCurrentTerritory(currentTerritory);
-                currentMode = modes.BROWSE;
-                _r.setSelectableTerritories(territoryCatalogue);
-            } else {
-                firstClick.x = e.pageX;
-                firstClick.y = e.pageY;
-                secondClick = true;
-            }
-        } else if (currentMode === modes.CREATE) {
-            if (secondClick) {
-                secondClick = false;
-                var newTerritory = createRect(firstClick, {x: e.pageX, y: e.pageY});
-
-                setCurrentTerritory(newTerritory);
-                territoryCatalogue.push(newTerritory);
-            } else {
-                firstClick.x = e.pageX;
-                firstClick.y = e.pageY;
-                secondClick = true;
-            }
         }
         _r.drawMap();
     }
-
-    // Creates a rectangle based on pageX and pageY
-    function createRect(begin, end) {
-        var canvas = document.getElementById("board");
-        // Make sure it goes top left to bottom right
-        if (begin.x > end.x) {
-            console.log("switching x");
-            var tempX = begin.x;
-            begin.x = end.x;
-            end.x = tempX;
-        }
-        if (begin.y > end.y) {
-            console.log("switching y");
-            var tempY = begin.y;
-            begin.y = end.y;
-            end.y = tempY;
-        }
-        var singleBoardWidth = _g.board.getMapWidth();
-        if (begin.x > singleBoardWidth) {
-            begin.x -= singleBoardWidth;
-            end.x -= singleBoardWidth;
-        }
-
-        var rect = {
-            x: begin.x - canvas.offsetLeft + _r.offset.x, // convert to board coords
-            y: begin.y - canvas.offsetTop + _r.offset.y,
-            width: end.x - begin.x,
-            height: end.y - begin.y
-        };
-        if (rect.x > singleBoardWidth) {
-            rect.x -= singleBoardWidth;
-        }
-        return rect;
-    }
-
     function showTerritoryList() {
         var windowContents = $(nj.render( "/static/templates/tList.html", {territories: territoryCatalogue}));
 
@@ -275,8 +221,7 @@ requirejs(["nunjucks", "gameAccessor", "render", "board", "helpers"], function(n
         if (t === null) {
             $("#editTerritoryPanel").empty().hide();
         } else {
-            var hasHitbox = t.x && t.y && t.width && t.height;
-            var contents = $(nj.render("static/templates/editTerritory.html", {territory: t, countries: _g.board.countries, hasHitbox: hasHitbox}));
+            var contents = $(nj.render("static/templates/editTerritory.html", {territory: t, countries: boardInfo.countries}));
             $("#editTerritoryPanel").show().html(contents);
             var onChange = function(){
                 // Save the territory
@@ -299,10 +244,6 @@ requirejs(["nunjucks", "gameAccessor", "render", "board", "helpers"], function(n
             };
             contents.find("input").change(onChange);
             contents.find("select").change(onChange);
-            $("#hitbox").click(function(){
-                _r.setSelectableTerritories([]);
-                currentMode = modes.HITBOX;
-            });
         }
     }
 

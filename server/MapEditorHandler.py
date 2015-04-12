@@ -20,8 +20,9 @@ class MapEditorHandler(tornado.web.RequestHandler):
             with open(os.path.join(self.HTML_PATH, "mapEditor.html")) as f:
                 self.write(f.read())
         elif self.action == self.actions.MODULES:
-            moduleNames = os.listdir(self.config.MODS_PATH)
-            self.write(json.dumps(moduleNames))
+            # moduleNames = os.listdir(self.config.ABS_MODS_PATH)
+            # self.write(json.dumps(moduleNames))
+            self.write('["napoleon"]')
         elif self.action == self.actions.MODULE_INFO:
             returnObject = {}
             moduleName = params["moduleName"]
