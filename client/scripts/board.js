@@ -17,6 +17,7 @@ define(["backbone", "components", "helpers", "router", "gameAccessor", "phases/p
             unitCatalogue: boardInfo.unitCatalogue,
             imageMap: {} // Map of unitType->imageSource
         };
+        this.isPlayerTurn = false;
         this.currentCountry = null;
         this.currentPhase = null;
         this.phaseName = "";
@@ -45,6 +46,7 @@ define(["backbone", "components", "helpers", "router", "gameAccessor", "phases/p
             imageMap: {} // Map of unitType->imageSource
         };
 
+        this.isPlayerTurn = boardInfo.isPlayerTurn;
         this.wrapsHorizontally = boardInfo.wrapsHorizontally;
 
         Object.keys(boardInfo.unitCatalogue).forEach(function(unitType) {
@@ -87,9 +89,7 @@ define(["backbone", "components", "helpers", "router", "gameAccessor", "phases/p
     };
 
     Game.prototype.isCurrentPlayersTurn = function () {
-        if (window.globalVar == undefined)
-            window.globalVar = confirm("is it my turn")
-        return window.globalVar;
+        return this.isPlayerTurn;
     };
 
     Game.prototype.updateConflicts = function () {
