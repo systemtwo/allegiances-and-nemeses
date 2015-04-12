@@ -1,4 +1,4 @@
-define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "helpers", "gameAccessor", "router"],
+define(["backbone", "knockout", "underscore", "text!views/buy/buy.ko.html", "helpers", "gameAccessor", "router"],
     function(backbone, ko, _, template, _h, _b, _router) {
 
     var BuyUnitView = backbone.View.extend({
