@@ -8,26 +8,34 @@
         <script src="/static/scripts/lib/jquery-1.11.1.js"></script>
         <!-- data-main attribute tells require.js to load
              scripts/mapEditor.js after require.js loads. -->
-        <script data-main="/static/scripts/mapEditor" src="/static/scripts/lib/require.js"></script>
+        <script src="/static/scripts/lib/require.js"></script>
+        <script>
+            requirejs.config({
+                baseUrl: '/static/scripts',
+                paths: {
+                    "nunjucks": "lib/nunjucks",
+                    "backbone": "lib/backbone",
+                    "knockout": "lib/knockout-3.3.0.debug",
+                    "underscore": "lib/underscore",
+                    "jquery": "lib/jquery-1.11.1",
+                    "jquery-ui": "lib/jquery-ui-1.11.3/jquery-ui"
+                }
+            });
+            requirejs(["mapEditor"], function (editor) {
+                var moduleInfo = {% raw json_encode(moduleInfo) %};
+                editor.initialize(moduleInfo);
+            })
+        </script>
     </head>
     <body>
-    <button id="createButton">Create</button>
-    <button id="connectButton">Connect</button>
-    <button id="browseButton">Browse</button>
-    <button id="territoryButton">Show Territories</button>
-    <button id="printConnections">Connection JSON</button>
-    <button id="printTerritories">Territory JSON</button>
-    <button id="getJSONButton">Log JSON (console)</button>
-    <br>
-    <div>
-        <select id="moduleSelect">
-        </select>
-        <button id="moduleLoad">Load module</button>
-        <button id="createModule">Create module</button>
-    </div>
-    <br>
-    <canvas id="board"></canvas>
-    <div id="editTerritoryPanel">
-    </div>
+        <button id="createButton">Create</button>
+        <button id="connectButton">Connect</button>
+        <button id="browseButton">Browse</button>
+        <button id="territoryButton">Show Territories</button>
+        <button id="getJSONButton">Log JSON (console)</button>
+        <button id="save">Save</button>
+        <br>
+        <div id="editTerritoryPanel">
+        </div>
     </body>
 </html>

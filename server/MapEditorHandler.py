@@ -1,4 +1,5 @@
 import tornado.web
+import tornado.template
 
 import os.path
 import json
@@ -6,8 +7,9 @@ import json
 import GameBoard
 import utils
 
+
 class MapEditorHandler(tornado.web.RequestHandler):
-    actions = utils.Enum(["PAGE", "MODULES", "MODULE_INFO", "CREATE"])
+    actions = utils.Enum(["MODULE_SELECTOR", "PAGE", "MODULE", "CREATE"])
 
     def initialize(self, action, config, html_path=""):
         self.HTML_PATH = html_path
@@ -15,42 +17,31 @@ class MapEditorHandler(tornado.web.RequestHandler):
         self.config = config
 
     def get(self, **params):
-        if self.action == self.actions.PAGE:
-            # surely there's a better way of handling this
-            with open(os.path.join(self.HTML_PATH, "mapEditor.html")) as f:
-                self.write(f.read())
-        elif self.action == self.actions.MODULES:
+        loader = tornado.template.Loader(self.HTML_PATH)
+        if self.action == self.actions.MODULE_SELECTOR:
             # moduleNames = os.listdir(self.config.ABS_MODS_PATH)
-            # self.write(json.dumps(moduleNames))
-            self.write('["napoleon"]')
-        elif self.action == self.actions.MODULE_INFO:
-            returnObject = {}
+            moduleNames = ["napoleon"]
+            self.write(loader.load("moduleSelector.html").generate(moduleNames=moduleNames))
+
+        elif self.action == self.actions.PAGE:
             moduleName = params["moduleName"]
+            moduleInfo = {
+                "moduleName": moduleName
+            }
             with open(GameBoard.Util.countryFileName(moduleName)) as countryInfo:
-                returnObject["countries"] = countryInfo.read()
-
+                moduleInfo["countries"] = countryInfo.read()
             with open(GameBoard.Util.unitFileName(moduleName)) as unitInfo:
-                returnObject["units"] = unitInfo.read()
-
+                moduleInfo["units"] = unitInfo.read()
             with open(GameBoard.Util.territoryFileName(moduleName)) as territoryInfo:
-                returnObject["territories"] = territoryInfo.read()
-
+                moduleInfo["territories"] = territoryInfo.read()
             with open(GameBoard.Util.connectionFileName(moduleName)) as connections:
-                returnObject["connections"] = connections.read()
+                moduleInfo["connections"] = connections.read()
+            self.write(loader.load("mapEditor.html").generate(moduleInfo=moduleInfo))
 
-            with open(GameBoard.Util.filePath(moduleName, "info.json")) as file:
-                info = json.load(file)
-                returnObject["wrapsHorizontally"] = info["wrapsHorizontally"]
-                if "imageName" in info:
-                    returnObject["imagePath"] = os.path.join(self.config.MODS_PATH, moduleName, info["imageName"])
-                else:
-                    returnObject["imagePath"] = self.config.DEFAULT_IMAGE_PATH  # convert to config var when convenient
-
-            self.write(json.dumps(returnObject))
         elif self.action == self.actions.CREATE:
             moduleName = self.get_argument("moduleName")
-            if not os.path.exists(os.path.join(self.config.MODS_PATH, moduleName)):
-                os.makedirs(os.path.join(self.config.MODS_PATH, moduleName))
+            if not os.path.exists(os.path.join(self.config.ABS_MODS_PATH, moduleName)):
+                os.makedirs(os.path.join(self.config.ABS_MODS_PATH, moduleName))
                 with open(GameBoard.Util.countryFileName(moduleName), 'w') as f:
                     f.write("[]")
                 with open(GameBoard.Util.unitFileName(moduleName), 'w') as f:
@@ -59,7 +50,22 @@ class MapEditorHandler(tornado.web.RequestHandler):
                     f.write("[]")
                 with open(GameBoard.Util.connectionFileName(moduleName), 'w') as f:
                     f.write("[]")
-                with open(GameBoard.Util.filePath(moduleName, "info.json"), "w") as file:
-                    file.write(json.dumps({
-                        "wrapsHorizontally": False
-                    }))
+
+    def post(self, **params):
+        if self.action == self.actions.MODULE:
+            moduleName = params["moduleName"]
+            moduleInfo = json.loads(self.request.body)
+            if os.path.exists(os.path.join(self.config.ABS_MODS_PATH, moduleName)):
+
+                if "countries" in moduleInfo:
+                    with open(GameBoard.Util.countryFileName(moduleName), 'w') as f:
+                        f.write(json.dumps(moduleInfo["countries"]))
+                if "units" in moduleInfo:
+                    with open(GameBoard.Util.unitFileName(moduleName), 'w') as f:
+                        f.write(json.dumps(moduleInfo["units"]))
+                if "territories" in moduleInfo:
+                    with open(GameBoard.Util.territoryFileName(moduleName), 'w') as f:
+                        f.write(json.dumps(moduleInfo["territories"]))
+                if "connections" in moduleInfo:
+                    with open(GameBoard.Util.connectionFileName(moduleName), 'w') as f:
+                        f.write(json.dumps(moduleInfo["connections"]))

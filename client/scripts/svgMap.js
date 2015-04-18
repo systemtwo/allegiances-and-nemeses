@@ -41,8 +41,8 @@ function(d3, _, backbone) {
                 })
             });
         }
-
-        this.showConnections = orElse(mapInfo.showConnections, false);
+        // update if passed in, otherwise keep same value or default to false
+        this.showConnections = orElse(mapInfo.showConnections, this.showConnections || false);
     };
 
     proto.update = function(mapInfo) {
@@ -147,14 +147,17 @@ function(d3, _, backbone) {
 
         lines.enter().append("line")
             .classed("connection", true)
+            .attr("stroke", "cyan");
+
+        lines
+            .style("display", this.showConnections ? "" : "none")
             .attr("x1", function(d){return d.x1})
             .attr("x2", function(d){return d.x2})
             .attr("y1", function(d){return d.y1})
             .attr("y2", function(d){return d.y2})
-            .attr("stroke", "cyan");
+
 
         lines.exit().remove();
-        lines.style("display", this.showConnections ? "none" : "")
     };
 
     return {

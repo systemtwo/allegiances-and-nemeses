@@ -1,90 +1,16 @@
-requirejs.config({
-    baseUrl: '/static/scripts',
-    paths: {
-        "nunjucks": "lib/nunjucks",
-        "backbone": "lib/backbone",
-        "knockout": "lib/knockout-3.3.0.debug",
-        "underscore": "lib/underscore",
-        "jquery": "lib/jquery-1.11.1",
-        "jquery-ui": "lib/jquery-ui-1.11.3/jquery-ui"
-    }
-});
 // Start the main app logic.
-requirejs(["nunjucks", "svgMap", "underscore", "message", "jquery-ui"],
+define(["nunjucks", "svgMap", "underscore", "message", "jquery-ui"],
 function(nj, _svg, _, msg) {
 
     // Local namespace
     var currentTerritory;
-    var boardInfo = {};
+    var mapData = {
+        territories: [],
+        connections: [],
+        showConnections: true
+    };
     var svgMap = null;
 
-    var testInfo = {
-        territories: [
-            {
-                name: "uniqueName",
-                displayName: "Display Name",
-                income: 5,
-                displayInfo: {
-                    path: [
-                        [0, 0],
-                        [0, 100],
-                        [100, 100],
-                        [100, 0]
-                    ],
-                    name: {
-                        x: 50,
-                        y: 50
-                    },
-                    circle: {
-                        x: 80,
-                        y: 20
-                    }
-                }
-            },
-            {
-                name: "anotherName",
-                displayName: "Canada",
-                income: 5,
-                displayInfo: {
-                    path: [
-                        [101, 0],
-                        [101, 101],
-                        [201, 101],
-                        [201, 0]
-                    ],
-                    name: {
-                        x: 150,
-                        y: 50
-                    },
-                    circle: {
-                        x: 180,
-                        y: 20
-                    }
-                }
-            },
-            {
-                name: "third",
-                displayName: "ocixeM",
-                income: 5,
-                displayInfo: {
-                    path: [
-                        [0, 200],
-                        [100, 200],
-                        [50, 110],
-                        [0, 105]
-                    ],
-                    name: {
-                        x: 40,
-                        y: 150
-                    },
-                    circle: {
-                        x: 50,
-                        y: 180
-                    }
-                }
-            }
-        ]
-    };
     setCurrentTerritory(null);
     var modes = {
         CREATE: "createTerritory",
@@ -93,34 +19,7 @@ function(nj, _svg, _, msg) {
     };
     var currentMode = modes.BROWSE;
 
-    window.getMode = function() {
-        return currentMode;
-    };
-
-    function initialize() {
-        var moduleSelect = $("#moduleSelect");
-        $.ajax("/modules", {
-            success: function(response) {
-               JSON.parse(response).map(function(m) {
-                   moduleSelect.append($("<option>" + m + "</option>"))
-               });
-            }
-        });
-
-        $("#moduleLoad").click(function() {
-            var moduleName = moduleSelect.val();
-            if (moduleName) {
-                initModule(moduleName);
-            }
-        });
-        $("#createModule").click(function() {
-            $.ajax("/modules/create", {data: {
-                moduleName: prompt("Module Name")
-            }}).always(function() {
-//                window.location.reload();
-            })
-        });
-
+    function bindButtons() {
         $("#createButton").click(function(){
             //_r.setSelectableTerritories([]);
             currentMode = modes.CREATE;
@@ -144,67 +43,53 @@ function(nj, _svg, _, msg) {
             showTerritoryList();
             secondClick = false;
         });
-        $("#printConnections").click(function(){
-            var textarea = $("<textarea>").val(getJSON().connections);
-            textarea.dialog({
-                title: "Copy JSON",
-                open: function(){ textarea.select(); },
-                buttons: {
-                    "Close": function () {
-                        $(this).dialog("close");
-                    }
-                }
-            });
-        });
-        $("#printTerritories").click(function(){
-            var textarea = $("<textarea>").val(getJSON().territories);
-            textarea.dialog({
-                title: "Copy JSON",
-                open: function(){ textarea.select(); },
-                buttons: {
-                    "Close": function () {
-                        $(this).dialog("close");
-                    }
-                }
-            });
+        $("#save").click(function(){
+            $.post("/modules/" + mapData.moduleName, JSON.stringify({
+                connections: mapData.connections.map(function (c) {return [c[0].name, c[1].name]}),
+                territories: mapData.territories
+            }))
         });
         $("#getJSONButton").click(function(){
             console.log(getJSON());
         });
     }
 
-    function initModule(moduleName) {
-        $.getJSON("/modules/" + moduleName).done(function(moduleInfo) {
-            // NOTE - territories and countries are stored as plain objects for the map editor,
-            // and do NOT use the Territory and Country class
-            boardInfo.wrapsHorizontally = moduleInfo.wrapsHorizontally;
-            boardInfo.territories = JSON.parse(moduleInfo.territories);
+    function initialize(moduleInfo) {
 
-            boardInfo.territories = testInfo.territories;
-
-            boardInfo.countries = JSON.parse(moduleInfo.countries);
-
-            boardInfo.connections = JSON.parse(moduleInfo.connections).map(function(c) {
-                var first = _.find(boardInfo.territories, {name: c[0]});
-                var second = _.find(boardInfo.territories, {name: c[1]});
-                return [first, second];
-            });
-
-            svgMap = new _svg.Map({
-                territories: testInfo.territories,
-                connections: boardInfo.connections,
-                showConnections: true
-            }, document.body);
-            svgMap.drawMap();
-            svgMap.on("click:territory", function(territoryName) {
-                var territory = _.findWhere(boardInfo.territories, {name: territoryName});
-                territoryClick(territory);
-            });
-            svgMap.on("click:nothing", function() {
-                territoryClick(null);
-            });
-            //_r.setSelectableTerritories(territoryCatalogue);
+        _.each(["territories", "countries", "connections", "moduleName"], function(parameter) {
+            if (!moduleInfo[parameter]) {
+                msg.log("Missing parameter: " + parameter)
+            }
         });
+
+        // NOTE - territories and countries are stored as plain objects for the map editor,
+        // and do NOT use the Territory and Country class
+        mapData.wrapsHorizontally = moduleInfo.wrapsHorizontally;
+        mapData.territories = JSON.parse(moduleInfo.territories);
+
+        mapData.countries = JSON.parse(moduleInfo.countries);
+
+        mapData.moduleName = moduleInfo.moduleName;
+
+        mapData.connections = JSON.parse(moduleInfo.connections).map(function(c) {
+            var first = _.find(mapData.territories, {name: c[0]});
+            var second = _.find(mapData.territories, {name: c[1]});
+            return [first, second];
+        });
+
+        svgMap = new _svg.Map(mapData, document.body);
+        svgMap.update({showConnections: true});
+        svgMap.drawMap();
+        svgMap.on("click:territory", function(territoryName) {
+            var territory = _.findWhere(mapData.territories, {name: territoryName});
+            territoryClick(territory);
+        });
+        svgMap.on("click:nothing", function() {
+            territoryClick(null);
+        });
+
+        bindButtons();
+        //_r.setSelectableTerritories(territoryCatalogue);
     }
 
     function territoriesEqual(territory, other) {
@@ -230,26 +115,26 @@ function(nj, _svg, _, msg) {
 
         // Nothing was removed we add the new connection
         if (!removed) {
-            boardInfo.connections.push(connection);
+            mapData.connections.push(connection);
             msg.log("Added connection")
         }
 
         svgMap.update({
-            connections: boardInfo.connections
+            connections: mapData.connections
         })
     }
 
     function removeConnection(connection) {
-        var numConnections = boardInfo.connections.length;
-        boardInfo.connections = _.filter(boardInfo.connections, function(pair) {
+        var numConnections = mapData.connections.length;
+        mapData.connections = _.filter(mapData.connections, function(pair) {
             return !((territoriesEqual(pair[0], connection[0]) && territoriesEqual(pair[1], connection[1])) ||
                     (territoriesEqual(pair[1], connection[0]) && territoriesEqual(pair[0], connection[1])));
         });
 
         // filtered length is the same, so nothing was removed
-        var removedConnection = numConnections !== boardInfo.connections.length;
+        var removedConnection = numConnections !== mapData.connections.length;
         if (removedConnection) {
-            msg.log("Removed connection, remaining length: " + boardInfo.connections.length)
+            msg.log("Removed connection, remaining length: " + mapData.connections.length)
         }
         return removedConnection;
     }
@@ -279,11 +164,11 @@ function(nj, _svg, _, msg) {
         //_r.drawMap();
     }
     function showTerritoryList() {
-        var windowContents = $(nj.render( "/static/templates/tList.html", {territories: boardInfo.territories}));
+        var windowContents = $(nj.render( "/static/templates/tList.html", {territories: mapData.territories}));
 
         windowContents.find(".territoryRow").click(function() {
             var name = $(this).data("name");
-            var matchingTerritory = _.findWhere(boardInfo.territories, {name: name});
+            var matchingTerritory = _.findWhere(mapData.territories, {name: name});
             selectTerritory(matchingTerritory);
             //_r.setSelectableTerritories(territoryCatalogue);
             windowContents.dialog("close");
@@ -314,7 +199,7 @@ function(nj, _svg, _, msg) {
         if (t === null) {
             $("#editTerritoryPanel").empty().hide();
         } else {
-            var contents = $(nj.render("static/templates/editTerritory.html", {territory: t, countries: boardInfo.countries}));
+            var contents = $(nj.render("static/templates/editTerritory.html", {territory: t, countries: mapData.countries}));
             $("#editTerritoryPanel").show().html(contents);
             var onChange = function(){
                 // Save the territory
@@ -342,7 +227,7 @@ function(nj, _svg, _, msg) {
 
     function getJSON() {
         return {
-            territories: JSON.stringify(boardInfo.territories.map(function(t) {
+            territories: JSON.stringify(mapData.territories.map(function(t) {
                 if (t.type == "sea") {
                     var copiedTerritory = jQuery.extend({}, t);
                     // sea zones don't produce and can't be owned
@@ -353,11 +238,11 @@ function(nj, _svg, _, msg) {
                     return t;
                 }
             })),
-            connections: JSON.stringify(boardInfo.connections.map(function (c) {return [c[0].name, c[1].name]}))
+            connections: JSON.stringify(mapData.connections.map(function (c) {return [c[0].name, c[1].name]}))
         };
     }
 
-    window.getJSON = getJSON;
-
-    initialize();
+    return {
+        initialize: initialize
+    }
 });
