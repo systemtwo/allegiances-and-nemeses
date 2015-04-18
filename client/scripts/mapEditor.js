@@ -10,10 +10,13 @@ requirejs.config({
     }
 });
 // Start the main app logic.
-requirejs(["nunjucks", "svgMap", "underscore", "jquery-ui"], function(nj, _svg, _) {
+requirejs(["nunjucks", "svgMap", "underscore", "message", "jquery-ui"],
+function(nj, _svg, _, msg) {
+
     // Local namespace
     var currentTerritory;
     var boardInfo = {};
+    var svgMap = null;
 
     var testInfo = {
         territories: [
@@ -56,6 +59,27 @@ requirejs(["nunjucks", "svgMap", "underscore", "jquery-ui"], function(nj, _svg, 
                     circle: {
                         x: 180,
                         y: 20
+                    }
+                }
+            },
+            {
+                name: "third",
+                displayName: "ocixeM",
+                income: 5,
+                displayInfo: {
+                    path: [
+                        [0, 200],
+                        [100, 200],
+                        [50, 110],
+                        [0, 105]
+                    ],
+                    name: {
+                        x: 40,
+                        y: 150
+                    },
+                    circle: {
+                        x: 50,
+                        y: 180
                     }
                 }
             }
@@ -166,35 +190,86 @@ requirejs(["nunjucks", "svgMap", "underscore", "jquery-ui"], function(nj, _svg, 
                 return [first, second];
             });
 
-            var thing = new _svg.Map(testInfo, document.body);
-            thing.drawMap();
-            thing.on("click:territory", function(territoryName) {
+            svgMap = new _svg.Map({
+                territories: testInfo.territories,
+                connections: boardInfo.connections,
+                showConnections: true
+            }, document.body);
+            svgMap.drawMap();
+            svgMap.on("click:territory", function(territoryName) {
                 var territory = _.findWhere(boardInfo.territories, {name: territoryName});
                 territoryClick(territory);
             });
-            thing.on("click:nothing", function() {
+            svgMap.on("click:nothing", function() {
                 territoryClick(null);
             });
             //_r.setSelectableTerritories(territoryCatalogue);
         });
     }
 
+    function territoriesEqual(territory, other) {
+        var nameA = _.isString(territory) ? territory : territory.name;
+        var nameB = _.isString(other) ? other : other.name;
+
+        return nameA === nameB;
+    }
+
+    /**
+     * Adds connection if does not exist, or removes an existing connection
+     * @param territory
+     * @param other
+     */
+    function connect(territory, other) {
+        if (territoriesEqual(territory, other)) {
+            msg.log("Cannot connect identical territories");
+            return false;
+        }
+        var connection = [territory, other];
+        // remove it from the connections list, if it exists
+        var removed = removeConnection(connection);
+
+        // Nothing was removed we add the new connection
+        if (!removed) {
+            boardInfo.connections.push(connection);
+            msg.log("Added connection")
+        }
+
+        svgMap.update({
+            connections: boardInfo.connections
+        })
+    }
+
+    function removeConnection(connection) {
+        var numConnections = boardInfo.connections.length;
+        boardInfo.connections = _.filter(boardInfo.connections, function(pair) {
+            return !((territoriesEqual(pair[0], connection[0]) && territoriesEqual(pair[1], connection[1])) ||
+                    (territoriesEqual(pair[1], connection[0]) && territoriesEqual(pair[0], connection[1])));
+        });
+
+        // filtered length is the same, so nothing was removed
+        var removedConnection = numConnections !== boardInfo.connections.length;
+        if (removedConnection) {
+            msg.log("Removed connection, remaining length: " + boardInfo.connections.length)
+        }
+        return removedConnection;
+    }
+
     var secondClick = false, firstClick = {}, connectionStart = null;
     // Override the click handler on the canvas element with this function, when in map editor mode
-    function territoryClick(t) {
+    function territoryClick(territory) {
         if (currentMode == modes.BROWSE) {
-            if (t) {
-                setCurrentTerritory(t);
+            if (territory) {
+                setCurrentTerritory(territory);
             }
         } else if (currentMode == modes.CONNECT) {
-            if (t) {
-                if (connectionStart && connectionStart!==t) {
-                    boardInfo.connections.push([connectionStart, t]);
+            if (territory) {
+                if (connectionStart && connectionStart!==territory) {
+                    connect(territory, connectionStart);
                     connectionStart = null;
                     //_r.hideArrow();
                 } else {
                     //_r.showArrowFrom(t);
-                    connectionStart = t;
+                    connectionStart = territory;
                 }
             } else {
                 connectionStart = null;
