@@ -9,14 +9,32 @@ requirejs.config({
         "jquery-ui": "lib/jquery-ui-1.11.3/jquery-ui"
     }
 });
-
-// TODO dschwarz clean this file when we implement a user module system. Until then it's rarely used
 // Start the main app logic.
-requirejs(["nunjucks", "render", "gameAccessor"], function(nj, _r, _g) {
+requirejs(["nunjucks", "svgMap", "underscore", "jquery-ui"], function(nj, _svg, _) {
     // Local namespace
-    var territoryCatalogue = [];
     var currentTerritory;
     var boardInfo = {};
+
+    var testInfo = {
+        territories: [
+            {
+                name: "uniqueName",
+                displayName: "Display Name",
+                income: 5,
+                displayInfo: {
+                    path: "M0,0 L100,0 L100,100 L0,100 z",
+                    name: {
+                        x: 50,
+                        y: 50
+                    },
+                    circle: {
+                        x: 80,
+                        y: 20
+                    }
+                }
+            }
+        ]
+    };
     setCurrentTerritory(null);
     var modes = {
         CREATE: "createTerritory",
@@ -52,23 +70,22 @@ requirejs(["nunjucks", "render", "gameAccessor"], function(nj, _r, _g) {
 //                window.location.reload();
             })
         });
-        _r.showSkeleton(true);
 
         $("#createButton").click(function(){
-            _r.setSelectableTerritories([]);
+            //_r.setSelectableTerritories([]);
             currentMode = modes.CREATE;
             setCurrentTerritory(null);
             secondClick = false;
         });
         $("#connectButton").click(function(){
-            _r.setSelectableTerritories(territoryCatalogue);
+            //_r.setSelectableTerritories(territoryCatalogue);
             currentMode = modes.CONNECT;
             setCurrentTerritory(null);
             connectionStart = null;
             secondClick = false;
         });
         $("#browseButton").click(function(){
-            _r.setSelectableTerritories(territoryCatalogue);
+            //_r.setSelectableTerritories(territoryCatalogue);
             currentMode = modes.BROWSE;
             setCurrentTerritory(null);
             secondClick = false;
@@ -111,54 +128,34 @@ requirejs(["nunjucks", "render", "gameAccessor"], function(nj, _r, _g) {
             // NOTE - territories and countries are stored as plain objects for the map editor,
             // and do NOT use the Territory and Country class
             boardInfo.wrapsHorizontally = moduleInfo.wrapsHorizontally;
-            boardInfo.territories = territoryCatalogue = JSON.parse(moduleInfo.territories);
+            boardInfo.territories = JSON.parse(moduleInfo.territories);
+
+            boardInfo.territories = testInfo.territories;
+
             boardInfo.countries = JSON.parse(moduleInfo.countries);
 
-            var mapImage = new Image();
-            mapImage.src = moduleInfo.imagePath;
             boardInfo.connections = JSON.parse(moduleInfo.connections).map(function(c) {
-                var first = null,
-                    second = null;
-                territoryCatalogue.forEach(function(t) {
-                    if (t.name == c[0]){
-                        first = t;
-                    } else if (t.name == c[1]) {
-                        second = t;
-                    }
-                });
+                var first = _.find(boardInfo.territories, {name: c[0]});
+                var second = _.find(boardInfo.territories, {name: c[1]});
                 return [first, second];
             });
 
-            // dummy board for render to hook into
-            _g.setBoard({
-                mapImage: mapImage,
-                getMapWidth: function() {
-                    if (boardInfo.wrapsHorizontally) {
-                        return mapImage.width/2;
-                    } else {
-                        return mapImage.width
-                    }
-                },
-                info: {
-                    connections: boardInfo.connections
-                }
+            var thing = new _svg.Map(testInfo, document.body);
+            thing.drawMap();
+            thing.on("click:territory", function(territoryName) {
+                var territory = _.findWhere(boardInfo.territories, {name: territoryName});
+                selectTerritory(territory);
             });
-            mapImage.onload = function() {
-                _r.initMap();
-                $("#board").find("path").mousedown(territoryClick);
-            };
-            _r.setSelectableTerritories(territoryCatalogue);
+            thing.on("click:nothing", function() {
+                selectTerritory(null);
+            });
+            //_r.setSelectableTerritories(territoryCatalogue);
         });
     }
 
     var secondClick = false, firstClick = {}, connectionStart = null;
     // Override the click handler on the canvas element with this function, when in map editor mode
     function territoryClick(t) {
-        if (e.button == "2") {
-            return; // DO NOTHING
-        }
-        var canvas = document.getElementById("board");
-
         if (currentMode == modes.BROWSE) {
             if (t) {
                 setCurrentTerritory(t);
@@ -166,33 +163,28 @@ requirejs(["nunjucks", "render", "gameAccessor"], function(nj, _r, _g) {
         } else if (currentMode == modes.CONNECT) {
             if (t) {
                 if (connectionStart && connectionStart!==t) {
-                    _g.connections.push([connectionStart, t]);
+                    boardInfo.connections.push([connectionStart, t]);
                     connectionStart = null;
-                    _r.hideArrow();
+                    //_r.hideArrow();
                 } else {
-                    _r.showArrowFrom(t);
+                    //_r.showArrowFrom(t);
                     connectionStart = t;
                 }
             } else {
                 connectionStart = null;
-                _r.hideArrow();
+                //_r.hideArrow();
             }
         }
-        _r.drawMap();
+        //_r.drawMap();
     }
     function showTerritoryList() {
-        var windowContents = $(nj.render( "/static/templates/tList.html", {territories: territoryCatalogue}));
+        var windowContents = $(nj.render( "/static/templates/tList.html", {territories: boardInfo.territories}));
 
         windowContents.find(".territoryRow").click(function() {
             var name = $(this).data("name");
-            var matchingTerritory = undefined;
-            territoryCatalogue.forEach(function(t) {
-                if (t.name == name) {
-                    matchingTerritory = t;
-                }
-            });
+            var matchingTerritory = _.findWhere(boardInfo.territories, {name: name});
             selectTerritory(matchingTerritory);
-            _r.setSelectableTerritories(territoryCatalogue);
+            //_r.setSelectableTerritories(territoryCatalogue);
             windowContents.dialog("close");
         }).css("cursor", "pointer");
 
@@ -213,7 +205,7 @@ requirejs(["nunjucks", "render", "gameAccessor"], function(nj, _r, _g) {
     function selectTerritory (t){
         setCurrentTerritory(t);
         currentMode = modes.BROWSE;
-        _r.setSelectableTerritories([]);
+        //_r.setSelectableTerritories([]);
     }
 
     function setCurrentTerritory(t) {
@@ -249,7 +241,7 @@ requirejs(["nunjucks", "render", "gameAccessor"], function(nj, _r, _g) {
 
     function getJSON() {
         return {
-            territories: JSON.stringify(territoryCatalogue.map(function(t) {
+            territories: JSON.stringify(boardInfo.territories.map(function(t) {
                 if (t.type == "sea") {
                     var copiedTerritory = jQuery.extend({}, t);
                     // sea zones don't produce and can't be owned
@@ -260,7 +252,7 @@ requirejs(["nunjucks", "render", "gameAccessor"], function(nj, _r, _g) {
                     return t;
                 }
             })),
-            connections: JSON.stringify(_g.connections.map(function (c) {return [c[0].name, c[1].name]}))
+            connections: JSON.stringify(boardInfo.connections.map(function (c) {return [c[0].name, c[1].name]}))
         };
     }
 

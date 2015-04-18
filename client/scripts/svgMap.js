@@ -1,13 +1,17 @@
 define(["lib/d3", "underscore", "backbone"],
 function(d3, _, backbone) {
     var Map = function(mapInfo, appendTo) {
+        var map = this;
         this.territories = mapInfo.territories;
 
         this.mapElement = d3.select(appendTo)
             .append("svg")
             .style("padding", "100px")
             .style("margin-left", "100px")
-            .style("border", "black solid");
+            .style("border", "black solid")
+            .on("click", function(){
+                map.trigger("click")
+            });
 
         return this;
     };
@@ -30,7 +34,7 @@ function(d3, _, backbone) {
                 return data.displayInfo.path;
             })
             .on("click", function(data){
-                map.trigger("territoryClick", data.name);
+                map.trigger("click:territory", data.name);
             });
 
         territories.exit().remove();
@@ -56,7 +60,7 @@ function(d3, _, backbone) {
             .attr("cx", function(data) { return data.x; })
             .attr("cy", function(data) { return data.y; })
             .on("click", function(data){
-                map.trigger("circleClick", data.name);
+                map.trigger("click:circle", data.name);
             });
 
         circles.exit().remove();
@@ -85,39 +89,13 @@ function(d3, _, backbone) {
             .attr("text-anchor", "middle")
             .attr("dominant-baseline", "middle")
             .on("click", function(data){
-                map.trigger("territoryClick", data.name);
+                map.trigger("click:territory", data.name);
             });
 
         nameLabels.exit().remove();
     };
 
-    var testInfo = {
-        territories: [
-            {
-                name: "uniqueName",
-                displayName: "Display Name",
-                income: 5,
-                displayInfo: {
-                    path: "M0,0 L100,0 L100,100 L0,100 z",
-                    name: {
-                        x: 50,
-                        y: 50
-                    },
-                    circle: {
-                        x: 80,
-                        y: 20
-                    }
-                }
-            }
-        ]
-    };
-
-    var thing = new Map(testInfo, document.body);
-    thing.drawMap();
-    thing.on("territoryClick", function() {
-        console.log(arguments);
-    })
-    thing.on("circleClick", function() {
-        console.log(arguments);
-    })
+    return {
+        Map: Map
+    }
 });
