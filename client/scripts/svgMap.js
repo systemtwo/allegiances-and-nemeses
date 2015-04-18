@@ -31,7 +31,12 @@ function(d3, _, backbone) {
 
         territories.enter().append("path")
             .attr("d", function(data) {
-                return data.displayInfo.path;
+
+                var corePath = _.map(data.displayInfo.path, function(points) {
+                    return points.join(",");
+                }).join(" L");
+
+                return "M" + corePath + " z";
             })
             .on("click", function(data){
                 map.trigger("click:territory", data.name);

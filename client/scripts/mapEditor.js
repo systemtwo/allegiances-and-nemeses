@@ -22,13 +22,39 @@ requirejs(["nunjucks", "svgMap", "underscore", "jquery-ui"], function(nj, _svg, 
                 displayName: "Display Name",
                 income: 5,
                 displayInfo: {
-                    path: "M0,0 L100,0 L100,100 L0,100 z",
+                    path: [
+                        [0, 0],
+                        [0, 100],
+                        [100, 100],
+                        [100, 0]
+                    ],
                     name: {
                         x: 50,
                         y: 50
                     },
                     circle: {
                         x: 80,
+                        y: 20
+                    }
+                }
+            },
+            {
+                name: "anotherName",
+                displayName: "Canada",
+                income: 5,
+                displayInfo: {
+                    path: [
+                        [101, 0],
+                        [101, 101],
+                        [201, 101],
+                        [201, 0]
+                    ],
+                    name: {
+                        x: 150,
+                        y: 50
+                    },
+                    circle: {
+                        x: 180,
                         y: 20
                     }
                 }
@@ -144,10 +170,10 @@ requirejs(["nunjucks", "svgMap", "underscore", "jquery-ui"], function(nj, _svg, 
             thing.drawMap();
             thing.on("click:territory", function(territoryName) {
                 var territory = _.findWhere(boardInfo.territories, {name: territoryName});
-                selectTerritory(territory);
+                territoryClick(territory);
             });
             thing.on("click:nothing", function() {
-                selectTerritory(null);
+                territoryClick(null);
             });
             //_r.setSelectableTerritories(territoryCatalogue);
         });
