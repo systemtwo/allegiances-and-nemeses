@@ -1,1 +1,103 @@
-[{"displayInfo": {"path": [[0, 0], [0, 100], [100, 100], [100, 0]], "circle": {"y": 20, "x": 80}, "name": {"y": 50, "x": 50}}, "displayName": "Display Name", "name": "uniqueName", "income": 5}, {"displayInfo": {"path": [[101, 0], [101, 101], [201, 101], [201, 0]], "circle": {"y": 20, "x": 180}, "name": {"y": 50, "x": 150}}, "displayName": "Canada", "name": "anotherName", "income": 5}, {"displayInfo": {"path": [[0, 200], [100, 200], [50, 110], [0, 105]], "circle": {"y": 180, "x": 50}, "name": {"y": 150, "x": 40}}, "displayName": "ocixeM", "name": "third", "income": 5}]
+[
+    {
+        "country": "", 
+        "displayInfo": {
+            "circle": {
+                "x": 80, 
+                "y": 20
+            }, 
+            "name": {
+                "x": 50, 
+                "y": 50
+            }, 
+            "path": [
+                [
+                    0, 
+                    0
+                ], 
+                [
+                    0, 
+                    100
+                ], 
+                [
+                    100, 
+                    100
+                ], 
+                [
+                    100, 
+                    0
+                ]
+            ]
+        }, 
+        "displayName": "Display Name", 
+        "income": "1", 
+        "name": "uniqueName", 
+        "type": "land"
+    }, 
+    {
+        "displayInfo": {
+            "circle": {
+                "x": 180, 
+                "y": 20
+            }, 
+            "name": {
+                "x": 150, 
+                "y": 50
+            }, 
+            "path": [
+                [
+                    101, 
+                    0
+                ], 
+                [
+                    101, 
+                    101
+                ], 
+                [
+                    201, 
+                    101
+                ], 
+                [
+                    201, 
+                    0
+                ]
+            ]
+        }, 
+        "displayName": "Canada", 
+        "income": 5, 
+        "name": "anotherName"
+    }, 
+    {
+        "displayInfo": {
+            "circle": {
+                "x": 50, 
+                "y": 180
+            }, 
+            "name": {
+                "x": 40, 
+                "y": 150
+            }, 
+            "path": [
+                [
+                    0, 
+                    200
+                ], 
+                [
+                    100, 
+                    200
+                ], 
+                [
+                    50, 
+                    110
+                ], 
+                [
+                    0, 
+                    105
+                ]
+            ]
+        }, 
+        "displayName": "ocixeM", 
+        "income": 5, 
+        "name": "third"
+    }
+]

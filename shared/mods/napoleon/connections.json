@@ -1,1 +1,10 @@
-[["anotherName", "third"], ["uniqueName", "third"], ["anotherName", "uniqueName"]]
+[
+    [
+        "anotherName", 
+        "third"
+    ], 
+    [
+        "uniqueName", 
+        "third"
+    ]
+]

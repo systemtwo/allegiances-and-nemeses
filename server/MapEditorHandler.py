@@ -56,16 +56,12 @@ class MapEditorHandler(tornado.web.RequestHandler):
             moduleName = params["moduleName"]
             moduleInfo = json.loads(self.request.body)
             if os.path.exists(os.path.join(self.config.ABS_MODS_PATH, moduleName)):
+                def writeFile(key, fileName):
+                    if key in moduleInfo:
+                        with open(fileName, "w") as f:
+                            f.write(json.dumps(moduleInfo[key], indent=4, sort_keys=True))
 
-                if "countries" in moduleInfo:
-                    with open(GameBoard.Util.countryFileName(moduleName), 'w') as f:
-                        f.write(json.dumps(moduleInfo["countries"]))
-                if "units" in moduleInfo:
-                    with open(GameBoard.Util.unitFileName(moduleName), 'w') as f:
-                        f.write(json.dumps(moduleInfo["units"]))
-                if "territories" in moduleInfo:
-                    with open(GameBoard.Util.territoryFileName(moduleName), 'w') as f:
-                        f.write(json.dumps(moduleInfo["territories"]))
-                if "connections" in moduleInfo:
-                    with open(GameBoard.Util.connectionFileName(moduleName), 'w') as f:
-                        f.write(json.dumps(moduleInfo["connections"]))
+                writeFile("countries", GameBoard.Util.countryFileName(moduleName))
+                writeFile("units", GameBoard.Util.unitFileName(moduleName))
+                writeFile("territories", GameBoard.Util.territoryFileName(moduleName))
+                writeFile("connections", GameBoard.Util.connectionFileName(moduleName))

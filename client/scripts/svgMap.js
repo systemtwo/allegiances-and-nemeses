@@ -154,7 +154,7 @@ function(d3, _, backbone) {
             .attr("x1", function(d){return d.x1})
             .attr("x2", function(d){return d.x2})
             .attr("y1", function(d){return d.y1})
-            .attr("y2", function(d){return d.y2})
+            .attr("y2", function(d){return d.y2});
 
 
         lines.exit().remove();
