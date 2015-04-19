@@ -45,7 +45,9 @@ function(nj, _svg, _, msg) {
         });
         $("#save").click(function(){
             $.post("/modules/" + mapData.moduleName, JSON.stringify({
-                connections: mapData.connections.map(function (c) {return [c[0].name, c[1].name]}),
+                connections: mapData.connections.map(function (c) {
+                    return [c[0].name, c[1].name].sort(); // sort them for consistency
+                }),
                 territories: mapData.territories
             }))
         });
