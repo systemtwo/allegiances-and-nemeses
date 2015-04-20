@@ -1,63 +1,48 @@
 // Start the main app logic.
-define(["nunjucks", "svgMap", "underscore", "message", "jquery-ui"],
-function(nj, _svg, _, msg) {
+define(["nunjucks", "svgMap", "underscore", "message", "territoryEditor", "jquery-ui"],
+function(nj, _svg, _, msg, TerritoryEditorView) {
 
     // Local namespace
-    var currentTerritory;
     var mapData = {
         territories: [],
         connections: [],
         showConnections: true
     };
     var svgMap = null;
+    var territoryEditorView = new TerritoryEditorView({
+        el: $("#editTerritoryPanel")
+    });
 
     setCurrentTerritory(null);
     var modes = {
-        CREATE: "createTerritory",
         CONNECT: "connect",
         BROWSE: "doNothing"
     };
     var currentMode = modes.BROWSE;
 
     function bindButtons() {
-        $("#createButton").click(function(){
-            //_r.setSelectableTerritories([]);
-            currentMode = modes.CREATE;
-            setCurrentTerritory(null);
-            secondClick = false;
-        });
         $("#connectButton").click(function(){
-            //_r.setSelectableTerritories(territoryCatalogue);
+            svgMap.setSelectableTerritories(mapData.territories);
             currentMode = modes.CONNECT;
             setCurrentTerritory(null);
             connectionStart = null;
             secondClick = false;
         });
         $("#browseButton").click(function(){
-            //_r.setSelectableTerritories(territoryCatalogue);
+            svgMap.setSelectableTerritories(mapData.territories);
             currentMode = modes.BROWSE;
             setCurrentTerritory(null);
             secondClick = false;
         });
-        $("#territoryButton").click(function(){
-            showTerritoryList();
-            secondClick = false;
-        });
         $("#save").click(function(){
-            $.post("/modules/" + mapData.moduleName, JSON.stringify({
-                connections: mapData.connections.map(function (c) {
-                    return [c[0].name, c[1].name].sort(); // sort them for consistency
-                }),
-                territories: mapData.territories
-            }))
+            $.post("/modules/" + mapData.moduleName, JSON.stringify(getMapDataTransferObject()))
         });
         $("#getJSONButton").click(function(){
-            console.log(getJSON());
+            console.log(getMapDataTransferObject());
         });
     }
 
     function initialize(moduleInfo) {
-
         _.each(["territories", "countries", "connections", "moduleName"], function(parameter) {
             if (!moduleInfo[parameter]) {
                 msg.log("Missing parameter: " + parameter)
@@ -68,9 +53,7 @@ function(nj, _svg, _, msg) {
         // and do NOT use the Territory and Country class
         mapData.wrapsHorizontally = moduleInfo.wrapsHorizontally;
         mapData.territories = JSON.parse(moduleInfo.territories);
-
         mapData.countries = JSON.parse(moduleInfo.countries);
-
         mapData.moduleName = moduleInfo.moduleName;
 
         mapData.connections = JSON.parse(moduleInfo.connections).map(function(c) {
@@ -78,6 +61,11 @@ function(nj, _svg, _, msg) {
             var second = _.find(mapData.territories, {name: c[1]});
             return [first, second];
         });
+
+        territoryEditorView.update({
+            countryList: mapData.countries
+        });
+        territoryEditorView.render();
 
         svgMap = new _svg.Map(mapData, ".map-holder");
         svgMap.update({showConnections: true});
@@ -91,7 +79,7 @@ function(nj, _svg, _, msg) {
         });
 
         bindButtons();
-        //_r.setSelectableTerritories(territoryCatalogue);
+        svgMap.setSelectableTerritories(mapData.territories);
     }
 
     function territoriesEqual(territory, other) {
@@ -154,82 +142,32 @@ function(nj, _svg, _, msg) {
                     connect(territory, connectionStart);
                     connectionStart = null;
                     //_r.hideArrow();
+                    svgMap.setSelectableTerritories(mapData.territories);
                 } else {
                     //_r.showArrowFrom(t);
                     connectionStart = territory;
+                    svgMap.setSelectableTerritories(_.filter(mapData.territories, function(t) {
+                        return t != territory;
+                    }))
                 }
             } else {
                 connectionStart = null;
+                svgMap.setSelectableTerritories(mapData.territories);
                 //_r.hideArrow();
             }
         }
         //_r.drawMap();
     }
-    function showTerritoryList() {
-        var windowContents = $(nj.render( "/static/templates/tList.html", {territories: mapData.territories}));
-
-        windowContents.find(".territoryRow").click(function() {
-            var name = $(this).data("name");
-            var matchingTerritory = _.findWhere(mapData.territories, {name: name});
-            selectTerritory(matchingTerritory);
-            //_r.setSelectableTerritories(territoryCatalogue);
-            windowContents.dialog("close");
-        }).css("cursor", "pointer");
-
-        windowContents.dialog({
-            title: "Territories - Click to Edit",
-            modal: false,
-            width: 600,
-            dialogClass: "no-close-button",
-            height: Math.min(500, window.innerHeight),
-            buttons: {
-                "Close": function () {
-                    $(this).dialog("close");
-                }
-            }
-        })
-    }
-
-    function selectTerritory (t){
-        setCurrentTerritory(t);
-        currentMode = modes.BROWSE;
-        //_r.setSelectableTerritories([]);
-    }
 
     function setCurrentTerritory(t) {
-        currentTerritory = t;
-        if (t === null) {
-            $("#editTerritoryPanel").empty().hide();
-        } else {
-            var contents = $(nj.render("static/templates/editTerritory.html", {territory: t, countries: mapData.countries}));
-            $("#editTerritoryPanel").show().html(contents);
-            var onChange = function(){
-                // Save the territory
-                var array = $("#editTerritoryForm").serializeArray();
-                var type = "land";
-                array.forEach(function(attribute) {
-                    if (attribute.name == "type") {
-                        type = attribute.value;
-                        return;
-                    }
-                    t[attribute.name] = attribute.value;
-                });
-
-                // 'type' checkbox does not appear in array if deselected, so must be land if 'type' not present
-                var changed = t.type !== type;
-                t.type = type;
-                if (changed) {
-                    setCurrentTerritory(t); // force rerender
-                }
-            };
-            contents.find("input").change(onChange);
-            contents.find("select").change(onChange);
-        }
+        territoryEditorView.update({
+            territory: t
+        });
     }
 
-    function getJSON() {
+    function getMapDataTransferObject() {
         return {
-            territories: JSON.stringify(mapData.territories.map(function(t) {
+            territories: mapData.territories.map(function(t) {
                 if (t.type == "sea") {
                     var copiedTerritory = jQuery.extend({}, t);
                     // sea zones don't produce and can't be owned
@@ -239,8 +177,10 @@ function(nj, _svg, _, msg) {
                 } else {
                     return t;
                 }
-            })),
-            connections: JSON.stringify(mapData.connections.map(function (c) {return [c[0].name, c[1].name]}))
+            }),
+            connections: mapData.connections.map(function (c) {
+                return [c[0].name, c[1].name].sort(); // sort them for consistency
+            })
         };
     }
 

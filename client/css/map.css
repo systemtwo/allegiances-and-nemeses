@@ -3,8 +3,22 @@
     height:100%;
 }
 
-.map-holder {
-    width:800px;
-    height:600px;
-    margin: 0 auto;
+.territory {
+    fill: rgba(170, 187, 119, 0.8);
+}
+
+.unit-selector   {
+    fill: #3e3;
+}
+
+.selectable .territory {
+    stroke: gold;
+    stroke-width: 2;
+    cursor: pointer;
+    fill: #ab7;
+}
+
+.selectable .territory-name {
+    cursor: pointer;
+    fill: #333;
 }

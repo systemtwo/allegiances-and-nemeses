@@ -1,0 +1,15 @@
+/* Map editor */
+#editTerritoryPanel {
+    flex-basis: 20%;
+}
+
+.edit-territory-form {
+    padding: 5px;
+    background-color: #F7D658;
+}
+
+.map-holder {
+    flex-basis:800px;
+    height:600px;
+    margin: 0 50px;
+}

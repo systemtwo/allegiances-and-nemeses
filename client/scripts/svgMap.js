@@ -10,6 +10,7 @@ function(d3, _, backbone) {
         this.showConnections = false;
         this.connections = [];
         this.territories = [];
+        this.selectableTerritories = [];
         this.parse(mapInfo);
 
         this.mapElement = d3.select(appendTo)
@@ -55,6 +56,11 @@ function(d3, _, backbone) {
         }
     };
 
+    proto.setSelectableTerritories = function(territories) {
+        this.selectableTerritories = territories;
+        this.drawMap();
+    };
+
     proto.update = function(mapInfo) {
         this.parse(mapInfo);
         this.drawMap();
@@ -62,81 +68,53 @@ function(d3, _, backbone) {
 
     proto.drawMap = function() {
         this.drawTerritories();
-        this.drawCircles();
-        this.drawNames();
         this.drawConnections(this.connections);
     };
 
     proto.drawTerritories = function () {
         var map = this;
-        var territories = this.container.selectAll("path")
+        var territoryGroups = this.container.selectAll(".territory-group")
             .data(this.territories);
 
-        territories.enter().append("path")
-            .attr("d", function(data) {
+        territoryGroups.exit().remove();
 
+        var newTerritories = territoryGroups.enter().append("g")
+            .classed("territory-group", true);
+        newTerritories.append("path")
+            .classed("territory", true)
+            .on("click", map.onTerritoryClick.bind(map));
+        newTerritories.append("circle")
+            .classed("unit-selector", true)
+            .attr("r", 10)
+            .on("click", map.onCircleClick.bind(map));
+        newTerritories.append("text")
+            .classed("territory-name", true)
+            .attr("text-anchor", "middle")
+            .attr("dominant-baseline", "middle");
+
+
+        territoryGroups
+            .classed("selectable", function(data){
+                return _.contains(map.selectableTerritories, data)
+            });
+
+        territoryGroups.select(".territory")
+            .attr("d", function(data) {
                 var corePath = _.map(data.displayInfo.path, function(points) {
                     return points.join(",");
                 }).join(" L");
 
                 return "M" + corePath + " z";
-            })
-            .on("click", map.onTerritoryClick.bind(map));
-
-        territories.exit().remove();
-
-        territories
-            .attr("fill", "#ab7");
-    };
-
-    proto.drawCircles = function() {
-        var map = this;
-        var circleInfo = _.map(this.territories, function(t){
-            return {
-                name: t.name,
-                x: t.displayInfo.circle.x,
-                y: t.displayInfo.circle.y
-            }
-        });
-        var circles = this.container.selectAll("circle")
-            .data(circleInfo);
-
-        circles.enter().append("circle")
-            .attr("r", 10)
-            .attr("cx", function(data) { return data.x; })
-            .attr("cy", function(data) { return data.y; })
-            .on("click", map.onCircleClick.bind(map));
-
-        circles.exit().remove();
-
-        circles
-            .attr("fill", "#3e3")
-    };
-
-    proto.drawNames = function() {
-        var map = this;
-        var data = _.map(this.territories, function(territoryInfo) {
-            return {
-                name: territoryInfo.name,
-                displayName: territoryInfo.displayName,
-                x: territoryInfo.displayInfo.name.x,
-                y: territoryInfo.displayInfo.name.y
-            }
-        });
-        var nameLabels = this.container.selectAll("text")
-            .data(data);
-
-        nameLabels.enter().append("text")
+            });
+        territoryGroups.select(".unit-selector")
+            .attr("cx", function(data) { return data.displayInfo.circle.x; })
+            .attr("cy", function(data) { return data.displayInfo.circle.y; });
+        territoryGroups.select(".territory-name")
             .text(function(d) {return d.displayName})
-            .attr("x", function(data) { return data.x; })
-            .attr("y", function(data) { return data.y; })
-            .attr("text-anchor", "middle")
-            .attr("dominant-baseline", "middle")
+            .attr("x", function(data) { return data.displayInfo.name.x; })
+            .attr("y", function(data) { return data.displayInfo.name.y; })
             .on("click", map.onTerritoryClick.bind(map));
-
-        nameLabels.exit().remove();
     };
-
     proto.drawConnections = function(connections) {
         var connectionData = _.map(connections, function(pair) {
             return {

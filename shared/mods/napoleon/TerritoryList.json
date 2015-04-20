@@ -1,6 +1,5 @@
 [
     {
-        "country": "", 
         "displayInfo": {
             "circle": {
                 "x": 80, 
@@ -30,11 +29,11 @@
             ]
         }, 
         "displayName": "Display Name", 
-        "income": "1", 
         "name": "uniqueName", 
-        "type": "land"
+        "type": "sea"
     }, 
     {
+        "country": "central", 
         "displayInfo": {
             "circle": {
                 "x": 180, 
@@ -64,10 +63,12 @@
             ]
         }, 
         "displayName": "Canada", 
-        "income": 5, 
-        "name": "anotherName"
+        "income": "7", 
+        "name": "myuniquestname", 
+        "type": "land"
     }, 
     {
+        "country": "western", 
         "displayInfo": {
             "circle": {
                 "x": 50, 
@@ -97,7 +98,8 @@
             ]
         }, 
         "displayName": "ocixeM", 
-        "income": 5, 
-        "name": "third"
+        "income": "10", 
+        "name": "third", 
+        "type": "land"
     }
 ]
