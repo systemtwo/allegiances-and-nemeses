@@ -79,7 +79,7 @@ function(nj, _svg, _, msg) {
             return [first, second];
         });
 
-        svgMap = new _svg.Map(mapData, document.body);
+        svgMap = new _svg.Map(mapData, ".map-holder");
         svgMap.update({showConnections: true});
         svgMap.drawMap();
         svgMap.on("click:territory", function(territoryName) {

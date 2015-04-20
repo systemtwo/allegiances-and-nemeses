@@ -1,20 +1,26 @@
 define(["lib/d3", "underscore", "backbone"],
 function(d3, _, backbone) {
-    function orElse(value, backup) {
-        return _.isUndefined(value) ? backup : value;
-    }
     var Map = function(mapInfo, appendTo) {
         var map = this;
+        var zoom = d3.behavior.zoom()
+            .scaleExtent([0.1, 10])
+            .on("zoom", function zoomed() {
+              map.container.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+            });
+        this.showConnections = false;
+        this.connections = [];
+        this.territories = [];
         this.parse(mapInfo);
 
         this.mapElement = d3.select(appendTo)
             .append("svg")
-            .style("padding", "100px")
-            .style("margin-left", "100px")
             .style("border", "black solid")
-            .on("click", function(){
-                map.trigger("click")
-            });
+            .classed("svg-map", true)
+            .on("click", map.onMapClick.bind(map))
+            .call(zoom);
+
+        this.container = this.mapElement.append("g")
+            .classed("map-element-container", true);
 
         return this;
     };
@@ -23,9 +29,11 @@ function(d3, _, backbone) {
 
     proto.parse = function(mapInfo) {
         var map = this;
-        this.territories = mapInfo.territories || this.territories || [];
+        if (_.isArray(mapInfo.territories)) {
+            this.territories = mapInfo.territories;
+        }
 
-        if (mapInfo.connections) {
+        if (_.isArray(mapInfo.connections)) {
             this.connections = _.map(mapInfo.connections, function (pair) {
                 return _.map(pair, function(maybeTerritory) {
                     if (_.contains(map.territories, maybeTerritory)) {
@@ -42,7 +50,9 @@ function(d3, _, backbone) {
             });
         }
         // update if passed in, otherwise keep same value or default to false
-        this.showConnections = orElse(mapInfo.showConnections, this.showConnections || false);
+        if (!_.isUndefined(mapInfo.showConnections)) {
+            this.showConnections = mapInfo.showConnections;
+        }
     };
 
     proto.update = function(mapInfo) {
@@ -59,7 +69,7 @@ function(d3, _, backbone) {
 
     proto.drawTerritories = function () {
         var map = this;
-        var territories = this.mapElement.selectAll("path")
+        var territories = this.container.selectAll("path")
             .data(this.territories);
 
         territories.enter().append("path")
@@ -71,9 +81,7 @@ function(d3, _, backbone) {
 
                 return "M" + corePath + " z";
             })
-            .on("click", function(data){
-                map.trigger("click:territory", data.name);
-            });
+            .on("click", map.onTerritoryClick.bind(map));
 
         territories.exit().remove();
 
@@ -90,16 +98,14 @@ function(d3, _, backbone) {
                 y: t.displayInfo.circle.y
             }
         });
-        var circles = this.mapElement.selectAll("circle")
+        var circles = this.container.selectAll("circle")
             .data(circleInfo);
 
         circles.enter().append("circle")
             .attr("r", 10)
             .attr("cx", function(data) { return data.x; })
             .attr("cy", function(data) { return data.y; })
-            .on("click", function(data){
-                map.trigger("click:circle", data.name);
-            });
+            .on("click", map.onCircleClick.bind(map));
 
         circles.exit().remove();
 
@@ -117,7 +123,7 @@ function(d3, _, backbone) {
                 y: territoryInfo.displayInfo.name.y
             }
         });
-        var nameLabels = this.mapElement.selectAll("text")
+        var nameLabels = this.container.selectAll("text")
             .data(data);
 
         nameLabels.enter().append("text")
@@ -126,9 +132,7 @@ function(d3, _, backbone) {
             .attr("y", function(data) { return data.y; })
             .attr("text-anchor", "middle")
             .attr("dominant-baseline", "middle")
-            .on("click", function(data){
-                map.trigger("click:territory", data.name);
-            });
+            .on("click", map.onTerritoryClick.bind(map));
 
         nameLabels.exit().remove();
     };
@@ -142,7 +146,7 @@ function(d3, _, backbone) {
                 y2: pair[0].displayInfo.name.y
             }
         });
-        var lines = this.mapElement.selectAll(".connection")
+        var lines = this.container.selectAll(".connection")
             .data(connectionData);
 
         lines.enter().append("line")
@@ -158,6 +162,21 @@ function(d3, _, backbone) {
 
 
         lines.exit().remove();
+    };
+
+    proto.onMapClick = function() {
+        if (d3.event.defaultPrevented) return; // click suppressed
+        this.trigger("click");
+    };
+
+    proto.onTerritoryClick =  function(data){
+        if (d3.event.defaultPrevented) return; // click suppressed
+        this.trigger("click:territory", data.name);
+    };
+
+    proto.onCircleClick = function(data){
+        if (d3.event.defaultPrevented) return; // click suppressed
+        this.trigger("click:circle", data.name);
     };
 
     return {
