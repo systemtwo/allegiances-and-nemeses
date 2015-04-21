@@ -1,4 +1,9 @@
 /* Map editor */
+
+.map-editor-center {
+    margin-top: 50px;
+}
+
 #editTerritoryPanel {
     flex-basis: 20%;
 }
@@ -12,4 +17,14 @@
     flex-basis:800px;
     height:600px;
     margin: 0 50px;
+}
+
+.action-section {
+    padding: 10px;
+    justify-content: center;
+    display: flex;
+}
+
+.action-section .btn {
+    margin: 5px;
 }
