@@ -1,6 +1,6 @@
 // Start the main app logic.
 define(["nunjucks", "svgMap", "underscore", "message", "territoryEditor", "jquery-ui"],
-function(nj, _svg, _, msg, TerritoryEditorView) {
+function (nj, _svg, _, msg, TerritoryEditorView) {
 
     // Local namespace
     var mapData = {
@@ -20,30 +20,30 @@ function(nj, _svg, _, msg, TerritoryEditorView) {
     };
     var currentMode = modes.BROWSE;
 
-    function bindButtons() {
-        $("#connectButton").click(function(){
+    function bindButtons () {
+        $("#connectButton").click(function (){
             svgMap.setSelectableTerritories(mapData.territories);
             currentMode = modes.CONNECT;
             setCurrentTerritory(null);
             connectionStart = null;
             secondClick = false;
         });
-        $("#browseButton").click(function(){
+        $("#browseButton").click(function (){
             svgMap.setSelectableTerritories(mapData.territories);
             currentMode = modes.BROWSE;
             setCurrentTerritory(null);
             secondClick = false;
         });
-        $("#save").click(function(){
+        $("#save").click(function (){
             $.post("/modules/" + mapData.moduleName, JSON.stringify(getMapDataTransferObject()))
         });
-        $("#getJSONButton").click(function(){
+        $("#getJSONButton").click(function (){
             console.log(getMapDataTransferObject());
         });
     }
 
-    function initialize(moduleInfo) {
-        _.each(["territories", "countries", "connections", "moduleName"], function(parameter) {
+    function initialize (moduleInfo) {
+        _.each(["territories", "countries", "connections", "moduleName"], function (parameter) {
             if (!moduleInfo[parameter]) {
                 msg.log("Missing parameter: " + parameter)
             }
@@ -56,7 +56,7 @@ function(nj, _svg, _, msg, TerritoryEditorView) {
         mapData.countries = JSON.parse(moduleInfo.countries);
         mapData.moduleName = moduleInfo.moduleName;
 
-        mapData.connections = JSON.parse(moduleInfo.connections).map(function(c) {
+        mapData.connections = JSON.parse(moduleInfo.connections).map(function (c) {
             var first = _.find(mapData.territories, {name: c[0]});
             var second = _.find(mapData.territories, {name: c[1]});
             return [first, second];
@@ -70,11 +70,11 @@ function(nj, _svg, _, msg, TerritoryEditorView) {
         svgMap = new _svg.Map(mapData, ".map-holder");
         svgMap.update({showConnections: true});
         svgMap.drawMap();
-        svgMap.on("click:territory", function(territoryName) {
+        svgMap.on("click:territory", function (territoryName) {
             var territory = _.findWhere(mapData.territories, {name: territoryName});
             territoryClick(territory);
         });
-        svgMap.on("click:nothing", function() {
+        svgMap.on("click:nothing", function () {
             territoryClick(null);
         });
 
@@ -82,7 +82,7 @@ function(nj, _svg, _, msg, TerritoryEditorView) {
         svgMap.setSelectableTerritories(mapData.territories);
     }
 
-    function territoriesEqual(territory, other) {
+    function territoriesEqual (territory, other) {
         var nameA = _.isString(territory) ? territory : territory.name;
         var nameB = _.isString(other) ? other : other.name;
 
@@ -94,7 +94,7 @@ function(nj, _svg, _, msg, TerritoryEditorView) {
      * @param territory
      * @param other
      */
-    function connect(territory, other) {
+    function connect (territory, other) {
         if (territoriesEqual(territory, other)) {
             msg.log("Cannot connect identical territories");
             return false;
@@ -114,9 +114,9 @@ function(nj, _svg, _, msg, TerritoryEditorView) {
         })
     }
 
-    function removeConnection(connection) {
+    function removeConnection (connection) {
         var numConnections = mapData.connections.length;
-        mapData.connections = _.filter(mapData.connections, function(pair) {
+        mapData.connections = _.filter(mapData.connections, function (pair) {
             return !((territoriesEqual(pair[0], connection[0]) && territoriesEqual(pair[1], connection[1])) ||
                     (territoriesEqual(pair[1], connection[0]) && territoriesEqual(pair[0], connection[1])));
         });
@@ -131,7 +131,7 @@ function(nj, _svg, _, msg, TerritoryEditorView) {
 
     var secondClick = false, firstClick = {}, connectionStart = null;
     // Override the click handler on the canvas element with this function, when in map editor mode
-    function territoryClick(territory) {
+    function territoryClick (territory) {
         if (currentMode == modes.BROWSE) {
             if (territory) {
                 setCurrentTerritory(territory);
@@ -146,7 +146,7 @@ function(nj, _svg, _, msg, TerritoryEditorView) {
                 } else {
                     //_r.showArrowFrom(t);
                     connectionStart = territory;
-                    svgMap.setSelectableTerritories(_.filter(mapData.territories, function(t) {
+                    svgMap.setSelectableTerritories(_.filter(mapData.territories, function (t) {
                         return t != territory;
                     }))
                 }
@@ -159,15 +159,15 @@ function(nj, _svg, _, msg, TerritoryEditorView) {
         //_r.drawMap();
     }
 
-    function setCurrentTerritory(t) {
+    function setCurrentTerritory (t) {
         territoryEditorView.update({
             territory: t
         });
     }
 
-    function getMapDataTransferObject() {
+    function getMapDataTransferObject () {
         return {
-            territories: mapData.territories.map(function(t) {
+            territories: mapData.territories.map(function (t) {
                 if (t.type == "sea") {
                     var copiedTerritory = jQuery.extend({}, t);
                     // sea zones don't produce and can't be owned
