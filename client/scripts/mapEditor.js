@@ -1,6 +1,6 @@
 // Start the main app logic.
-define(["nunjucks", "svgMap", "underscore", "message", "territoryEditor", "jquery-ui"],
-function (nj, _svg, _, msg, TerritoryEditorView) {
+define(["nunjucks", "mapEditor/svgMapEditor", "underscore", "message", "territoryEditor", "jquery-ui"],
+function (nj, _svgMapEditor, _, msg, TerritoryEditorView) {
 
     // Local namespace
     var mapData = {
@@ -70,7 +70,7 @@ function (nj, _svg, _, msg, TerritoryEditorView) {
         });
         territoryEditorView.render();
 
-        svgMap = new _svg.Map(mapData, ".map-holder");
+        svgMap = new _svgMapEditor.MapEditor(mapData, ".map-holder");
         svgMap.update({
             showConnections: true,
             nodes: nodes
@@ -82,6 +82,10 @@ function (nj, _svg, _, msg, TerritoryEditorView) {
         });
         svgMap.on("click:nothing", function () {
             territoryClick(null);
+        });
+        svgMap.on("drag:node", function (event, node) {
+            node.updatePoint(event.x, event.y);
+            svgMap.drawTerritories();
         });
 
         bindButtons();
