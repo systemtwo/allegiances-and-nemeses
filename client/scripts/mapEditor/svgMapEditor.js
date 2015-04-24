@@ -96,7 +96,10 @@ function (d3, _, backbone, svgMap) {
         nodeElements.enter().append("circle")
             .classed("node", true)
             .attr("r", 5)
-            .call(drag);
+            .call(drag)
+            .on("click", function (node) {
+                map.onNodeClick(node, this);
+            });
 
         nodeElements
             .attr("cx", function (d) { return d.getX(); })
@@ -108,8 +111,12 @@ function (d3, _, backbone, svgMap) {
             d3.select(this)
                 .attr("cx", d3.event.x)
                 .attr("cy", d3.event.y);
-            map.trigger("drag:node", d3.event, node);
+            map.trigger("drag:node", node, d3.event.x, d3.event.y);
         }
+    };
+    MapEditor.prototype.onNodeClick = function (node, element) {
+        if (d3.event.defaultPrevented) return; // click suppressed
+        this.trigger("click:node", node, element);
     };
 
     // Default event handlers

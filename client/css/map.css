@@ -22,3 +22,7 @@
     cursor: pointer;
     fill: #333;
 }
+
+.selected-node {
+    fill: hotpink;
+}

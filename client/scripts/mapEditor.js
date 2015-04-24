@@ -1,6 +1,5 @@
-// Start the main app logic.
-define(["nunjucks", "mapEditor/svgMapEditor", "underscore", "message", "territoryEditor", "jquery-ui"],
-function (nj, _svgMapEditor, _, msg, TerritoryEditorView) {
+define(["lib/d3", "mapEditor/svgMapEditor", "underscore", "message", "territoryEditor", "mapEditor/nodeEditor"],
+function (d3, _svgMapEditor, _, msg, TerritoryEditorView, _nodeEditor) {
 
     // Local namespace
     var mapData = {
@@ -43,7 +42,7 @@ function (nj, _svgMapEditor, _, msg, TerritoryEditorView) {
     }
 
     function initialize (moduleInfo) {
-        var nodes;
+        var nodeEditor;
         _.each(["territories", "countries", "connections", "moduleName"], function (parameter) {
             if (!moduleInfo[parameter]) {
                 msg.log("Missing parameter: " + parameter)
@@ -63,17 +62,18 @@ function (nj, _svgMapEditor, _, msg, TerritoryEditorView) {
             return [first, second];
         });
 
-        nodes = createNodes(mapData.territories);
-
         territoryEditorView.update({
             countryList: mapData.countries
         });
         territoryEditorView.render();
 
+        nodeEditor = new _nodeEditor.NodeEditor({
+            territories: mapData.territories
+        });
         svgMap = new _svgMapEditor.MapEditor(mapData, ".map-holder");
         svgMap.update({
             showConnections: true,
-            nodes: nodes
+            nodes: nodeEditor.getNodes()
         });
         svgMap.drawMap();
         svgMap.on("click:territory", function (territoryName) {
@@ -83,74 +83,16 @@ function (nj, _svgMapEditor, _, msg, TerritoryEditorView) {
         svgMap.on("click:nothing", function () {
             territoryClick(null);
         });
-        svgMap.on("drag:node", function (event, node) {
-            node.updatePoint(event.x, event.y);
+        svgMap.on("drag:node", function (node, newX, newY) {
+            nodeEditor.onNodeDrag(node, newX, newY);
             svgMap.drawTerritories();
+        });
+        svgMap.on("click:node", function (node, element) {
+            nodeEditor.onNodeClick(node, element);
         });
 
         bindButtons();
         svgMap.setSelectableTerritories(mapData.territories);
-    }
-
-    var Node = function (point) {
-        this.point = {
-            x: point[0],
-            y: point[1]
-        };
-        this.references = [point];
-        return this;
-    };
-    Node.prototype.getX = function () {
-        return this.point.x;
-    };
-    Node.prototype.getY = function () {
-        return this.point.y;
-    };
-    Node.prototype.updatePoint = function (x, y) {
-        var node = this;
-        if (_.isFinite(x)) {
-            this.point.x = x;
-        }
-        if (_.isFinite(y)) {
-            this.point.y = y;
-        }
-
-        _.each(node.references, function (linkedPoint) {
-            linkedPoint[0] = node.point.x;
-            linkedPoint[1] = node.point.y;
-        })
-    };
-    Node.prototype.addReference = function (newPoint) {
-        var node = this;
-        if (!node.atPoint(newPoint)) {
-            console.error("Trying to add non-corresponding point");
-            return;
-        }
-
-        this.references.push(newPoint);
-    };
-    Node.prototype.atPoint = function(point) {
-        var node = this;
-        return node.point.x == point[0] && node.point.y == point[1];
-    };
-
-    function createNodes (territories) {
-        var nodes = [], path;
-        _.each(territories, function (territory) {
-            path = territory.displayInfo.path;
-            if (!_.isArray(path)) throw "No path provided for territory " + territory.displayName;
-            _.each(path, function (point) {
-                var correspondingNode = _.find(nodes, function (node) {
-                    return node.atPoint(point);
-                });
-                if (correspondingNode) {
-                    correspondingNode.addReference(point);
-                } else {
-                    nodes.push(new Node(point));
-                }
-            })
-        });
-        return nodes;
     }
 
     function territoriesEqual (territory, other) {
