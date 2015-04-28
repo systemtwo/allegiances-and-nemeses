@@ -142,8 +142,7 @@ function (d3, _, backbone, ko) {
             _.each(nodes, function (node) {
                 node.remove();
             });
-            this.nodes = this.createNodes(this.territories);
-            this.trigger("change");
+            this.updateNodes();
         },
         /**
          * Consolidates all selected nodes to a single point.
@@ -164,8 +163,7 @@ function (d3, _, backbone, ko) {
             _.each(affectedTerritories, function (territory) {
                 territory.displayInfo.path = _.unique(territory.displayInfo.path);
             });
-            this.nodes = this.createNodes(this.territories);
-            this.trigger("change");
+            this.updateNodes();
         },
 
         /**
@@ -194,8 +192,7 @@ function (d3, _, backbone, ko) {
                 var insertAfter = firstIndex === 0 || firstIndex > secondIndex ? secondIndex : firstIndex;
                 info.path.splice(insertAfter + 1, 0, [newX, newY]);
             });
-            this.nodes = this.createNodes(this.territories);
-            this.trigger("change");
+            this.updateNodes();
         },
 
         getNodes: function () {
@@ -236,6 +233,12 @@ function (d3, _, backbone, ko) {
                 }
             });
             return nodes;
+        },
+
+        updateNodes: function () {
+            this.nodes = this.createNodes(this.territories);
+            this.selectedNodes = [];
+            this.trigger("change");
         },
 
         assertNodeValidity: function (node) {
