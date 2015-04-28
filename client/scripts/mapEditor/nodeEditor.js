@@ -115,8 +115,11 @@ function (d3, _, backbone, ko) {
                     editor.merge(editor.selectedNodes)
                 },
 
+                splitNodes: function () {
+                    editor.split(editor.selectedNodes)
+                },
+
                 canJoin: ko.computed(function () {
-                    console.log(editor.selectedNodes)
                     return;
                 }),
                 canSplit: ko.computed(function () {
@@ -164,8 +167,35 @@ function (d3, _, backbone, ko) {
             this.nodes = this.createNodes(this.territories);
             this.trigger("change");
         },
-        split: function (nodes) {
 
+        /**
+         * Inserts a new node between two selected nodes
+         * Adds a new path element in every territory that contains both nodes
+         * @param nodes
+         */
+        split: function (nodes) {
+            if (nodes.length !== 2) {
+                throw "Can only split exactly two nodes";
+            }
+            var first = nodes[0];
+            var second = nodes[1];
+            var newX = (first.getX() + second.getX()) / 2;
+            var newY = (first.getY() + second.getY()) / 2;
+
+            var affectedTerritories = _.intersection(first.territories, second.territories);
+            _.each(affectedTerritories, function (t) {
+                var info = t.displayInfo;
+                var firstIndex = _.findIndex(info.path, function (point) {
+                    return first.atPoint(point);
+                });
+                var secondIndex = _.findIndex(info.path, function (point) {
+                    return second.atPoint(point);
+                });
+                var insertAfter = firstIndex === 0 || firstIndex > secondIndex ? secondIndex : firstIndex;
+                info.path.splice(insertAfter + 1, 0, [newX, newY]);
+            });
+            this.nodes = this.createNodes(this.territories);
+            this.trigger("change");
         },
 
         getNodes: function () {

@@ -5,6 +5,7 @@ function (d3, _, backbone, svgMap) {
         this.showConnections = false;
         this.connections = [];
         svgMap.Map.call(this, mapInfo, appendTo);
+        this.mapElement.on("dblclick.zoom", null);
         this.nodesContainer = this.container.append("g")
             .classed("nodes-container", true);
         this.connectionsContainer = this.container.append("g")
