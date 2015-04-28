@@ -111,6 +111,10 @@ function (d3, _, backbone, ko) {
                     editor.remove(editor.selectedNodes)
                 },
 
+                mergeNodes: function () {
+                    editor.merge(editor.selectedNodes)
+                },
+
                 canJoin: ko.computed(function () {
                     console.log(editor.selectedNodes)
                     return;
@@ -118,7 +122,7 @@ function (d3, _, backbone, ko) {
                 canSplit: ko.computed(function () {
                     return;
                 })
-            }
+            };
             window.viewModel = this.viewModel;
         },
 
@@ -127,6 +131,10 @@ function (d3, _, backbone, ko) {
         },
 
         // ACTIONS
+        /**
+         * Removes nodes from the paths of corresponding territories
+         * @param nodes
+         */
         remove: function (nodes) {
             _.each(nodes, function (node) {
                 node.remove();
@@ -134,8 +142,27 @@ function (d3, _, backbone, ko) {
             this.nodes = this.createNodes(this.territories);
             this.trigger("change");
         },
+        /**
+         * Consolidates all selected nodes to a single point.
+         * Removes duplicate nodes in a path
+         * @param nodes
+         */
         merge: function (nodes) {
+            // TODO check nodes are neighbours
+            var affectedTerritories = [];
 
+            var newX = nodes[0].getX(),
+                newY = nodes[0].getY();
+            _.each(nodes, function (node) {
+                node.updatePoint(newX, newY);
+                affectedTerritories = affectedTerritories.concat(node.territories);
+            });
+
+            _.each(affectedTerritories, function (territory) {
+                territory.displayInfo.path = _.unique(territory.displayInfo.path);
+            });
+            this.nodes = this.createNodes(this.territories);
+            this.trigger("change");
         },
         split: function (nodes) {
 
