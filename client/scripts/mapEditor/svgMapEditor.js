@@ -102,6 +102,7 @@ function (d3, _, backbone, svgMap) {
             });
 
         nodeElements
+            .classed("selected-node", function (d) { return d.selected })
             .attr("cx", function (d) { return d.getX(); })
             .attr("cy", function (d) { return d.getY(); });
 

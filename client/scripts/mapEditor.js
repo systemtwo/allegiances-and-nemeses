@@ -90,6 +90,11 @@ function (d3, _svgMapEditor, _, msg, TerritoryEditorView, _nodeEditor) {
         svgMap.on("click:node", function (node, element) {
             nodeEditor.onNodeClick(node, element);
         });
+        nodeEditor.on("change", function () {
+            svgMap.update({
+                nodes: nodeEditor.getNodes()
+            })
+        });
 
         bindButtons();
         svgMap.setSelectableTerritories(mapData.territories);
