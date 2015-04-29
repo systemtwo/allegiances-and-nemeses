@@ -1,6 +1,20 @@
 define(["lib/d3", "underscore", "backbone", "knockout"],
 function (d3, _, backbone, ko) {
 
+    // Helper functions
+    function uniquePath(territoryPath) {
+        var pairs = [];
+        _.each(territoryPath, function (point) {
+            var exists = _.some(pairs, function (existingPoint) {
+                return point[0] === existingPoint[0] && point[1] === existingPoint[1];
+            });
+            if (!exists) {
+                pairs.push(point);
+            }
+        });
+        return pairs;
+    }
+
     var Node = function (point) {
         this.point = {
             x: point[0],
@@ -161,7 +175,7 @@ function (d3, _, backbone, ko) {
             });
 
             _.each(affectedTerritories, function (territory) {
-                territory.displayInfo.path = _.unique(territory.displayInfo.path);
+                territory.displayInfo.path = uniquePath(territory.displayInfo.path);
             });
             this.updateNodes();
         },
@@ -189,7 +203,10 @@ function (d3, _, backbone, ko) {
                 var secondIndex = _.findIndex(info.path, function (point) {
                     return second.atPoint(point);
                 });
-                var insertAfter = firstIndex === 0 || firstIndex > secondIndex ? secondIndex : firstIndex;
+                var insertAfterFirst = (firstIndex < secondIndex &&
+                    !(firstIndex === 0 && secondIndex === info.path.length - 1)) ||
+                    (secondIndex === 0 && firstIndex === info.path.length - 1);
+                var insertAfter = insertAfterFirst ? firstIndex : secondIndex;
                 info.path.splice(insertAfter + 1, 0, [newX, newY]);
             });
             this.updateNodes();
