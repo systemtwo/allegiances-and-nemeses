@@ -1,5 +1,5 @@
-define(["lib/d3", "underscore", "backbone", "knockout"],
-function (d3, _, backbone, ko) {
+define(["lib/d3", "underscore", "backbone", "knockout", "text!/static/templates/nodeEditorActions.ko.html"],
+function (d3, _, backbone, ko, buttonTemplate) {
 
     // Helper functions
     function uniquePath(territoryPath) {
@@ -112,39 +112,52 @@ function (d3, _, backbone, ko) {
     };
 
     var NodeEditor = backbone.View.extend({
-        selectedNodes: [],
+        selectedNodes: ko.observableArray(),
         nodes: [],
         initialize: function (options) {
             var editor = this;
             this.territories = options.territories;
             this.nodes = this.createNodes(this.territories);
             this.viewModel = {
-                selectedNodes: ko.observableArray(),
-
-                removeNodes: function () {
-                    editor.remove(editor.selectedNodes)
-                },
-
-                mergeNodes: function () {
-                    editor.merge(editor.selectedNodes)
-                },
-
-                splitNodes: function () {
-                    editor.split(editor.selectedNodes)
-                },
-
-                canJoin: ko.computed(function () {
-                    return;
-                }),
-                canSplit: ko.computed(function () {
-                    return;
-                })
+                actions: [
+                    {
+                        displayName: "Delete",
+                        onClick: function () {
+                            editor.remove(editor.selectedNodes())
+                        },
+                        enabled: ko.computed(function () {
+                            return editor.selectedNodes().length > 0
+                        })
+                    },
+                    {
+                        displayName: "Merge",
+                        onClick: function () {
+                            editor.merge(editor.selectedNodes())
+                        },
+                        enabled: ko.computed(function () {
+                            // TODO all nodes must be a cluster of neighbours
+                            return editor.selectedNodes().length > 1;
+                        })
+                    },
+                    {
+                        displayName: "Split",
+                        onClick: function () {
+                            editor.split(editor.selectedNodes())
+                        },
+                        enabled: ko.computed(function () {
+                            var selected = editor.selectedNodes();
+                            return selected.length === 2 &&
+                                selected[0].distance(selected[1]) === 1;
+                        })
+                    }
+                ]
             };
             window.viewModel = this.viewModel;
         },
 
         render: function () {
-            // draw buttons
+            ko.applyBindings(this.viewModel, $(buttonTemplate).appendTo(this.$el)[0]);
+            return this.$el;
         },
 
         // ACTIONS
@@ -215,7 +228,7 @@ function (d3, _, backbone, ko) {
         getNodes: function () {
             var editor = this;
             return _.map(this.nodes, function (node) {
-                node.selected = _.contains(editor.selectedNodes, node);
+                node.selected = _.contains(editor.selectedNodes(), node);
                 return node;
             });
         },
@@ -254,7 +267,7 @@ function (d3, _, backbone, ko) {
 
         updateNodes: function () {
             this.nodes = this.createNodes(this.territories);
-            this.selectedNodes = [];
+            this.selectedNodes([]);
             this.trigger("change");
         },
 
@@ -269,14 +282,15 @@ function (d3, _, backbone, ko) {
         },
 
         deselectNode: function (node) {
-            this.selectedNodes = _.filter(this.selectedNodes, function (n) {
+            var filtered = _.filter(this.selectedNodes(), function (n) {
                 return n != node;
-            })
+            });
+            this.selectedNodes(filtered);
         },
 
         onNodeClick: function (node) {
             this.assertNodeValidity(node);
-            if (_.contains(this.selectedNodes, node)) {
+            if (_.contains(this.selectedNodes(), node)) {
                 this.deselectNode(node);
             } else {
                 this.selectNode(node);

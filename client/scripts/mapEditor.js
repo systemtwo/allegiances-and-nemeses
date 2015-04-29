@@ -68,6 +68,7 @@ function (d3, _svgMapEditor, _, msg, TerritoryEditorView, _nodeEditor) {
         territoryEditorView.render();
 
         nodeEditor = new _nodeEditor.NodeEditor({
+            el: $(".node-editor-section"),
             territories: mapData.territories
         });
         svgMap = new _svgMapEditor.MapEditor(mapData, ".map-holder");
@@ -76,6 +77,8 @@ function (d3, _svgMapEditor, _, msg, TerritoryEditorView, _nodeEditor) {
             nodes: nodeEditor.getNodes()
         });
         svgMap.drawMap();
+        nodeEditor.render();
+
         svgMap.on("click:territory", function (territoryName) {
             var territory = _.findWhere(mapData.territories, {name: territoryName});
             territoryClick(territory);
