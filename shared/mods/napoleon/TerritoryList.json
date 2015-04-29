@@ -83,7 +83,7 @@
             ]
         }, 
         "displayName": "Canada", 
-        "income": "7", 
+        "income": 7, 
         "name": "myuniquestname", 
         "type": "land"
     }, 
@@ -134,7 +134,7 @@
             ]
         }, 
         "displayName": "ocixeM", 
-        "income": "10", 
+        "income": 10, 
         "name": "third", 
         "type": "land"
     }

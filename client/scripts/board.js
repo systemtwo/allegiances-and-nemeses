@@ -1,5 +1,6 @@
-define(["backbone", "components", "helpers", "router", "gameAccessor", "phases/phaseHelper"], function(backbone, _c, _helpers, _router, _b, phaseHelper) {
-    var Game = function(id, boardInfo) {
+define(["backbone", "svgMap", "components", "helpers", "router", "gameAccessor", "phases/phaseHelper"],
+function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper) {
+    var Game = function(id, boardInfo, bindTo) {
         _b.setBoard(this);
         this.id = id;
         // lists of game objects whose properties will change as the game progresses
@@ -17,11 +18,13 @@ define(["backbone", "components", "helpers", "router", "gameAccessor", "phases/p
             unitCatalogue: boardInfo.unitCatalogue,
             imageMap: {} // Map of unitType->imageSource
         };
+        this.map = new svgMap.Map(this.boardData, bindTo);
         this.currentCountry = null;
         this.currentPhase = null;
         this.phaseName = "";
         this.mapImage = new Image();
         this.parse(boardInfo);
+        this.map.drawMap();
         return this;
     };
     _.extend(Game.prototype, backbone.Events); // mixin the events module
@@ -58,7 +61,7 @@ define(["backbone", "components", "helpers", "router", "gameAccessor", "phases/p
         console.table(this.boardData.countries);
         boardInfo.territoryInfo.forEach(function(tInfo) {
             var country = that.getCountry(tInfo.country);
-            that.boardData.territories.push(new _c.Territory(tInfo.name, tInfo.income, country, tInfo.x, tInfo.y, tInfo.width, tInfo.height))
+            that.boardData.territories.push(new _c.Territory(tInfo, country))
         });
 
         boardInfo.units.forEach(function(unit){
@@ -76,6 +79,7 @@ define(["backbone", "components", "helpers", "router", "gameAccessor", "phases/p
 
         _helpers.countryName(this.currentCountry.displayName);
         this.initConnections(boardInfo);
+        this.map.update(this.boardData);
         this.trigger("change");
     };
 

@@ -11,18 +11,12 @@ requirejs.config({
 });
 
 // Start the main app logic.
-requirejs(['board', "render", "dialogs", "router", "views/sidePanel/sidePanel", "jquery-ui"],
-function ( game, _render, _dialogs, _router, sidePanel) {
+requirejs(['board', "dialogs", "router", "views/sidePanel/sidePanel", "jquery-ui"],
+function ( game, _dialogs, _router, sidePanel) {
     var pathParts = window.location.pathname.split("/");
     var boardId = pathParts[pathParts.length - 1];
     _router.fetchBoard(boardId).done(function(boardInfo) {
-        var board = new game.Game(boardId, boardInfo);
-
-        console.time("Map Load");
-        board.setImage(boardInfo.imagePath, function onMapLoad() {
-            console.timeEnd("Map Load");
-            _render.initMap();
-        });
+        var board = new game.Game(boardId, boardInfo, "#board");
         var side = new sidePanel.SidePanel({
             el: $("#side-panel-container")
         });

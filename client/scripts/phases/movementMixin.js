@@ -1,5 +1,5 @@
-define(["gameAccessor", "helpers", "render", "dialogs", "views/moveUnit/moveUnit"],
-function(_b, _helpers, _render, _dialogs, MoveUnitView) {
+define(["gameAccessor", "helpers", "dialogs", "views/moveUnit/moveUnit"],
+function(_b, _helpers, _dialogs, MoveUnitView) {
     var movementMixin = {
         strings: {
             selectStart: "Select a territory to move from",
@@ -34,14 +34,25 @@ function(_b, _helpers, _render, _dialogs, MoveUnitView) {
          */
         setSelectableOriginTerritories: function () {
             var board = _b.getBoard();
-            _render.setTerritoriesWithUnitsSelectable(board.unitsForCountry(board.currentCountry).filter(this.movableUnit));
+            var units = board.unitsForCountry(board.currentCountry).filter(this.movableUnit);
+            //unique list of all the territories the current country has units in
+            var territories = [];
+            var territoryNames = {};
+            units.forEach(function(u) {
+                if (!(u.territory.name in territoryNames)) {
+                    territoryNames[u.territory.name] = true;
+                    territories.push(u.territory)
+                }
+            });
+            board.map.setSelectableTerritories(territories);
             _helpers.helperText(this.strings.selectStart);
         },
 
         setSelectableDestinationTerritories: function (originTerritory) {
-            var controlledUnits = originTerritory.unitsForCountry(_b.getBoard().currentCountry).filter(this.movableUnit);
+            var board = _b.getBoard();
+            var controlledUnits = originTerritory.unitsForCountry(board.currentCountry).filter(this.movableUnit);
             // Make selectable any territory that a unit currently in the clicked territory can move to
-            _render.setSelectableTerritories(_b.getBoard().territoriesInRange(controlledUnits));
+            board.map.setSelectableTerritories(board.territoriesInRange(controlledUnits));
             _helpers.helperText(this.strings.selectDest);
         },
 
@@ -50,7 +61,7 @@ function(_b, _helpers, _render, _dialogs, MoveUnitView) {
                 this.state = this.states.DEST;
                 this.origin = territory;
                 this.setSelectableDestinationTerritories(territory);
-                _render.showArrowFrom(territory);
+                //_b.getBoard().map.showArrowFrom(territory);
 
             } else if (this.state == this.states.DEST) {
                 this.showUnitSelectionWindow(territory);

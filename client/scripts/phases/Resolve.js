@@ -1,10 +1,10 @@
-define(["gameAccessor", "helpers", "router", "components", "render"],
-    function(_b, _helpers, _router, _c, _render) {
+define(["gameAccessor", "helpers", "router", "components"],
+    function(_b, _helpers, _router, _c) {
 
     // Resolve all attacks made during the movement phase
     function ResolvePhase() {
         _helpers.phaseName("Resolve Conflicts");
-        _render.setSelectableTerritories([]);
+        _b.getBoard().map.setSelectableTerritories([]);
         this.updateConflictText();
         this.onChange = this.updateConflictText.bind(this);
         _b.getBoard().on("change", this.onChange);

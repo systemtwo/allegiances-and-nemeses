@@ -18,16 +18,17 @@ define(["gameAccessor"], function(_b) {
         return this.beginningOfPhaseTerritory === this.beginningOfTurnTerritory;
     };
 
-    var Territory = function(name, income, country, x, y, width, height) {
-        this.name = name;
-        this.income = income;
-        this.country = country;
-        this.previousOwner = country;
+    var Territory = function(territoryInfo, countryObject) {
+        this.name = territoryInfo.name;
+        this.displayName = territoryInfo.displayName;
         this.connections = [];
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
+        this.displayInfo = territoryInfo.displayInfo;
+        this.type = territoryInfo.type;
+        if (this.type === "land") {
+            this.income = territoryInfo.income;
+            this.country = countryObject;
+            this.previousOwner = countryObject;
+        }
     };
 
     Territory.prototype.units = function () {

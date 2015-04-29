@@ -50,6 +50,8 @@ class MapEditorHandler(tornado.web.RequestHandler):
                     f.write("[]")
                 with open(GameBoard.Util.connectionFileName(moduleName), 'w') as f:
                     f.write("[]")
+                with open(GameBoard.Util.filePath(moduleName, "unitSetup.json"), 'w') as f:
+                    f.write("{}")
 
     def post(self, **params):
         if self.action == self.actions.MODULE:

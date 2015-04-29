@@ -196,6 +196,7 @@ function (d3, _svgMapEditor, _, msg, TerritoryEditorView, _nodeEditor) {
                     delete copiedTerritory.income;
                     return copiedTerritory;
                 } else {
+                    t.income = parseFloat(t.income);
                     return t;
                 }
             }),

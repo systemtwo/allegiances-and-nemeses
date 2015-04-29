@@ -1,7 +1,7 @@
-define(["gameAccessor", "helpers", "render", "dialogs", "router"], function(_b, _helpers, _render, _dialogs, _router) {
+define(["gameAccessor", "helpers", "dialogs", "router"], function(_b, _helpers, _dialogs, _router) {
     function PlacementPhase() {
         _helpers.phaseName("Place Units");
-        _render.setSelectableTerritories([]);
+        _b.getBoard().map.setSelectableTerritories([]);
         this.placing = null; // The BoughtUnit being placed
         this.setInitialText();
         return this;
@@ -42,7 +42,7 @@ define(["gameAccessor", "helpers", "render", "dialogs", "router"], function(_b, 
             return false;
         }
         this.placing = boughtUnit;
-        _render.setSelectableTerritories(validTerritories);
+        board.map.setSelectableTerritories(validTerritories);
 
         if (board.unitInfo(boughtUnit.unitType).terrainType == "land") {
             _helpers.helperText("Place your " + boughtUnit.unitType + " in a territory with a factory.");
@@ -70,9 +70,10 @@ define(["gameAccessor", "helpers", "render", "dialogs", "router"], function(_b, 
         }
 
         _router.setBuyList(_b.getBoard().buyList()).done(function() {
-            _b.getBoard().trigger("change");
+            var board = _b.getBoard();
+            board.trigger("change");
             that.setInitialText();
-            _render.setSelectableTerritories([]);
+            board.map.setSelectableTerritories([]);
         }).fail(function() {
             that.placing.territory = previousTerritory;
             alert("Invalid Territory");

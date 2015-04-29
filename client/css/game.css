@@ -1,0 +1,16 @@
+body, html {
+    height: 100%;
+}
+
+.full-height {
+    height: 100%;
+}
+
+#board {
+    position: relative;
+    padding: 0 20px 0 50px;
+}
+
+.svg-map {
+    position: absolute;
+}
