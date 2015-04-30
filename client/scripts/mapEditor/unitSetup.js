@@ -1,9 +1,10 @@
-define(["backbone", "knockout", "text!views/moveUnit/moveUnit.html", "helpers"],
-    function(backbone, ko, template, _h) {
+define(["backbone", "underscore", "knockout", "text!views/moveUnit/moveUnit.html", "helpers", "jquery-ui"],
+    function(backbone, _, ko, template, _h) {
     var UnitSetupView = backbone.View.extend({
-        initialize: function(territory, unitCatalogue) {
+        initialize: function(territory, territoryUnitTypes, unitCatalogue) {
             this.territory = territory;
             this.unitCatalogue = unitCatalogue;
+            this.territoryUnitTypes = ko.observableArray(territoryUnitTypes);
 
             this.viewModel = this.initViewModel();
             return this;
@@ -11,16 +12,29 @@ define(["backbone", "knockout", "text!views/moveUnit/moveUnit.html", "helpers"],
         initViewModel: function(){
             var view = this;
             return {
-                originUnits: this.unitCatalogue.map(function (unit) {
+                originUnits: _.map(this.unitCatalogue, function (unitInfo, unitType) {
                     return {
                         canMove: true,
                         onClick: function () {
-                            console.log(unit);
+                            console.log(unitType);
+                            view.territoryUnitTypes.push(unitType)
                         },
-                        imageSource: _h.getImageSource(unit.unitType, view.territory.country)
+                        imageSource: _h.getImageSource(unitType, view.territory.country)
                     }
                 }),
-                destinationUnits: []
+                destinationUnits: ko.computed(function () {
+                    return _.map(view.territoryUnitTypes(), function (unitType) {
+                        return {
+                            canMove: true,
+                            onClick: function () {
+                                console.log(unitType);
+                                var index = view.territoryUnitTypes.indexOf(unitType);
+                                view.territoryUnitTypes.splice(index, 1);
+                            },
+                            imageSource: _h.getImageSource(unitType, view.territory.country)
+                        }
+                    });
+                })
             }
         },
 

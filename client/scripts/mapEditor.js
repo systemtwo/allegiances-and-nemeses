@@ -1,5 +1,5 @@
-define(["lib/d3", "mapEditor/svgMapEditor", "underscore", "message", "territoryEditor", "mapEditor/nodeEditor", "components"],
-function (d3, _svgMapEditor, _, msg, TerritoryEditorView, _nodeEditor, _c) {
+define(["lib/d3", "mapEditor/svgMapEditor", "mapEditor/unitSetup", "underscore", "message", "territoryEditor", "mapEditor/nodeEditor", "components"],
+function (d3, _svgMapEditor, UnitSetupView, _, msg, TerritoryEditorView, _nodeEditor, _c) {
 
     // Local namespace
     var mapData = {
@@ -62,11 +62,13 @@ function (d3, _svgMapEditor, _, msg, TerritoryEditorView, _nodeEditor, _c) {
     }
 
     function initialize (moduleInfo) {
-        _.each(["territories", "countries", "connections", "moduleName"], function (parameter) {
+        _.each(["territories", "countries", "connections", "unitCatalogue", "unitSetup", "moduleName"], function (parameter) {
             if (!moduleInfo[parameter]) {
                 msg.log("Missing parameter: " + parameter)
             }
         });
+
+        var unitCatalogue = JSON.parse(moduleInfo.unitCatalogue);
 
         // NOTE - territories and countries are stored as plain objects for the map editor,
         // and do NOT use the Territory and Country class
@@ -74,6 +76,7 @@ function (d3, _svgMapEditor, _, msg, TerritoryEditorView, _nodeEditor, _c) {
         mapData.territories = JSON.parse(moduleInfo.territories);
         mapData.countries = JSON.parse(moduleInfo.countries);
         mapData.moduleName = moduleInfo.moduleName;
+        mapData.unitSetup = JSON.parse(moduleInfo.unitSetup);
 
         mapData.connections = JSON.parse(moduleInfo.connections).map(function (c) {
             var first = _.find(mapData.territories, {name: c[0]});
@@ -100,6 +103,21 @@ function (d3, _svgMapEditor, _, msg, TerritoryEditorView, _nodeEditor, _c) {
 
         svgMap.on("click:territory", function (territory) {
             territoryClick(territory);
+        });
+        svgMap.on("click:circle", function (territory) {
+            if (!territory.type == "land") {
+                // TODO ask for country name
+                console.warn("Sea zone setup is unsupported");
+                return;
+            }
+            if (!territory.country) {
+                console.warn("No country set for territory");
+                return;
+            }
+            var countrySetup = mapData.unitSetup[territory.country] || (mapData.unitSetup[territory.country] = {});
+            var territoryUnits = countrySetup[territory.name] || (countrySetup[territory.name] = []);
+            var unitSetupView = new UnitSetupView(territory, territoryUnits, unitCatalogue);
+            unitSetupView.render();
         });
         svgMap.on("click", function (x, y) {
             if (currentMode === modes.CREATE) {
@@ -274,7 +292,8 @@ function (d3, _svgMapEditor, _, msg, TerritoryEditorView, _nodeEditor, _c) {
             }),
             connections: mapData.connections.map(function (c) {
                 return [c[0].name, c[1].name].sort(); // sort them for consistency
-            })
+            }),
+            unitSetup: mapData.unitSetup
         };
     }
 

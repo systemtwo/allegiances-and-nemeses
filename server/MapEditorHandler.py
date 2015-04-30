@@ -31,11 +31,13 @@ class MapEditorHandler(tornado.web.RequestHandler):
             with open(GameBoard.Util.countryFileName(moduleName)) as countryInfo:
                 moduleInfo["countries"] = countryInfo.read()
             with open(GameBoard.Util.unitFileName(moduleName)) as unitInfo:
-                moduleInfo["units"] = unitInfo.read()
+                moduleInfo["unitCatalogue"] = unitInfo.read()
             with open(GameBoard.Util.territoryFileName(moduleName)) as territoryInfo:
                 moduleInfo["territories"] = territoryInfo.read()
             with open(GameBoard.Util.connectionFileName(moduleName)) as connections:
                 moduleInfo["connections"] = connections.read()
+            with open(GameBoard.Util.filePath(moduleName, "unitSetup.json")) as connections:
+                moduleInfo["unitSetup"] = connections.read()
             self.write(loader.load("mapEditor.html").generate(moduleInfo=moduleInfo))
 
         elif self.action == self.actions.CREATE:
@@ -67,3 +69,4 @@ class MapEditorHandler(tornado.web.RequestHandler):
                 writeFile("units", GameBoard.Util.unitFileName(moduleName))
                 writeFile("territories", GameBoard.Util.territoryFileName(moduleName))
                 writeFile("connections", GameBoard.Util.connectionFileName(moduleName))
+                writeFile("unitSetup", GameBoard.Util.filePath(moduleName, "unitSetup.json"))

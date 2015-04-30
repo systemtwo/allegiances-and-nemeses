@@ -1,6 +1,24 @@
 {
+    "central": {
+        "6aodc8tzkt9": []
+    }, 
+    "ottoman": {
+        "jp3ei4o0f6r": [
+            "infantry", 
+            "artillery"
+        ]
+    }, 
     "russia": {
         "pt8iahbbj4i": [
+            "infantry"
+        ]
+    }, 
+    "western": {
+        "q73k5k4kj4i": [
+            "artillery", 
+            "infantry"
+        ], 
+        "vvo0s02j4i": [
             "infantry"
         ]
     }
