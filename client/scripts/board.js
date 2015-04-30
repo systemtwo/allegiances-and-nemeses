@@ -73,7 +73,7 @@ function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper) {
         });
 
         boardInfo.units.forEach(function(unit){
-            that.createUnit(unit.id, unit.type, unit.country, unit.territory, unit.originalTerritory)
+            that.createUnit(unit)
         });
 
         this.currentCountry = that.getCountry(boardInfo.currentCountry);
@@ -156,18 +156,15 @@ function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper) {
         return this.info.unitCatalogue[unitType];
     };
 
-    Game.prototype.createUnit = function(unitId, unitType, country, territory, originalTerritory) {
+    Game.prototype.createUnit = function(unitOptions) {
         // If territory is a string, not a Territory object, assume we were passed the name of the territory
-        if (typeof territory === "string") {
-            territory = this.getTerritory(territory)
+        var countryAndTerritoryInfo = {
+            territory: typeof unitOptions.territory === "string" ? this.getTerritory(unitOptions.territory) : unitOptions.territory,
+            beginningOfPhaseTerritory: typeof unitOptions.beginningOfPhaseTerritory === "string" ? this.getTerritory(unitOptions.beginningOfPhaseTerritory) : unitOptions.beginningOfPhaseTerritory,
+            beginningOfTurnTerritory: typeof unitOptions.beginningOfTurnTerritory === "string" ? this.getTerritory(unitOptions.beginningOfTurnTerritory) : unitOptions.beginningOfTurnTerritory,
+            country: typeof unitOptions.country === "string" ? this.getCountry(unitOptions.country) : unitOptions.country
         }
-        if (typeof originalTerritory === "string") {
-            originalTerritory = this.getTerritory(originalTerritory);
-        }
-        if (typeof country === "string") {
-            country = this.getCountry(country); // assume we were passed the country's name
-        }
-        var newUnit = new _c.Unit(unitId, unitType, this.unitInfo(unitType), country, territory, originalTerritory);
+        var newUnit = new _c.Unit(unitOptions.id, unitOptions.type, this.unitInfo(unitOptions.type), countryAndTerritoryInfo);
         this.addUnit(newUnit);
     };
 

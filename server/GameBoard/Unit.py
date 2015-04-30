@@ -14,6 +14,7 @@ class Unit:
         assert hasattr(country, "name")
         self.type = unitInfo.unitType
         self.unitInfo = unitInfo
+        self.movedToTerritory = territory  # the territory the unit has been moved to. Only relevant on client side.
         self.territory = territory
         self.originalTerritory = territory
         self.country = country
@@ -78,8 +79,9 @@ class Unit:
         return {
             "id": self.id.hex,
             "type": self.type,
-            "territory": self.territory.name,
-            "originalTerritory": self.originalTerritory.name,
+            "territory": self.movedToTerritory.name,  # translate to client terminology
+            "beginningOfPhaseTerritory": self.territory.name,
+            "beginningOfTurnTerritory": self.originalTerritory.name,
             "country": self.country.name
         }
 

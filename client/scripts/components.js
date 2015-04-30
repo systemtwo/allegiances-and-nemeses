@@ -1,13 +1,13 @@
 define(["gameAccessor"], function(_b) {
 
-    var Unit = function(id, unitType, unitInfo, country, territory, originalTerritory) {
+    var Unit = function(id, unitType, unitInfo, countryAndTerritory) {
         this.id = id;
         this.unitType = unitType;
         this.unitInfo = unitInfo;
-        this.country = country;
-        this.territory = territory;
-        this.beginningOfPhaseTerritory = territory; // start of phase (1/6th of a turn)
-        this.beginningOfTurnTerritory = originalTerritory || territory; // Start of countries turn
+        this.country = countryAndTerritory.country;
+        this.territory = countryAndTerritory.territory;
+        this.beginningOfPhaseTerritory = countryAndTerritory.beginningOfPhaseTerritory; // start of phase (1/6th of a turn)
+        this.beginningOfTurnTerritory = countryAndTerritory.beginningOfTurnTerritory; // Start of countries turn
     };
 
     Unit.prototype.isFlying = function() {

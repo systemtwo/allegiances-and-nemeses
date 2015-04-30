@@ -88,6 +88,7 @@ class BaseMovePhase(object):
 
     def move(self, unit, destination):
         if self.canMove(unit, destination):
+            unit.movedToTerritory = destination  # update the unit, affects client only
             self.moveList[unit] = (unit.territory, destination)
             return True
         else:
