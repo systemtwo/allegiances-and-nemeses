@@ -1,6 +1,7 @@
 define(["backbone", "svgMap", "components", "helpers", "router", "gameAccessor", "phases/phaseHelper"],
 function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper) {
     var Game = function(id, boardInfo, bindTo) {
+        var that = this;
         _b.setBoard(this);
         this.id = id;
         // lists of game objects whose properties will change as the game progresses
@@ -19,6 +20,11 @@ function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper) {
             imageMap: {} // Map of unitType->imageSource
         };
         this.map = new svgMap.Map(this.boardData, bindTo);
+        this.map.on("click:territory", function (territory) {
+            if (that.currentPhase && that.currentPhase.onTerritorySelect) {
+                that.currentPhase.onTerritorySelect(territory);
+            }
+        });
         this.isPlayerTurn = false;
         this.currentCountry = null;
         this.currentPhase = null;

@@ -1,7 +1,8 @@
 define(["gameAccessor", "helpers", "dialogs", "router"], function(_b, _helpers, _dialogs, _router) {
     function PlacementPhase() {
+        var board = _b.getBoard();
         _helpers.phaseName("Place Units");
-        _b.getBoard().map.setSelectableTerritories([]);
+        board.map.setSelectableTerritories([]);
         this.placing = null; // The BoughtUnit being placed
         this.setInitialText();
         return this;

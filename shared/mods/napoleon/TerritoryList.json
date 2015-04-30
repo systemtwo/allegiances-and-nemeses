@@ -340,14 +340,15 @@
     }, 
     {
         "connections": [], 
+        "country": "russia", 
         "displayInfo": {
             "circle": {
                 "x": 487.4572448730469, 
                 "y": 17.05574321746826
             }, 
             "name": {
-                "x": 451.09295654296875, 
-                "y": 30.230475425720215
+                "x": 435.09295654296875, 
+                "y": 50.230475425720215
             }, 
             "path": [
                 [
@@ -376,9 +377,10 @@
                 ]
             ]
         }, 
-        "displayName": "wat", 
+        "displayName": "Russian Heartland", 
+        "income": 12, 
         "name": "pt8iahbbj4i", 
-        "type": "sea"
+        "type": "land"
     }, 
     {
         "connections": [], 

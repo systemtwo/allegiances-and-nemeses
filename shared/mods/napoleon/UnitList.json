@@ -17,5 +17,15 @@
     "defence": 2,
     "move": 1,
     "terrainType": "land"
+},
+
+"factory": {
+    "description": "Factories that produce new units.",
+
+    "cost": 15,
+    "attack": 0,
+    "defence": 0,
+    "move": 0,
+    "terrainType": "land"
 }
 }

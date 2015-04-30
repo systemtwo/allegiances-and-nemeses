@@ -71,6 +71,14 @@
     padding: 15px;
 }
 
+.side-panel .actions {
+    flex-shrink: 0;
+}
+
+.side-panel .panel-section {
+    overflow-y: auto;
+}
+
 /* COMPONENT STYLES*/
 .disabledUnit {
     opacity: 0.5;

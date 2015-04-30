@@ -17,13 +17,12 @@ define(["backbone", "knockout", "text!views/moveUnit/moveUnit.html", "helpers", 
             var view = this;
             var MoveUnitVM = function() {
                 var viewModel = this;
-                function sort(unitA, unitB) {
-                    var canMoveA = viewModel.canMove(unitA);
-                    var canMoveB = viewModel.canMove(unitB);
-                    if (canMoveA == canMoveB) {
+                // Sorts unmoveable units to the end of the list
+                function sort(unitInfo, unitInfoB) {
+                    if (unitInfo.canMove == unitInfoB.canMove) {
                         return 0;
                     } else {
-                        return canMoveA ? -1 : 1;
+                        return unitInfo.canMove ? -1 : 1;
                     }
                 }
                 function canMove(unit) {
