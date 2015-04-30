@@ -48,6 +48,16 @@ function(backbone, _, ko, template) {
                     }
                 });
 
+                vm.isEditing = ko.observable(false);
+                vm.editPath = function () {
+                    view.trigger("editPath", view.options.territory);
+                    vm.isEditing(true);
+                };
+                vm.endEditing = function () {
+                    view.trigger("endEditPath");
+                    vm.isEditing(false);
+                };
+
                 return vm;
             };
 

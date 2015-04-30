@@ -324,7 +324,7 @@ function (d3, _, backbone, ko, buttonTemplate) {
             } else {
                 this.selectNode(node);
             }
-            this.trigger("change");
+            this.trigger("change:selection");
         },
 
         onNodeDrag: function (node, newX, newY) {

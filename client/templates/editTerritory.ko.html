@@ -31,4 +31,8 @@
             <input type="checkbox" name="type" data-bind="checked: isLandTerritory">Land Territory
         </label>
     </div>
+    <div>
+        <button class="btn" data-bind="click: editPath, visible: !isEditing()">Edit Path</button>
+        <button class="btn" data-bind="click: endEditing, visible: isEditing">End Editing</button>
+    </div>
 </form>

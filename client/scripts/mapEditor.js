@@ -131,20 +131,33 @@ function (d3, _svgMapEditor, _, msg, TerritoryEditorView, _nodeEditor, _c) {
             } else {
                 nodeEditor.onNodeClick(node, element);
             }
-
         });
-        nodeEditor.on("change", function () {
-            updateTerritoryList();
+        function editNodesForTerritories (territories) {
             nodeEditor.update({
-                territories: mapData.territories
+                territories: territories
             });
             svgMap.update({
                 territories: mapData.territories,
                 nodes: nodeEditor.getNodes()
             })
+        }
+        nodeEditor.on("change", function () {
+            updateTerritoryList();
+            editNodesForTerritories(mapData.territories);
+        });
+        nodeEditor.on("change:selection", function () {
+            svgMap.update({
+                nodes: nodeEditor.getNodes()
+            })
         });
         territoryEditorView.on("change", function () {
             svgMap.drawMap();
+        });
+        territoryEditorView.on("editPath", function (territory) {
+            editNodesForTerritories([territory]);
+        });
+        territoryEditorView.on("endEditPath", function () {
+            editNodesForTerritories(mapData.territories);
         });
 
         bindButtons();
