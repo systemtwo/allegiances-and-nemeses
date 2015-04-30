@@ -265,9 +265,38 @@ function (d3, _, backbone, ko, buttonTemplate) {
             return nodes;
         },
 
-        updateNodes: function () {
+        update: function (newInfo) {
+            newInfo = newInfo || {};
+            var dirty = false;
+            if (newInfo.territories) {
+                this.territories = newInfo.territories;
+                dirty = true;
+            }
+            if (dirty) {
+                this.silentUpdate();
+            }
+        },
+
+        silentUpdate: function () {
+            var that = this,
+                newSelectedNodes = [];
             this.nodes = this.createNodes(this.territories);
-            this.selectedNodes([]);
+
+            // all the selected nodes no longer match the list of nodes
+            // Update the selected nodes
+            _.each(this.selectedNodes(), function (node) {
+                var foundNode = _.find(that.nodes, function (newNode) {
+                    return newNode.atPoint([node.getX(), node.getY()]);
+                });
+                if (foundNode && !_.contains(newSelectedNodes, foundNode)) {
+                    newSelectedNodes.push(foundNode);
+                }
+            });
+            this.selectedNodes(newSelectedNodes);
+        },
+
+        updateNodes: function () {
+            this.silentUpdate();
             this.trigger("change");
         },
 

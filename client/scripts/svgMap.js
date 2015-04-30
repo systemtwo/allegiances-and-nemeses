@@ -113,7 +113,8 @@ function (d3, _, backbone) {
 
     proto.onMapClick = function () {
         if (d3.event.defaultPrevented) return; // click suppressed
-        this.trigger("click");
+        var location = d3.mouse(this.container.node());
+        this.trigger("click", Math.round(location[0]), Math.round(location[1]));
     };
 
     proto.onTerritoryClick =  function (data){

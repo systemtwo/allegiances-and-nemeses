@@ -1,5 +1,5 @@
-define(["lib/d3", "mapEditor/svgMapEditor", "underscore", "message", "territoryEditor", "mapEditor/nodeEditor"],
-function (d3, _svgMapEditor, _, msg, TerritoryEditorView, _nodeEditor) {
+define(["lib/d3", "mapEditor/svgMapEditor", "underscore", "message", "territoryEditor", "mapEditor/nodeEditor", "components"],
+function (d3, _svgMapEditor, _, msg, TerritoryEditorView, _nodeEditor, _c) {
 
     // Local namespace
     var mapData = {
@@ -8,14 +8,30 @@ function (d3, _svgMapEditor, _, msg, TerritoryEditorView, _nodeEditor) {
         showConnections: true
     };
     var svgMap = null;
+    var nodeEditor;
     var territoryEditorView = new TerritoryEditorView({
         el: $("#editTerritoryPanel")
     });
+    var newTerritory = null;
+    function newTerritoryPoint (point) {
+        if (newTerritory == null) {
+            newTerritory = _c.Territory.create(point);
+            mapData.territories.push(newTerritory);
+        }
+        newTerritory.displayInfo.path.push(point);
+        nodeEditor.update({
+            territories: mapData.territories
+        });
+        svgMap.update({
+            nodes: nodeEditor.getNodes()
+        });
+    }
 
     setCurrentTerritory(null);
     var modes = {
         CONNECT: "connect",
-        BROWSE: "doNothing"
+        BROWSE: "doNothing",
+        CREATE: "create"
     };
     var currentMode = modes.BROWSE;
 
@@ -25,13 +41,17 @@ function (d3, _svgMapEditor, _, msg, TerritoryEditorView, _nodeEditor) {
             currentMode = modes.CONNECT;
             setCurrentTerritory(null);
             connectionStart = null;
-            secondClick = false;
         });
         $("#browseButton").click(function (){
             svgMap.setSelectableTerritories(mapData.territories);
             currentMode = modes.BROWSE;
             setCurrentTerritory(null);
-            secondClick = false;
+        });
+        $("#createButton").click(function (){
+            svgMap.setSelectableTerritories([]);
+            currentMode = modes.CREATE;
+            setCurrentTerritory(null);
+            newTerritory = null;
         });
         $("#save").click(function (){
             $.post("/modules/" + mapData.moduleName, JSON.stringify(getMapDataTransferObject()))
@@ -42,7 +62,6 @@ function (d3, _svgMapEditor, _, msg, TerritoryEditorView, _nodeEditor) {
     }
 
     function initialize (moduleInfo) {
-        var nodeEditor;
         _.each(["territories", "countries", "connections", "moduleName"], function (parameter) {
             if (!moduleInfo[parameter]) {
                 msg.log("Missing parameter: " + parameter)
@@ -83,6 +102,11 @@ function (d3, _svgMapEditor, _, msg, TerritoryEditorView, _nodeEditor) {
             var territory = _.findWhere(mapData.territories, {name: territoryName});
             territoryClick(territory);
         });
+        svgMap.on("click", function (x, y) {
+            if (currentMode === modes.CREATE) {
+                newTerritoryPoint([x, y]);
+            }
+        });
         svgMap.on("click:nothing", function () {
             territoryClick(null);
         });
@@ -90,13 +114,37 @@ function (d3, _svgMapEditor, _, msg, TerritoryEditorView, _nodeEditor) {
             nodeEditor.onNodeDrag(node, newX, newY);
             svgMap.drawTerritories();
         });
+        svgMap.on("drag:name", function (territory, newX, newY) {
+            var nameInfo = territory.displayInfo.name;
+            nameInfo.x = newX;
+            nameInfo.y = newY;
+            svgMap.drawConnections();
+        });
+        svgMap.on("drag:circle", function (territory, newX, newY) {
+            var circleInfo = territory.displayInfo.circle;
+            circleInfo.x = newX;
+            circleInfo.y = newY;
+        });
         svgMap.on("click:node", function (node, element) {
-            nodeEditor.onNodeClick(node, element);
+            if (currentMode === modes.CREATE) {
+                newTerritoryPoint([node.getX(), node.getY()]);
+            } else {
+                nodeEditor.onNodeClick(node, element);
+            }
+
         });
         nodeEditor.on("change", function () {
+            updateTerritoryList();
+            nodeEditor.update({
+                territories: mapData.territories
+            });
             svgMap.update({
+                territories: mapData.territories,
                 nodes: nodeEditor.getNodes()
             })
+        });
+        territoryEditorView.on("change", function () {
+            svgMap.drawMap();
         });
 
         bindButtons();
@@ -150,7 +198,7 @@ function (d3, _svgMapEditor, _, msg, TerritoryEditorView, _nodeEditor) {
         return removedConnection;
     }
 
-    var secondClick = false, firstClick = {}, connectionStart = null;
+    var connectionStart = null;
     // Override the click handler on the canvas element with this function, when in map editor mode
     function territoryClick (territory) {
         if (currentMode == modes.BROWSE) {
@@ -183,6 +231,12 @@ function (d3, _svgMapEditor, _, msg, TerritoryEditorView, _nodeEditor) {
     function setCurrentTerritory (t) {
         territoryEditorView.update({
             territory: t
+        });
+    }
+
+    function updateTerritoryList () {
+        mapData.territories = mapData.territories.filter(function (territory) {
+            return territory.displayInfo.path.length > 2;
         });
     }
 

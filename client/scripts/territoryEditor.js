@@ -30,6 +30,7 @@ function(backbone, _, ko, template) {
                     }
                     vm[key].subscribe(function(newValue) {
                         view.options.territory[key] = newValue;
+                        view.onChange();
                     });
                 }
                 boundTerritoryValues.forEach(bindValue);
@@ -43,6 +44,7 @@ function(backbone, _, ko, template) {
                 vm.isLandTerritory.subscribe(function (isLandTerritory) {
                     if (view.options.territory) {
                         view.options.territory.type = isLandTerritory ? "land" : "sea";
+                        view.onChange();
                     }
                 });
 
@@ -52,9 +54,14 @@ function(backbone, _, ko, template) {
             return new ViewModel();
         },
 
+        onChange: function () {
+            this.trigger("change", this.options.territory);
+        },
+
         update: function(newOptions) {
             var view = this;
             _.extend(this.options, newOptions);
+            var visible = !_.isNull(view.options.territory);
 
             if (newOptions.territory) {
                 boundTerritoryValues.forEach(function(key) {
@@ -66,7 +73,10 @@ function(backbone, _, ko, template) {
                 view.viewModel.countryList(newOptions.countryList);
             }
 
-            view.viewModel.isVisible(!_.isNull(view.options.territory));
+            view.viewModel.isVisible(visible);
+            if (visible) {
+                view.$el.find("input:first").focus();
+            }
         },
 
         render: function() {
@@ -74,5 +84,6 @@ function(backbone, _, ko, template) {
             ko.applyBindings(this.viewModel, $(template).appendTo(this.$el)[0]);
         }
     });
+    _.extend(TerritoryPaneView.prototype, backbone.Events);
     return TerritoryPaneView;
 });

@@ -52,6 +52,7 @@ function (d3, _, backbone, svgMap) {
         this.drawTerritories();
         this.drawConnections();
         this.drawNodes();
+        this.addDragEvents();
     };
     MapEditor.prototype.drawConnections = function () {
         var connectionData = _.map(this.connections, function (pair) {
@@ -80,44 +81,76 @@ function (d3, _, backbone, svgMap) {
     };
     MapEditor.prototype.drawNodes = function () {
         var map = this;
-        var drag = d3.behavior.drag()
-            .origin(function () {
-                var element = d3.select(this);
-                return {
-                    x: element.attr("cx"),
-                    y: element.attr("cy")
-                };
-            })
-            .on("dragstart", dragstarted)
-            .on("drag", dragNode)
-            .on("dragend", dragended);
         var nodeElements = this.nodesContainer.selectAll(".node")
             .data(this.nodes);
 
         nodeElements.enter().append("circle")
             .classed("node", true)
-            .attr("r", 5)
-            .call(drag)
-            .on("click", function (node) {
-                map.onNodeClick(node, this);
-            });
+            .attr("r", 5);
 
         nodeElements
             .classed("selected-node", function (d) { return d.selected })
             .attr("cx", function (d) { return d.getX(); })
-            .attr("cy", function (d) { return d.getY(); });
+            .attr("cy", function (d) { return d.getY(); })
+            .on("click", function (node) {
+                map.onNodeClick(node, this);
+            });
 
         nodeElements.exit().remove();
+    };
 
-        function dragNode (node) {
+    MapEditor.prototype.addDragEvents = function () {
+        var map = this;
+        function createDragBehavior (origin, onDrag) {
+            return d3.behavior.drag()
+                .origin(origin)
+                .on("dragstart", dragstarted)
+                .on("drag", onDrag)
+                .on("dragend", dragended);
+        }
+        function getCircleOrigin() {
+            var element = d3.select(this);
+            return {
+                x: element.attr("cx"),
+                y: element.attr("cy")
+            };
+        }
+        function getOrigin() {
+            var element = d3.select(this);
+            return {
+                x: element.attr("x"),
+                y: element.attr("y")
+            };
+        }
+        function dragNode (element) {
             d3.select(this)
                 .attr("cx", d3.event.x)
                 .attr("cy", d3.event.y);
-            map.trigger("drag:node", node, d3.event.x, d3.event.y);
+            map.trigger("drag:node", element, d3.event.x, d3.event.y);
         }
+        function dragCircle (element) {
+            d3.select(this)
+                .attr("cx", d3.event.x)
+                .attr("cy", d3.event.y);
+            map.trigger("drag:circle", element, d3.event.x, d3.event.y);
+        }
+        function dragName (element) {
+            d3.select(this)
+                .attr("x", d3.event.x)
+                .attr("y", d3.event.y);
+            map.trigger("drag:name", element, d3.event.x, d3.event.y);
+        }
+
+        var nodeDrag = createDragBehavior(getCircleOrigin, dragNode);
+        var nameDrag = createDragBehavior(getOrigin, dragName);
+        var circleDrag = createDragBehavior(getCircleOrigin, dragCircle);
+        this.nodesContainer.selectAll(".node").call(nodeDrag);
+        this.territoryContainer.selectAll(".territory-group .territory-name").call(nameDrag);
+        this.territoryContainer.selectAll(".territory-group .unit-selector").call(circleDrag);
     };
     MapEditor.prototype.onNodeClick = function (node, element) {
         if (d3.event.defaultPrevented) return; // click suppressed
+        d3.event.stopPropagation();
         this.trigger("click:node", node, element);
     };
 

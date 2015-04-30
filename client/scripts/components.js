@@ -31,6 +31,27 @@ define(["gameAccessor"], function(_b) {
         }
     };
 
+    Territory.create = function (point) {
+        point = point || [0,0];
+        return new Territory({
+            name: Math.random().toString(36).substring(7),
+            displayName: "",
+            income: NaN,
+            country: null,
+            displayInfo: {
+                circle: {
+                    x: point[0],
+                    y: point[1]
+                },
+                name: {
+                    x: point[0],
+                    y: point[1]
+                },
+                path: []
+            }
+        })
+    };
+
     Territory.prototype.units = function () {
         var that = this;
         var board = _b.getBoard();
