@@ -98,8 +98,7 @@ function (d3, _svgMapEditor, _, msg, TerritoryEditorView, _nodeEditor, _c) {
         svgMap.drawMap();
         nodeEditor.render();
 
-        svgMap.on("click:territory", function (territoryName) {
-            var territory = _.findWhere(mapData.territories, {name: territoryName});
+        svgMap.on("click:territory", function (territory) {
             territoryClick(territory);
         });
         svgMap.on("click", function (x, y) {
