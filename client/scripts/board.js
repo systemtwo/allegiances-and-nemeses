@@ -68,7 +68,7 @@ function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper) {
 
         console.table(this.boardData.countries);
         boardInfo.territoryInfo.forEach(function(tInfo) {
-            var country = that.getCountry(tInfo.country);
+            var country = that.getCountry(boardInfo.territoryOwners[tInfo.name]);
             that.boardData.territories.push(new _c.Territory(tInfo, country))
         });
 

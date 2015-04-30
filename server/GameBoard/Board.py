@@ -156,6 +156,7 @@ class Board:
         return {
             "countries": [c.toDict() for c in self.countries],
             "territoryInfo": self.territoryInfo,  # doesn't have CURRENT territory owners, only initial
+            "territoryOwners": {t.name: t.country.name for t in self.territories if hasattr(t, "country")},
             "connections": self.connections,
             "units": [u.toDict() for u in self.units],
             "buyList": [bought.toDict() for bought in self.buyList],
