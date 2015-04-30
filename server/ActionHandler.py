@@ -44,7 +44,10 @@ class ActionHandler(BaseAuthHandler):
             # TODO improve error handling
             self.assertPhase(requestData["currentPhase"], board)
             board.currentPhase.nextPhase()
-            self.write(json.dumps(board.toDict()))
+            userSession = Sessions.SessionManager.getSession(self.current_user)
+            boardInfo = board.toDict()
+            boardInfo["isPlayerTurn"] = board.isPlayersTurn(userSession.getValue("userid"))
+            self.write(json.dumps(boardInfo))
 
         elif "buy" == action:
             # buy units, with validation

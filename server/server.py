@@ -5,6 +5,7 @@ from voluptuous import Schema, Required, All, Range, MultipleInvalid
 
 import os.path
 import json
+import Sessions
 
 import utils
 import GamesManager
@@ -13,7 +14,6 @@ from ActionHandler import ActionHandler
 from AuthHandlers import LoginHandler, LogoutHandler, BaseAuthHandler
 from LobbyHandlers import LobbyHandler, LobbyCreateHandler, LobbyGameHandler, LobbyGameJoinHandler, LobbyGameBeginHandler, LobbyGameUpdateHandler, LobbyGameDeleteHandler
 from GameHandler import GameHandler
-
 
 
 class IndexHandler(tornado.web.RequestHandler):
@@ -53,6 +53,11 @@ class BoardsHandler(BaseAuthHandler):
             # Return the board info as json
             boardInfo = board.toDict()
             boardInfo["imagePath"] = os.path.join(self.config.MODS_PATH, boardInfo["moduleName"], boardInfo["imageName"])
+
+            #See if it is the user's turn
+            userSession = Sessions.SessionManager.getSession(self.current_user)
+            boardInfo["isPlayerTurn"] = board.isPlayersTurn(userSession.getValue("userid"))
+
             self.write(json.dumps(boardInfo))
 
         elif self.action == self.actions.CONFLICTS:

@@ -19,6 +19,7 @@ function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper) {
             imageMap: {} // Map of unitType->imageSource
         };
         this.map = new svgMap.Map(this.boardData, bindTo);
+        this.isPlayerTurn = false;
         this.currentCountry = null;
         this.currentPhase = null;
         this.phaseName = "";
@@ -48,6 +49,7 @@ function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper) {
             imageMap: {} // Map of unitType->imageSource
         };
 
+        this.isPlayerTurn = boardInfo.isPlayerTurn;
         this.wrapsHorizontally = boardInfo.wrapsHorizontally;
 
         Object.keys(boardInfo.unitCatalogue).forEach(function(unitType) {
@@ -91,9 +93,7 @@ function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper) {
     };
 
     Game.prototype.isCurrentPlayersTurn = function () {
-        if (window.globalVar == undefined)
-            window.globalVar = confirm("is it my turn")
-        return window.globalVar;
+        return this.isPlayerTurn;
     };
 
     Game.prototype.updateConflicts = function () {
