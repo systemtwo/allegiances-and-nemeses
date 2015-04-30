@@ -13,7 +13,7 @@
     </head>
     <body>
         <div class="flex-row flex-spaced full-height">
-            <div class="flex-column">
+            <div class="flex-column flex-grow">
                 <div>
                     <span class="title">
                         War: The Board Game
@@ -22,7 +22,9 @@
                     </span>
                     <span id="helperText"></span>
                 </div>
-                <div class="flex-grow" id="board">
+                <div class="flex-grow flex-row board-container">
+                    <div id="board">
+                    </div>
                 </div>
             </div>
             <div id="side-panel-container" class="flex-column"></div>
