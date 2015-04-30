@@ -138,12 +138,14 @@ function (d3, _svgMapEditor, _, msg, TerritoryEditorView, _nodeEditor, _c) {
             });
             svgMap.update({
                 territories: mapData.territories,
+                connections: mapData.connections,
                 nodes: nodeEditor.getNodes()
             })
         }
         nodeEditor.on("change", function () {
-            updateTerritoryList();
-            editNodesForTerritories(mapData.territories);
+            deleteInvalidTerritories();
+            // If some territories have been deleted, need to update the node editor, and the map
+            editNodesForTerritories(_.intersection(nodeEditor.territories, mapData.territories));
         });
         nodeEditor.on("change:selection", function () {
             svgMap.update({
@@ -247,10 +249,14 @@ function (d3, _svgMapEditor, _, msg, TerritoryEditorView, _nodeEditor, _c) {
         });
     }
 
-    function updateTerritoryList () {
+    function deleteInvalidTerritories () {
         mapData.territories = mapData.territories.filter(function (territory) {
             return territory.displayInfo.path.length > 2;
         });
+        mapData.connections = mapData.connections.filter(function (pair) {
+            return _.contains(mapData.territories, pair[0]) &&
+                _.contains(mapData.territories, pair[1]);
+        })
     }
 
     function getMapDataTransferObject () {

@@ -5,6 +5,8 @@
 
 .territory {
     fill: rgba(170, 187, 119, 0.8);
+    stroke: #4d4d4d;
+    stroke-width: 1;
 }
 
 .unit-selector   {
