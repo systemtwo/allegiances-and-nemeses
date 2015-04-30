@@ -36,8 +36,9 @@ define(["gameAccessor"], function(_b) {
         return new Territory({
             name: Math.random().toString(36).substring(7),
             displayName: "",
-            income: NaN,
+            income: 0,
             country: null,
+            type: "land",
             displayInfo: {
                 circle: {
                     x: point[0],
