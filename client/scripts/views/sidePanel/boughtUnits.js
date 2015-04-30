@@ -19,6 +19,10 @@ define(["backbone", "underscore", "knockout", "text!views/sidePanel/boughtUnits.
                         // could show unit info here, or simply do nothing
                     }
                 };
+                this.getDisplayName = function (territoryName) {
+                    var territory = _b.getBoard().getTerritory(territoryName);
+                    return territory && territory.displayName ? territory.displayName : territoryName;
+                };
                 this.getImageSrc = function(unitType) {
                     return _h.getImageSource(unitType, _b.getBoard().currentCountry);
                 };

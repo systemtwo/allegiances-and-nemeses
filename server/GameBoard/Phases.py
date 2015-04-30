@@ -105,6 +105,12 @@ class AttackPhase(BaseMovePhase):
         self.name = "AttackPhase"
 
     def conflicts(self):
+        """
+        Get the conflicts that are going to happen
+        Does not mutate state
+
+        :return: List of conflicts
+        """
         hostileTerToAttackers = {}  # list of territories being attacked, and the attacking units
         for unit in self.moveList:
             (origin, dest) = self.moveList[unit]
@@ -113,15 +119,19 @@ class AttackPhase(BaseMovePhase):
                     hostileTerToAttackers[dest] = [unit]
                 else:
                     hostileTerToAttackers[dest].append(unit)
-            else:
-                # not in conflict
-                unit.originalTerritory = unit.territory
-                unit.territory = dest
 
         return [Conflict(territory, attackers) for territory, attackers in hostileTerToAttackers.iteritems()]
 
     def nextPhase(self):
         board = self.board
+
+        # move all units without conflicts
+        for unit in self.moveList:
+            (origin, dest) = self.moveList[unit]
+            if Util.allied(dest, unit.country):
+                # not in conflict
+                unit.originalTerritory = unit.territory
+                unit.territory = dest
         board.currentPhase = ResolvePhase(self.conflicts(), board)
         return board.currentPhase
 
@@ -186,7 +196,11 @@ class ResolvePhase:
                 # can only take the territory if 1+ attackers are land attackers
                 landAttackers = [u for u in conflict.attackers if u.isLand()]
                 if len(landAttackers) > 0:
-                    territory.country = self.board.currentCountry
+                    # transfer ownership
+                    if Util.allied(territory.originalCountry, self.board.currentCountry):
+                        territory.country = territory.originalCountry
+                    else:
+                        territory.country = self.board.currentCountry
 
                 # now we can update the attackers' current territory. They've officially moved in
                 for u in conflict.attackers:

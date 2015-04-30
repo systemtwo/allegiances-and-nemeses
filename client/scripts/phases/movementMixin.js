@@ -17,9 +17,6 @@ function(_b, _helpers, _dialogs, MoveUnitView) {
             this.setSelectableOriginTerritories();
             this.state = this.states.START;
             this.origin = null;
-             _b.getBoard().map.on("click:territory", function (territory) {
-                 that.onTerritorySelect(territory)
-             });
             _helpers.helperText(this.strings.selectStart)
         },
 

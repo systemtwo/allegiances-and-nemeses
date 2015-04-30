@@ -31,9 +31,9 @@ class Board:
         for info in self.territoryInfo:
             if info["type"] == "land":
                 startingCountry = self.getStartingCountry(info)
-                self.territories.append(LandTerritory(self, info["name"], info["income"], startingCountry))
+                self.territories.append(LandTerritory(self, info["name"], info["displayName"], info["income"], startingCountry))
             elif info["type"] == "sea":
-                self.territories.append(SeaTerritory(self, info["name"]))
+                self.territories.append(SeaTerritory(self, info["name"], info["displayName"]))
             else:
                 print("Territory info does not have valid type")
                 print(info)

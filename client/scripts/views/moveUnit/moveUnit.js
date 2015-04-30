@@ -84,7 +84,7 @@ define(["backbone", "knockout", "text!views/moveUnit/moveUnit.html", "helpers", 
         render: function() {
             // For now, and probably for a while, we'll show this as a dialog
             this.$el.dialog({
-                title: "Move Units from " + this.fromTerritory.name + " to " + this.destinationTerritory.name,
+                title: "Move Units from " + this.fromTerritory.displayName + " to " + this.destinationTerritory.displayName,
                 width: 600,
                 buttons: {
                     "Done": function () {

@@ -2,8 +2,9 @@ import Util
 
 
 class BaseTerritory:
-    def __init__(self, board, name):
+    def __init__(self, board, name, displayName):
         self.name = name
+        self.displayName = displayName
         self.connections = []
         self.board = board
         # id tag
@@ -49,10 +50,11 @@ class BaseTerritory:
 
 
 class LandTerritory(BaseTerritory):
-    def __init__(self, board, name, income, country):
+    def __init__(self, board, name, displayName, income, country):
         # insert py2 hate here
         # super().__init__(name)
         self.name = name
+        self.displayName = displayName  # useful for debugging, don't use for anything else on the server
         self.connections = []
         self.board = board
         self.income = income
@@ -72,8 +74,8 @@ class LandTerritory(BaseTerritory):
 
 
 class SeaTerritory(BaseTerritory):
-    def __init__(self, board, name):
-        BaseTerritory.__init__(self, board, name)
+    def __init__(self, board, name, displayName):
+        BaseTerritory.__init__(self, board, name, displayName)
         self.type = "sea"
 
     def hasFactory(self):

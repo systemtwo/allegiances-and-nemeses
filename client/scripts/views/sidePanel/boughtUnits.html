@@ -4,6 +4,6 @@
 <div class="bought-unit" data-bind="click: $root.clickUnit">
     <img class="bought-unit-image" src="" data-bind="attr: { src: $root.getImageSrc($data.unitType) },
         css: {disabledUnit: !$root.canPlace($data.unitType)}" />
-    <span class="placement-territory" data-bind="text: (territory || 'Not Placed')"></span>
+    <span class="placement-territory" data-bind="text: ($root.getDisplayName(territory) || 'Not Placed')"></span>
 </div>
 </script>
