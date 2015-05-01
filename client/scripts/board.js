@@ -69,8 +69,10 @@ function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper) {
         });
 
         boardInfo.territoryInfo.forEach(function(tInfo) {
-            var country = that.getCountry(boardInfo.territoryOwners[tInfo.name]);
-            that.boardData.territories.push(new _c.Territory(tInfo, country))
+            var ownerInfo = boardInfo.territoryOwners[tInfo.name] || {};
+            var country = that.getCountry(ownerInfo.current);
+            var previous = !ownerInfo.previous || ownerInfo.previous == ownerInfo.current ? country : that.getCountry(ownerInfo.previous);
+            that.boardData.territories.push(new _c.Territory(tInfo, country, previous))
         });
 
         boardInfo.units.forEach(function(unit){
@@ -108,10 +110,11 @@ function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper) {
         var that = this;
         _router.getFields(this.id, ["conflicts", "territoryOwners"]).done(function(response) {
             that.boardData.conflicts = response.conflicts;
-            _.each(response.territoryOwners, function (countryName, territoryName) {
+            _.each(response.territoryOwners, function (info, territoryName) {
                 var territory = that.getTerritory(territoryName);
-                if (territory.country.name != countryName) {
-                    territory.country = that.getCountry(countryName);
+                if (territory.country.name != info.current) {
+                    territory.country = that.getCountry(info.current);
+                    territory.previousCountry = that.getCountry(info.previous);
                 }
             });
             that.trigger("change");

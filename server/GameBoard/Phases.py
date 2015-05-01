@@ -198,8 +198,8 @@ class ResolvePhase:
                 landAttackers = [u for u in conflict.attackers if u.isLand()]
                 if len(landAttackers) > 0:
                     # transfer ownership
-                    if Util.allied(territory.originalCountry, self.board.currentCountry):
-                        territory.country = territory.originalCountry
+                    if Util.allied(territory.previousCountry, self.board.currentCountry):
+                        territory.country = territory.previousCountry
                     else:
                         territory.country = self.board.currentCountry
 
@@ -249,7 +249,7 @@ class MovementPhase(BaseMovePhase):
 
         if unit.isFlying():
             # Gotta have an airport to land in or sometin
-            if hasattr(destination, "originalCountry") and not Util.allied(destination.originalCountry, unit.country):
+            if hasattr(destination, "previousCountry") and not Util.allied(destination.previousCountry, unit.country):
                 return False
 
             previousMove = Util.distance(unit.originalTerritory, unit.territory, unit)

@@ -59,11 +59,11 @@ class LandTerritory(BaseTerritory):
         self.board = board
         self.income = income
         self.country = country
-        self.originalCountry = country
+        self.previousCountry = country
         self.type = "land"
 
     def reset(self):
-        self.originalCountry = self.country
+        self.previousCountry = self.country
 
     def toDict(self):
         return {

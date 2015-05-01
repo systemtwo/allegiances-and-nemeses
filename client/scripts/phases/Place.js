@@ -18,8 +18,8 @@ define(["gameAccessor", "helpers", "dialogs", "router"], function(_b, _helpers, 
 
     // Begin placing unit of unitType
     // returns false on error
+    // TODO more validation - on place, and on the server
     PlacementPhase.prototype.selectBoughtUnit = function(boughtUnit) {
-        var that = this;
         var board = _b.getBoard();
         // Find all territories with:
         // a) A factory (or if placing a factory, doesn't have a factory)
@@ -32,10 +32,13 @@ define(["gameAccessor", "helpers", "dialogs", "router"], function(_b, _helpers, 
             var numberPlacedInTerritory = _.filter(board.boardData.buyList, function(unit){
                 return unit.territory == t;
             }).length;
-            return (((boughtUnit.unitType == "factory" && !hasFactory) || // factories are one per territory
-                (boughtUnit.unitType != "factory" && hasFactory)) &&  // otherwise, must place in territories with a factory
-                (t.previousOwner == board.currentCountry) &&
-                (numberPlacedInTerritory < t.income))
+
+            var ownedAllTurn = t.previousCountry == board.currentCountry;
+            var canPlaceFactory = boughtUnit.unitType == "factory" && !hasFactory && t.income > 0; // factories are one per territory (with production)
+            var isUnit = boughtUnit.unitType != "factory"; // otherwise, must place in territories with a factory
+            var hasProductionCapacity = numberPlacedInTerritory < t.income;
+            var canPlaceUnit = isUnit && hasFactory && hasProductionCapacity;
+            return ownedAllTurn && (canPlaceFactory || canPlaceUnit);
         });
 
         if (!validTerritories.length) {

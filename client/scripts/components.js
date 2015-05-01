@@ -18,7 +18,7 @@ define(["gameAccessor"], function(_b) {
         return this.beginningOfPhaseTerritory === this.beginningOfTurnTerritory;
     };
 
-    var Territory = function(territoryInfo, countryObject) {
+    var Territory = function(territoryInfo, countryObject, previousCountry) {
         this.name = territoryInfo.name;
         this.displayName = territoryInfo.displayName;
         this.connections = [];
@@ -27,7 +27,7 @@ define(["gameAccessor"], function(_b) {
         if (this.type === "land") {
             this.income = territoryInfo.income;
             this.country = countryObject;
-            this.previousOwner = countryObject;
+            this.previousCountry = previousCountry;
         }
     };
 

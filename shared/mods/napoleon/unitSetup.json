@@ -1,11 +1,15 @@
 {
     "central": {
-        "6aodc8tzkt9": []
+        "6aodc8tzkt9": [], 
+        "myuniquestname": [
+            "factory"
+        ]
     }, 
     "ottoman": {
         "jp3ei4o0f6r": [
             "infantry", 
-            "artillery"
+            "artillery", 
+            "factory"
         ]
     }, 
     "russia": {
@@ -17,7 +21,8 @@
     "western": {
         "q73k5k4kj4i": [
             "artillery", 
-            "infantry"
+            "infantry", 
+            "factory"
         ], 
         "vvo0s02j4i": [
             "infantry"

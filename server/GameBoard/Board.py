@@ -164,7 +164,10 @@ class Board:
         elif fieldName == "territoryInfo":
             return self.territoryInfo
         elif fieldName == "territoryOwners":
-            return {t.name: t.country.name for t in self.territories if hasattr(t, "country")}
+            return {t.name: {
+                "current": t.country.name,
+                "previous": t.previousCountry.name
+            } for t in self.territories if hasattr(t, "country")}
         elif fieldName == "connections":
             return self.connections
         elif fieldName == "units":
