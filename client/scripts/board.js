@@ -32,6 +32,9 @@ function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper) {
         this.mapImage = new Image();
         this.parse(boardInfo);
         this.map.drawMap();
+        this.on("change", function () {
+            that.map.drawMap();
+        });
         return this;
     };
     _.extend(Game.prototype, backbone.Events); // mixin the events module
@@ -46,7 +49,6 @@ function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper) {
             buyList: [],
             conflicts: boardInfo.conflicts
         };
-        this.buyList(boardInfo.buyList); // set the buy list
         // Info about the game that will remain constant
         this.info = {
             players: boardInfo.players,
@@ -63,10 +65,9 @@ function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper) {
         });
 
         this.boardData.countries = boardInfo.countries.map(function(countryInfo) {
-            return new _c.Country(countryInfo.name, countryInfo.displayName, countryInfo.team, countryInfo.ipc)
+            return new _c.Country(countryInfo)
         });
 
-        console.table(this.boardData.countries);
         boardInfo.territoryInfo.forEach(function(tInfo) {
             var country = that.getCountry(boardInfo.territoryOwners[tInfo.name]);
             that.boardData.territories.push(new _c.Territory(tInfo, country))
@@ -84,6 +85,7 @@ function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper) {
             this.currentPhase = phaseHelper.createPhase("ObservePhase");
         }
         _helpers.phaseName(this.phaseName);
+        this.buyList(boardInfo.buyList); // set the buy list
 
         _helpers.countryName(this.currentCountry.displayName);
         this.initConnections(boardInfo);
@@ -104,8 +106,14 @@ function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper) {
 
     Game.prototype.updateConflicts = function () {
         var that = this;
-        _router.getConflicts(this.id).done(function(conflicts) {
-            that.boardData.conflicts = conflicts;
+        _router.getFields(this.id, ["conflicts", "territoryOwners"]).done(function(response) {
+            that.boardData.conflicts = response.conflicts;
+            _.each(response.territoryOwners, function (countryName, territoryName) {
+                var territory = that.getTerritory(territoryName);
+                if (territory.country.name != countryName) {
+                    territory.country = that.getCountry(countryName);
+                }
+            });
             that.trigger("change");
         })
     };
@@ -163,7 +171,7 @@ function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper) {
             beginningOfPhaseTerritory: typeof unitOptions.beginningOfPhaseTerritory === "string" ? this.getTerritory(unitOptions.beginningOfPhaseTerritory) : unitOptions.beginningOfPhaseTerritory,
             beginningOfTurnTerritory: typeof unitOptions.beginningOfTurnTerritory === "string" ? this.getTerritory(unitOptions.beginningOfTurnTerritory) : unitOptions.beginningOfTurnTerritory,
             country: typeof unitOptions.country === "string" ? this.getCountry(unitOptions.country) : unitOptions.country
-        }
+        };
         var newUnit = new _c.Unit(unitOptions.id, unitOptions.type, this.unitInfo(unitOptions.type), countryAndTerritoryInfo);
         this.addUnit(newUnit);
     };

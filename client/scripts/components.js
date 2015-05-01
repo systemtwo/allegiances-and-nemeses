@@ -31,7 +31,7 @@ define(["gameAccessor"], function(_b) {
         }
     };
 
-    Territory.create = function (point) {
+    Territory.createNew = function (point) {
         point = point || [0,0];
         return new Territory({
             name: Math.random().toString(36).substring(7),
@@ -105,11 +105,12 @@ define(["gameAccessor"], function(_b) {
         this.territoryName = null;
     };
 
-    var Country = function(name, displayName, team, ipc) {
-        this.name = name;
-        this.displayName = displayName;
-        this.ipc = ipc;
-        this.team = team;
+    var Country = function(options) {
+        this.name = options.name;
+        this.displayName = options.displayName;
+        this.ipc = options.ipc;
+        this.team = options.team;
+        this.color = options.color;
         return this;
     };
 

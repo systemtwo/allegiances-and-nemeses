@@ -27,7 +27,7 @@ class IndexHandler(tornado.web.RequestHandler):
 
 class BoardsHandler(BaseAuthHandler):
     #TODO: Consider spliting this class to handle the different scenarios
-    actions = utils.Enum(["NEW", "ID", "CONFLICTS"])
+    actions = utils.Enum(["NEW", "ID", "GET_FIELDS"])
     nextBoardId = 0
 
     def initialize(self, config, action, gamesManager):
@@ -52,7 +52,6 @@ class BoardsHandler(BaseAuthHandler):
 
             # Return the board info as json
             boardInfo = board.toDict()
-            boardInfo["imagePath"] = os.path.join(self.config.MODS_PATH, boardInfo["moduleName"], boardInfo["imageName"])
 
             #See if it is the user's turn
             userSession = Sessions.SessionManager.getSession(self.current_user)
@@ -60,13 +59,11 @@ class BoardsHandler(BaseAuthHandler):
 
             self.write(json.dumps(boardInfo))
 
-        elif self.action == self.actions.CONFLICTS:
-            conflicts = self.gamesManager.getConflicts(int(params["boardId"]))
-            if conflicts is None:
-                self.set_status(400)
-                return
-
-            self.write(json.dumps(conflicts))
+        elif self.action == self.actions.GET_FIELDS:
+            requestedFields = self.request.arguments.get("fieldNames[]")
+            board = self.gamesManager.getBoard(int(params["boardId"]))
+            response = board.getFields(requestedFields)
+            self.write(json.dumps(response))
 
     @tornado.web.authenticated
     def post(self, **params):
@@ -93,7 +90,7 @@ class Server:
             #Board control
             #Consider renaming to /games/
             (r"/boardInfo/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID, gamesManager=self.gamesManager)), #Consider using named regex here
-            (r"/conflicts/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.CONFLICTS, gamesManager=self.gamesManager)),
+            (r"/getFields/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.GET_FIELDS, gamesManager=self.gamesManager)),
             (r"/boards/(?P<boardId>[0-9]+)/action/?", ActionHandler, dict(config=config, gamesManager=self.gamesManager)),
 
             #Serve the static game page

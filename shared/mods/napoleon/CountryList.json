@@ -2,21 +2,25 @@
     {
         "name": "russia",
         "displayName": "Russian Empire",
-        "team": "1"
+        "team": "1",
+        "color": "#B00"
     },
     {
         "name": "central",
         "displayName": "Germanic Alliance",
-        "team": "2"
+        "team": "2",
+        "color": "#466676"
     },
     {
         "name": "western",
         "displayName": "Western Powers",
-        "team": "3"
+        "team": "3",
+        "color": "#E0CC69"
     },
     {
         "name": "ottoman",
         "displayName": "Ottoman Empire",
-        "team": "4"
+        "team": "4",
+        "color": "#F21"
     }
 ]

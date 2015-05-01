@@ -1,9 +1,9 @@
 class Country:
-    def __init__(self, name, displayName, teamName, player, board=None):
+    def __init__(self, name, displayName, teamName, color, board=None):
         self.name = name
         self.displayName = displayName
         self.team = teamName
-        self.player = player #Not sure if this is a good idea. Maybe move this one level up
+        self.color = color
         self.board = board
         self.ipc = 0
 
@@ -17,5 +17,6 @@ class Country:
             "name": self.name,
             "displayName": self.displayName,
             "team": self.team,
-            "ipc": self.ipc
+            "ipc": self.ipc,
+            "color": self.color
         }

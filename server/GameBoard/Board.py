@@ -18,7 +18,7 @@ class Board:
             self.moduleInfo = json.load(file)
 
         with open(Util.countryFileName(moduleName)) as countryInfo:
-            self.countries = [Country(c["name"], c["displayName"], c["team"], None, self) for c in json.load(countryInfo)]
+            self.countries = [Country(c["name"], c["displayName"], c["team"], c["color"], self) for c in json.load(countryInfo)]
 
         with open(Util.unitFileName(moduleName)) as unitInfo:
             self.unitCatalogue = json.load(unitInfo)
@@ -152,21 +152,58 @@ class Board:
         else:
             return [] # fix this
 
+    def getFields(self, fieldNames):
+        fieldValues = {}
+        for field in fieldNames:
+            fieldValues[field] = self.getField(field)
+        return fieldValues
+
+    def getField(self, fieldName):
+        if fieldName == "countries":
+            return [c.toDict() for c in self.countries]
+        elif fieldName == "territoryInfo":
+            return self.territoryInfo
+        elif fieldName == "territoryOwners":
+            return {t.name: t.country.name for t in self.territories if hasattr(t, "country")}
+        elif fieldName == "connections":
+            return self.connections
+        elif fieldName == "units":
+            return [u.toDict() for u in self.units]
+        elif fieldName == "buyList":
+            return [bought.toDict() for bought in self.buyList]
+        elif fieldName == "conflicts":
+            return [c.toDict() for c in self.conflicts()]
+
+        elif fieldName == "currentPhase":
+            return self.currentPhase.name
+        elif fieldName == "currentCountry":
+            return self.currentCountry.name
+
+        elif fieldName == "unitCatalogue":
+            return self.unitCatalogue
+        elif fieldName == "wrapsHorizontally":
+            return self.moduleInfo["wrapsHorizontally"]
+        elif fieldName == "moduleName":
+            return self.moduleName
+
+        else:
+            raise Exception("Unsupported field: " + fieldName)
+
     def toDict(self):
-        return {
-            "countries": [c.toDict() for c in self.countries],
-            "territoryInfo": self.territoryInfo,  # doesn't have CURRENT territory owners, only initial
-            "territoryOwners": {t.name: t.country.name for t in self.territories if hasattr(t, "country")},
-            "connections": self.connections,
-            "units": [u.toDict() for u in self.units],
-            "buyList": [bought.toDict() for bought in self.buyList],
-            "conflicts": [c.toDict() for c in self.conflicts()],
-            "currentPhase": self.currentPhase.name,
-            "currentCountry": self.currentCountry.name,
+        allFields = [
+            "countries",
+            "territoryInfo",
+            "territoryOwners",
+            "connections",
+            "units",
+            "buyList",
+            "conflicts",
+            "currentPhase",
+            "currentCountry",
 
             # Module info
-            "unitCatalogue": self.unitCatalogue,
-            "wrapsHorizontally": self.moduleInfo["wrapsHorizontally"],
-            "imageName": self.moduleInfo["imageName"],
-            "moduleName": self.moduleName
-        }
+            "unitCatalogue",
+            "wrapsHorizontally",
+            "moduleName"
+        ]
+        return self.getFields(allFields)

@@ -8,6 +8,7 @@ function (d3, _, backbone) {
               map.container.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
             });
         this.territories = [];
+        this.countries = [];
         this.selectableTerritories = [];
         this.parse(mapInfo);
 
@@ -32,6 +33,18 @@ function (d3, _, backbone) {
     proto.parse = function (mapInfo) {
         if (_.isArray(mapInfo.territories)) {
             this.territories = mapInfo.territories;
+        }
+        if (_.isArray(mapInfo.countries)) {
+            this.countries = mapInfo.countries;
+        }
+    };
+
+    proto.getCountryColor = function (country) {
+        country = _.isString(country) ? _.findWhere(this.countries, {name: country}) : country;
+        if (country) {
+            return country.color;
+        } else {
+            return "#22b"; // blue
         }
     };
 
@@ -98,9 +111,9 @@ function (d3, _, backbone) {
                 var corePath = _.map(data.displayInfo.path, function (points) {
                     return points.join(",");
                 }).join(" L");
-
                 return "M" + corePath + " z";
-            });
+            })
+            .attr("fill", function (data) { return map.getCountryColor(data.country) });
         territoryGroups.select(".unit-selector")
             .attr("cx", function (data) { return data.displayInfo.circle.x; })
             .attr("cy", function (data) { return data.displayInfo.circle.y; });

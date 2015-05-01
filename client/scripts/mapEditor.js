@@ -15,7 +15,7 @@ function (d3, _svgMapEditor, UnitSetupView, _, msg, TerritoryEditorView, _nodeEd
     var newTerritory = null;
     function newTerritoryPoint (point) {
         if (newTerritory == null) {
-            newTerritory = _c.Territory.create(point);
+            newTerritory = _c.Territory.createNew(point);
             mapData.territories.push(newTerritory);
         }
         newTerritory.displayInfo.path.push(point);
@@ -279,15 +279,16 @@ function (d3, _svgMapEditor, UnitSetupView, _, msg, TerritoryEditorView, _nodeEd
     function getMapDataTransferObject () {
         return {
             territories: mapData.territories.map(function (t) {
+                var copiedTerritory = jQuery.extend({}, t);
+                delete copiedTerritory.color;
                 if (t.type == "sea") {
-                    var copiedTerritory = jQuery.extend({}, t);
                     // sea zones don't produce and can't be owned
                     delete copiedTerritory.country;
                     delete copiedTerritory.income;
                     return copiedTerritory;
                 } else {
-                    t.income = parseFloat(t.income);
-                    return t;
+                    copiedTerritory.income = parseFloat(t.income);
+                    return copiedTerritory;
                 }
             }),
             connections: mapData.connections.map(function (c) {

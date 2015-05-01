@@ -58,7 +58,9 @@ define(["gameAccessor", "helpers", "dialogs", "router"], function(_b, _helpers, 
     };
 
     PlacementPhase.prototype.onTerritorySelect = function(territory) {
-        this.placeUnit(territory.name);
+        if (this.placing) {
+            this.placeUnit(territory.name);
+        }
     };
 
     PlacementPhase.prototype.placeUnit = function(territoryName) {

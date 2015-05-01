@@ -522,6 +522,10 @@
                     205
                 ], 
                 [
+                    860, 
+                    246
+                ], 
+                [
                     740, 
                     252
                 ]
@@ -530,6 +534,50 @@
         "displayName": "Heverly Bills", 
         "income": -1, 
         "name": "q73k5k4kj4i", 
+        "type": "land"
+    }, 
+    {
+        "connections": [], 
+        "country": "western", 
+        "displayInfo": {
+            "circle": {
+                "x": 1004, 
+                "y": 123
+            }, 
+            "name": {
+                "x": 981, 
+                "y": 170
+            }, 
+            "path": [
+                [
+                    918, 
+                    230
+                ], 
+                [
+                    1008, 
+                    210
+                ], 
+                [
+                    1042, 
+                    103
+                ], 
+                [
+                    1016, 
+                    43
+                ], 
+                [
+                    885, 
+                    205
+                ], 
+                [
+                    860, 
+                    246
+                ]
+            ]
+        }, 
+        "displayName": "New York", 
+        "income": 0, 
+        "name": "05rd7wx9a4i", 
         "type": "land"
     }
 ]

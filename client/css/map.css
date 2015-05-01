@@ -4,7 +4,7 @@
 }
 
 .territory {
-    fill: rgba(170, 187, 119, 0.8);
+    opacity: 0.8;
     stroke: #4d4d4d;
     stroke-width: 1;
 }
@@ -17,7 +17,6 @@
     stroke: gold;
     stroke-width: 2;
     cursor: pointer;
-    fill: #ab7;
 }
 
 .selectable .territory-name {
