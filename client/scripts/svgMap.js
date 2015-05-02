@@ -132,7 +132,11 @@ function (d3, _, backbone) {
 
     proto.onTerritoryClick =  function (data){
         if (d3.event.defaultPrevented) return; // click suppressed
-        this.trigger("click:territory", data);
+        var events = ["click:territory"];
+        if (_.contains(this.selectableTerritories, data)) {
+            events.push("select:territory")
+        }
+        this.trigger(events.join(" "), data);
     };
 
     proto.onCircleClick = function (data){

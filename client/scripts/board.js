@@ -20,7 +20,7 @@ function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper) {
             imageMap: {} // Map of unitType->imageSource
         };
         this.map = new svgMap.Map(this.boardData, bindTo);
-        this.map.on("click:territory", function (territory) {
+        this.map.on("select:territory", function (territory) {
             if (that.currentPhase && that.currentPhase.onTerritorySelect) {
                 that.currentPhase.onTerritorySelect(territory);
             }
