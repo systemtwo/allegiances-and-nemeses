@@ -36,7 +36,6 @@ class Unit:
     def canMoveThrough(self, territory):
         """
         Checks if type of unit can move through a territory
-        :param unit: Unit
         :param territory: Territory
         :return: Boolean True if unit can move through, False if it cannot
         """
@@ -44,10 +43,10 @@ class Unit:
         if self.isFlying():
             return True
 
-        if territory.type is "sea":
+        if territory.type == "sea":
             if self.type == "sub":
                 # can move if no destroyers present
-                if territory.containsUnitType("destroyer") == 0:
+                if not territory.containsUnitType("destroyer"):
                     return True
             if len(territory.enemyUnits(self.country)) == 0:
                 return True
@@ -56,8 +55,8 @@ class Unit:
             if Util.allied(territory, self.country):
                 return True
             if self.type == "tank":
-                if len(territory.units()):
-                    return True
+                if len(territory.units()) == 0:
+                    return True  # tanks can blitz through empty territories
         return False
 
     def canMoveInto(self, territory):

@@ -22,5 +22,29 @@ define(["enums"], function(enums) {
         return "/static/images/" + unitType + ".png";
     };
 
+    function friendlySeaTerritory (sea, country) {
+        return sea.enemyUnits(country).length == 0;
+    }
+
+    /**
+     * Returns true if a is allied to b
+     * @param a {Unit|Territory|Country}
+     * @return {boolean}
+     */
+    exports.allied = function(a, b) {
+        if (a.country) a = a.country;
+        if (b.country) b = b.country;
+
+        // Handle sea territories
+        if (!a.team) {
+            return friendlySeaTerritory(a, b);
+        } else if (!b.team) {
+            return friendlySeaTerritory(b, a);
+        } else {
+            // standard case - compare two countries
+            return a.team == b.team;
+        }
+    };
+
     return exports;
 });

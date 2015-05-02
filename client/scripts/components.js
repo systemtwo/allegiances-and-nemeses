@@ -1,4 +1,4 @@
-define(["gameAccessor"], function(_b) {
+define(["gameAccessor", "helpers"], function(_b, _h) {
 
     var Unit = function(id, unitType, unitInfo, countryAndTerritory) {
         this.id = id;
@@ -11,11 +11,67 @@ define(["gameAccessor"], function(_b) {
     };
 
     Unit.prototype.isFlying = function() {
-        return this.unitType === "fighter" || this.unitType === "bomber";
+        return this.unitInfo.terrainType == "air";
+    };
+
+    Unit.prototype.isSea = function() {
+        return this.unitInfo.terrainType == "sea";
+    };
+
+    Unit.prototype.isLand = function() {
+        return this.unitInfo.terrainType == "land";
     };
 
     Unit.prototype.hasNotMoved = function() {
         return this.beginningOfPhaseTerritory === this.beginningOfTurnTerritory;
+    };
+
+    /**
+     * Checks if type of unit can move through a territory
+     * @param territory {Territory}
+     * @returns {boolean}
+     */
+    Unit.prototype.canMoveThrough = function (territory) {
+        if (this.isFlying()) {
+            return true;
+        }
+
+        if (territory.type == "sea") {
+            if (this.unitType == "sub") {
+                if (!territory.containsUnitType("destroyer")) {
+                    return true;
+                }
+            }
+            if (territory.enemyUnits(this.country).length == 0) {
+                return true
+            }
+        } else if (territory.type == "land") {
+            if (_h.allied(territory, this)) {
+                return true;
+            } else if (this.unitType == "tank") {
+                if (territory.units().length == 0) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    };
+
+    Unit.prototype.canMoveInto = function (territory) {
+        if (this.isFlying()) {
+            return true;
+        }
+        if (territory.type == "sea") {
+            if (this.isSea() || this.isFlying()) {
+                return true;
+            }
+        } else if (territory.type == "land") {
+            if (this.isLand() || this.isFlying()) {
+                return true;
+            }
+        }
+        return false;
     };
 
     var Territory = function(territoryInfo, countryObject, previousCountry) {
@@ -69,13 +125,16 @@ define(["gameAccessor"], function(_b) {
     };
 
     Territory.prototype.hasFactory = function() {
-        var units = this.units();
-        for(var i=0; i < units.length; i++) {
-            if (units[i].unitType == "factory") {
-                return true;
-            }
-        }
-        return false;
+        return this.containsUnitType("factory");
+    };
+
+    /**
+     * Checks if the any of the units in this territory are of a given unitType
+     * @param unitType {string}
+     * @returns {boolean}
+     */
+    Territory.prototype.containsUnitType = function(unitType) {
+        return !!_.findWhere(this.units(), {unitType: unitType});
     };
 
     Territory.prototype.unitsForCountry = function(country) {

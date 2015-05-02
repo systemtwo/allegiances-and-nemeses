@@ -220,15 +220,25 @@ function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper) {
         });
     };
 
-    // TODO mirror server logic, using unit.canMove and unit.canMoveThrough
+    function addNeighboursToFrontier (frontier, unit, currentItem, checkedNames) {
+            if (unit.canMoveThrough(currentItem.territory) && currentItem.distance < unit.unitInfo.move) {
+                currentItem.territory.connections.forEach(function(neighbour) {
+                    if (!(neighbour.name in checkedNames) && unit.canMoveInto(neighbour)) {
+                        frontier.push({territory: neighbour, distance: currentItem.distance + 1})
+                    }
+                });
+            }
+    }
+
     /**
      * Calculates the distance from one territory to another, for a specific unit
      * @param start Territory
      * @param destination Territory
      * @param unit Unit
-     * @returns {number|*}
+     * @returns {number} Distance to destination. -1 if not found
      */
     Game.prototype.distance = function(start, destination, unit) {
+        // MEMO: this function should match Util.py 'distance' method
         var frontier = [{
                 territory: start,
                 distance: 0
@@ -241,14 +251,10 @@ function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper) {
                 // Found it!
                 return current.distance;
             }
+            addNeighboursToFrontier(frontier, unit, current, checkedNames);
             checkedNames[current.territory.name] = true;
-            current.territory.connections.forEach(function(c) {
-                if (!(c.name in checkedNames)) {
-                    frontier.push({territory: c, distance: current.distance + 1})
-                }
-            });
         }
-        // throw error, path not found?
+        return -1
     };
 
     /**
@@ -276,14 +282,8 @@ function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper) {
                     territoryObjects.push(current.territory);
                     validNames[current.territory.name] = true;
                 }
+                addNeighboursToFrontier(frontier, unit, current, checkedNames);
                 checkedNames[current.territory.name] = true;
-                if (current.distance < unit.unitInfo.move) {
-                    current.territory.connections.forEach(function(c) {
-                        if (!(c.name in checkedNames)) {
-                            frontier.push({territory: c, distance: current.distance+1})
-                        }
-                    })
-                }
             }
         });
 
