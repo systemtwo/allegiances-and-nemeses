@@ -40,21 +40,6 @@ class MapEditorHandler(tornado.web.RequestHandler):
                 moduleInfo["unitSetup"] = connections.read()
             self.write(loader.load("mapEditor.html").generate(moduleInfo=moduleInfo))
 
-        elif self.action == self.actions.CREATE:
-            moduleName = self.get_argument("moduleName")
-            if not os.path.exists(os.path.join(self.config.ABS_MODS_PATH, moduleName)):
-                os.makedirs(os.path.join(self.config.ABS_MODS_PATH, moduleName))
-                with open(GameBoard.Util.countryFileName(moduleName), 'w') as f:
-                    f.write("[]")
-                with open(GameBoard.Util.unitFileName(moduleName), 'w') as f:
-                    f.write("{}")
-                with open(GameBoard.Util.territoryFileName(moduleName), 'w') as f:
-                    f.write("[]")
-                with open(GameBoard.Util.connectionFileName(moduleName), 'w') as f:
-                    f.write("[]")
-                with open(GameBoard.Util.filePath(moduleName, "unitSetup.json"), 'w') as f:
-                    f.write("{}")
-
     def post(self, **params):
         if self.action == self.actions.MODULE:
             moduleName = params["moduleName"]
@@ -70,3 +55,18 @@ class MapEditorHandler(tornado.web.RequestHandler):
                 writeFile("territories", GameBoard.Util.territoryFileName(moduleName))
                 writeFile("connections", GameBoard.Util.connectionFileName(moduleName))
                 writeFile("unitSetup", GameBoard.Util.filePath(moduleName, "unitSetup.json"))
+                
+        elif self.action == self.actions.CREATE:
+            moduleName = self.get_argument("moduleName")
+            if not os.path.exists(os.path.join(self.config.ABS_MODS_PATH, moduleName)):
+                os.makedirs(os.path.join(self.config.ABS_MODS_PATH, moduleName))
+                with open(GameBoard.Util.countryFileName(moduleName), 'w') as f:
+                    f.write("[]")
+                with open(GameBoard.Util.unitFileName(moduleName), 'w') as f:
+                    f.write("{}")
+                with open(GameBoard.Util.territoryFileName(moduleName), 'w') as f:
+                    f.write("[]")
+                with open(GameBoard.Util.connectionFileName(moduleName), 'w') as f:
+                    f.write("[]")
+                with open(GameBoard.Util.filePath(moduleName, "unitSetup.json"), 'w') as f:
+                    f.write("{}")

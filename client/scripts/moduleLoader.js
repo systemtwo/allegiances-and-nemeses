@@ -7,9 +7,9 @@ requirejs([], function() {
                 openModule(moduleName);
             } else {
                 moduleName = prompt("Module Name");
-                $.ajax("/modules/create", {data: {
+                $.post("/modules/create", {
                     moduleName: moduleName
-                }}).done(function() {
+                }).done(function() {
                     openModule(moduleName);
                 })
             }
