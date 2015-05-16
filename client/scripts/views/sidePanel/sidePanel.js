@@ -1,4 +1,4 @@
-define(["backbone", "knockout", "text!views/sidePanel/sidePanel.html", "gameAccessor", "views/sidePanel/boughtUnits", "views/sidePanel/conflicts"],
+define(["backbone", "knockout", "text!views/sidePanel/sidePanel.ko.html", "gameAccessor", "views/sidePanel/boughtUnits", "views/sidePanel/conflicts"],
     function(backbone, ko, template, _b, BoughtUnitView, ConflictView) {
     var exports = {};
 
