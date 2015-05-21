@@ -1,4 +1,4 @@
-define(["nunjucks", "gameAccessor", "router", "helpers"], function(nj, _b, _router, _helpers) {
+define(["knockout", "gameAccessor", "text!../templates/battleground.ko.html", "helpers"], function(ko, _b, battlefieldTemplate, _helpers) {
 
     function replaceCloseButton(event, ui) {
         var widget = $(this).dialog("widget");
@@ -14,19 +14,21 @@ define(["nunjucks", "gameAccessor", "router", "helpers"], function(nj, _b, _rout
 
     function showBattle(tName) {
         // get the conflict
-        var conflict = _b.getBoard().getConflictByTerritoryName(tName);
+        var board = _b.getBoard();
+        var conflict = board.getConflictByTerritoryName(tName);
 
         // render a dialog for it
-        var dialog = $(nj.render("static/templates/battleground.html", {
+        var dialog = $("<div>").appendTo(document.body).append(battlefieldTemplate);
+        ko.applyBindings({
             conflict: conflict,
-            images: _b.getBoard().info.imageMap
-        }));
+            getImageSrc: _helpers.getImageSource,
+            toggleCollapse: function (data, event) {
+                $(event.currentTarget).toggleClass('collapsed')
+            }
+        }, dialog[0]);
 
-        $(".report", dialog).click(function() {
-            $(this).toggleClass("collapsed");
-        });
         dialog.dialog({
-            title: "Battle for " + conflict.territoryName,
+            title: "Battle for " + board.getTerritory(tName).displayName,
             create: replaceCloseButton,
             width: 600,
             height: 400

@@ -1,0 +1,50 @@
+<div class="row battle-info">
+    <div class="col-sm-4 casualty-section">
+        <div class="casualty-title">
+            <h3>Causalties</h3>
+        </div>
+        <div class="reports" data-bind="foreach: conflict.reports">
+            <div class="report collapsed" data-bind="click: $root.toggleCollapse">
+                <div>Attackers: <span data-bind="text: deadAttackers.length"></span></div>
+                <div class="casualty-details" data-bind="foreach: deadAttackers">
+                    <img data-bind="attr: {src: $root.getImageSrc(type, country) }">
+                </div>
+                <div>Defenders: <span data-bind="text: deadDefenders.length"></span></div>
+                <div class="casualty-details" data-bind="foreach: deadDefenders">
+                    <img data-bind="attr: {src: $root.getImageSrc(type, country) }">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-8 battlefield-right-pane">
+        <div style="display: none" class="action-bar row">
+            <div class="col-sm-3">
+                <button>Fight</button>
+            </div>
+            <div class="col-sm-3">
+                <button>To The Death</button>
+            </div>
+            <div class="col-sm-3">
+                <button>Retreat</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="attackers col-sm-6">
+                <h2>
+                    Attackers
+                </h2>
+                <div data-bind="foreach: conflict.attackers">
+                    <img data-bind="attr: {src: $root.getImageSrc(type, country) }">
+                </div>
+            </div>
+            <div class="defenders col-sm-6">
+                <h2>
+                    Defenders
+                </h2>
+                <div data-bind="foreach: conflict.defenders">
+                    <img data-bind="attr: {src: $root.getImageSrc(type, country) }">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
