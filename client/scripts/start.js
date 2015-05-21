@@ -1,7 +1,6 @@
 requirejs.config({
     baseUrl: '/static/scripts',
     paths: {
-        "nunjucks": "lib/nunjucks",
         "backbone": "lib/backbone",
         "knockout": "lib/knockout-3.3.0.debug",
         "underscore": "lib/underscore",
