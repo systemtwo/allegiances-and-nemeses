@@ -55,7 +55,7 @@ class MapEditorHandler(tornado.web.RequestHandler):
                 writeFile("territories", GameBoard.Util.territoryFileName(moduleName))
                 writeFile("connections", GameBoard.Util.connectionFileName(moduleName))
                 writeFile("unitSetup", GameBoard.Util.filePath(moduleName, "unitSetup.json"))
-                
+
         elif self.action == self.actions.CREATE:
             moduleName = self.get_argument("moduleName")
             if not os.path.exists(os.path.join(self.config.ABS_MODS_PATH, moduleName)):
