@@ -87,6 +87,8 @@ class Server:
             (r"/modules/create/?", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.CREATE)),
             (r"/modules/(?P<moduleName>[A-z]+)", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.MODULE)),
 
+            (r"/listImages", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.LIST_IMAGES, html_path=html_path)),
+
             #Board control
             #Consider renaming to /games/
             (r"/boardInfo/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID, gamesManager=self.gamesManager)), #Consider using named regex here

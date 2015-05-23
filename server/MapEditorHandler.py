@@ -6,10 +6,11 @@ import json
 
 import GameBoard
 import utils
+import config
 
 
 class MapEditorHandler(tornado.web.RequestHandler):
-    actions = utils.Enum(["MODULE_SELECTOR", "PAGE", "MODULE", "CREATE"])
+    actions = utils.Enum(["MODULE_SELECTOR", "PAGE", "LIST_IMAGES", "MODULE", "CREATE"])
 
     def initialize(self, action, config, html_path=""):
         self.HTML_PATH = html_path
@@ -39,6 +40,13 @@ class MapEditorHandler(tornado.web.RequestHandler):
             with open(GameBoard.Util.filePath(moduleName, "unitSetup.json")) as connections:
                 moduleInfo["unitSetup"] = connections.read()
             self.write(loader.load("mapEditor.html").generate(moduleInfo=moduleInfo))
+
+        elif self.action == self.actions.LIST_IMAGES:
+            directory = os.path.join(config.STATIC_CONTENT_PATH, "images", self.get_argument("directory", ""))
+            fileNames = []  # empty list if directory does not exists
+            if os.path.isdir(directory):
+                fileNames = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
+            self.write(json.dumps(fileNames))
 
     def post(self, **params):
         if self.action == self.actions.MODULE:
