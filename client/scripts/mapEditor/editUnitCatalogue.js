@@ -40,7 +40,6 @@ function(backbone, ko, _, template, _dialogs) {
                     }))
                 };
                 unitObject.unitType.subscribe(function (newValue) {
-                    console.log(arguments);
                     unitCatalogue[newValue] = unitCatalogue[previousUnitType];
                     delete unitCatalogue[previousUnitType];
                 });
