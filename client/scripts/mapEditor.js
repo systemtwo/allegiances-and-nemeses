@@ -1,11 +1,12 @@
-define(["lib/d3", "mapEditor/svgMapEditor", "mapEditor/unitSetup", "underscore", "message", "territoryEditor", "mapEditor/nodeEditor", "components"],
-function (d3, _svgMapEditor, UnitSetupView, _, msg, TerritoryEditorView, _nodeEditor, _c) {
+define(["lib/d3", "mapEditor/svgMapEditor", "mapEditor/unitSetup", "mapEditor/editUnitCatalogue", "underscore", "message", "territoryEditor", "mapEditor/nodeEditor", "components"],
+function (d3, _svgMapEditor, UnitSetupView, UnitCatalogueView, _, msg, TerritoryEditorView, _nodeEditor, _c) {
 
     // Local namespace
     var mapData = {
         territories: [],
         connections: [],
-        showConnections: true
+        showConnections: true,
+        unitCatalogue: {}
     };
     var svgMap = null;
     var nodeEditor;
@@ -53,6 +54,10 @@ function (d3, _svgMapEditor, UnitSetupView, _, msg, TerritoryEditorView, _nodeEd
             setCurrentTerritory(null);
             newTerritory = null;
         });
+        $("#editUnits").click(function (){
+            var editUnitWindow = new UnitCatalogueView(mapData.unitCatalogue);
+            editUnitWindow.render();
+        });
         $("#save").click(function (){
             $.post("/modules/" + mapData.moduleName, JSON.stringify(getMapDataTransferObject()))
         });
@@ -77,6 +82,7 @@ function (d3, _svgMapEditor, UnitSetupView, _, msg, TerritoryEditorView, _nodeEd
         mapData.countries = JSON.parse(moduleInfo.countries);
         mapData.moduleName = moduleInfo.moduleName;
         mapData.unitSetup = JSON.parse(moduleInfo.unitSetup);
+        mapData.unitCatalogue = unitCatalogue;
 
         mapData.connections = JSON.parse(moduleInfo.connections).map(function (c) {
             var first = _.find(mapData.territories, {name: c[0]});
@@ -294,7 +300,8 @@ function (d3, _svgMapEditor, UnitSetupView, _, msg, TerritoryEditorView, _nodeEd
             connections: mapData.connections.map(function (c) {
                 return [c[0].name, c[1].name].sort(); // sort them for consistency
             }),
-            unitSetup: mapData.unitSetup
+            unitSetup: mapData.unitSetup,
+            units: mapData.unitCatalogue
         };
     }
 

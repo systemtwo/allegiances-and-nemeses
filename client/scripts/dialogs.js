@@ -77,6 +77,7 @@ define([
 
     return {
         showBattle: showBattle,
-        showTerritoryUnits: showTerritoryUnits
+        showTerritoryUnits: showTerritoryUnits,
+        replaceCloseButton: replaceCloseButton
     }
 });

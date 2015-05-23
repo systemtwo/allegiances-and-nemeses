@@ -1,0 +1,36 @@
+<div class="buy-units-container">
+    <!-- Autofocus a hidden element -->
+    <span class="ui-helper-hidden-accessible"><input type="text"/></span>
+    <table class="table">
+        <tr>
+            <th>Unit</th>
+            <th>Cost</th>
+            <th>Move</th>
+            <th>Attack</th>
+            <th>Defend</th>
+        </tr>
+
+        <!-- ko foreach:  unitCatalogue -->
+        <tr>
+            <td>
+                <input data-bind="textInput: unitType">
+            </td>
+            <!-- ko with: unitInfo -->
+            <td>
+                <input class="unit-info-field" data-bind="textInput: cost">
+            </td>
+            <td>
+                <input class="unit-info-field" data-bind="textInput: move">
+            </td>
+            <td>
+                <input class="unit-info-field" data-bind="textInput: attack">
+            </td>
+            <td>
+                <input class="unit-info-field" data-bind="textInput: defence">
+            </td>
+            <!-- /ko -->
+        </tr>
+        <!-- /ko -->
+    </table>
+    <button class="btn btn-success" data-bind="click: addUnit">Add Unit</button>
+</div>

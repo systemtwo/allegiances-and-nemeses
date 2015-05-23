@@ -1,31 +1,33 @@
 {
-"infantry": {
-    "description": "Soldiers who make up the backbone of any ground force.",
-
-    "cost": 3,
-    "attack": 1,
-    "defence": 2,
-    "move": 1,
-    "terrainType": "land"
-},
-
-"artillery": {
-    "description": "Heavy gun batteries that can support infantry attacks.",
-
-    "cost": 4,
-    "attack": 2,
-    "defence": 2,
-    "move": 1,
-    "terrainType": "land"
-},
-
-"factory": {
-    "description": "Factories that produce new units.",
-
-    "cost": 15,
-    "attack": 0,
-    "defence": 0,
-    "move": 0,
-    "terrainType": "land"
-}
+    "artillery": {
+        "attack": 2, 
+        "cost": 4, 
+        "defence": 2, 
+        "description": "Heavy gun batteries that can support infantry attacks.", 
+        "move": 1, 
+        "terrainType": "land"
+    }, 
+    "factory": {
+        "attack": 0, 
+        "cost": 15, 
+        "defence": 0, 
+        "description": "Factories that produce new units.", 
+        "move": 0, 
+        "terrainType": "land"
+    }, 
+    "infantry": {
+        "attack": 1, 
+        "cost": 3, 
+        "defence": 2, 
+        "description": "Soldiers who make up the backbone of any ground force.", 
+        "move": 1, 
+        "terrainType": "land"
+    }, 
+    "tank": {
+        "attack": 3, 
+        "cost": 5, 
+        "defence": 3, 
+        "description": "", 
+        "move": 2
+    }
 }

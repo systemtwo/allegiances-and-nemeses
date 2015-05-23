@@ -19,6 +19,7 @@ define(["backbone", "underscore", "knockout", "text!views/moveUnit/moveUnit.html
                             console.log(unitType);
                             view.territoryUnitTypes.push(unitType)
                         },
+                        imageTitle: unitType,
                         imageSource: _h.getImageSource(unitType, view.territory.country)
                     }
                 }),
@@ -31,6 +32,7 @@ define(["backbone", "underscore", "knockout", "text!views/moveUnit/moveUnit.html
                                 var index = view.territoryUnitTypes.indexOf(unitType);
                                 view.territoryUnitTypes.splice(index, 1);
                             },
+                            imageTitle: unitType,
                             imageSource: _h.getImageSource(unitType, view.territory.country)
                         }
                     });
