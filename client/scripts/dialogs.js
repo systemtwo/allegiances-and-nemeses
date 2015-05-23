@@ -1,4 +1,12 @@
-define(["knockout", "gameAccessor", "text!../templates/battleground.ko.html", "helpers"], function(ko, _b, battlefieldTemplate, _helpers) {
+define([
+        "knockout",
+        "underscore",
+        "gameAccessor",
+        "text!../templates/battleground.ko.html",
+        "text!../templates/units.ko.html",
+        "helpers"
+    ],
+    function(ko, _, _b, battlefieldTemplate, unitsTemplate, _helpers) {
 
     function replaceCloseButton(event, ui) {
         var widget = $(this).dialog("widget");
@@ -35,7 +43,40 @@ define(["knockout", "gameAccessor", "text!../templates/battleground.ko.html", "h
         });
     }
 
+    /**
+     *
+     * @param territory
+     * @param map The svg map element
+     * @param locationInfo
+     * locationInfo.pageX {int} x position to position against
+     * locationInfo.pageY {int} y position
+     */
+    function showTerritoryUnits (territory, map, locationInfo) {
+        var dialog = $("<div>").appendTo(document.body).append(unitsTemplate);
+        ko.applyBindings({
+            units: _.map(territory.units(), function (unit) {
+                return {
+                    unitType: unit.unitType,
+                    imageSrc: _helpers.getImageSource(unit.unitType, unit.country)
+                }
+            })
+        }, dialog[0]);
+
+        dialog.dialog({
+            title: "Units in " + territory.displayName,
+            create: replaceCloseButton,
+            width: 300,
+            height: 200,
+            position: {
+                my: "left+20 center",
+                of: locationInfo,
+                within: map || window
+            }
+        });
+    }
+
     return {
-        showBattle: showBattle
+        showBattle: showBattle,
+        showTerritoryUnits: showTerritoryUnits
     }
 });

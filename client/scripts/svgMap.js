@@ -62,6 +62,10 @@ function (d3, _, backbone) {
         this.drawTerritories();
     };
 
+    proto.getCircleContent = function (territory) {
+        return "";
+    };
+
     proto.attachPath = function (territoryGroups) {
         var map = this;
         territoryGroups.append("path")
@@ -71,17 +75,26 @@ function (d3, _, backbone) {
 
     proto.attachCircle = function (territoryGroups) {
         var map = this;
-        territoryGroups.append("circle")
+        var circleGroup = territoryGroups.append("g")
+            .classed("unit-selector-group", true);
+        circleGroup.append("circle")
             .classed("unit-selector", true)
             .attr("r", 10)
+            .on("click", map.onCircleClick.bind(map));
+        circleGroup.append("text")
+            .classed("circle-content", true)
+            .attr("text-anchor", "middle")
+            .attr("dominant-baseline", "middle")
             .on("click", map.onCircleClick.bind(map));
     };
 
     proto.attachDisplayName = function (territoryGroups) {
+        var map = this;
         territoryGroups.append("text")
             .classed("territory-name", true)
             .attr("text-anchor", "middle")
-            .attr("dominant-baseline", "middle");
+            .attr("dominant-baseline", "middle")
+            .on("click", map.onTerritoryClick.bind(map));
     };
 
     proto.attachTerritoryElements = function (territoryGroups) {
@@ -117,11 +130,14 @@ function (d3, _, backbone) {
         territoryGroups.select(".unit-selector")
             .attr("cx", function (data) { return data.displayInfo.circle.x; })
             .attr("cy", function (data) { return data.displayInfo.circle.y; });
+        territoryGroups.select(".circle-content")
+            .text(function (d) {return map.getCircleContent(d)})
+            .attr("x", function (data) { return data.displayInfo.circle.x; })
+            .attr("y", function (data) { return data.displayInfo.circle.y; });
         territoryGroups.select(".territory-name")
             .text(function (d) {return d.displayName})
             .attr("x", function (data) { return data.displayInfo.name.x; })
-            .attr("y", function (data) { return data.displayInfo.name.y; })
-            .on("click", map.onTerritoryClick.bind(map));
+            .attr("y", function (data) { return data.displayInfo.name.y; });
     };
 
     proto.onMapClick = function () {
@@ -141,7 +157,7 @@ function (d3, _, backbone) {
 
     proto.onCircleClick = function (data){
         if (d3.event.defaultPrevented) return; // click suppressed
-        this.trigger("click:circle", data);
+        this.trigger("click:circle", data, d3.event);
     };
 
     return {

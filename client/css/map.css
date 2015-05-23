@@ -9,6 +9,10 @@
     stroke-width: 1;
 }
 
+.unit-selector-group {
+    cursor: alias;
+}
+
 .unit-selector   {
     fill: #3e3;
 }

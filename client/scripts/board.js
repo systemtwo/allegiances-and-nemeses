@@ -1,5 +1,5 @@
-define(["backbone", "svgMap", "components", "helpers", "router", "gameAccessor", "phases/phaseHelper"],
-function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper) {
+define(["backbone", "svgMap", "components", "helpers", "router", "gameAccessor", "phases/phaseHelper", "dialogs"],
+function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) {
     var Game = function(id, boardInfo, bindTo) {
         var that = this;
         _b.setBoard(this);
@@ -25,6 +25,12 @@ function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper) {
                 that.currentPhase.onTerritorySelect(territory);
             }
         });
+        this.map.on("click:circle", function (territory, event) {
+            _dialogs.showTerritoryUnits(territory, that.map.mapElement[0], event);
+        });
+        this.map.getCircleContent = function (territory) {
+            return territory.units().length;
+        };
         this.isPlayerTurn = false;
         this.currentCountry = null;
         this.currentPhase = null;
