@@ -28,6 +28,7 @@
         "cost": 5, 
         "defence": 3, 
         "description": "", 
-        "move": 2
+        "move": 2, 
+        "terrainType": "land"
     }
 }

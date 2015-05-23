@@ -4,6 +4,7 @@
     <table class="table">
         <tr>
             <th>Unit</th>
+            <th>Terrain Type</th>
             <th>Cost</th>
             <th>Move</th>
             <th>Attack</th>
@@ -16,6 +17,13 @@
                 <input data-bind="textInput: unitType">
             </td>
             <!-- ko with: unitInfo -->
+            <td>
+                <select data-bind="value: terrainType">
+                    <option>land</option>
+                    <option>sea</option>
+                    <option>air</option>
+                </select>
+            </td>
             <td>
                 <input class="unit-info-field" data-bind="textInput: cost">
             </td>

@@ -231,7 +231,7 @@ function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) {
         if (unit.canMoveThrough(currentItem.territory) && currentItem.distance < unit.unitInfo.move) {
             currentItem.territory.connections.forEach(function(neighbour) {
                 // Can't move into enemy territories during non-combat move phase
-                var valid = that.currentPhase.validTerritory && that.currentPhase.validTerritory(neighbour);
+                var valid = !that.currentPhase.validTerritory || that.currentPhase.validTerritory(neighbour);
                 if (valid && !(neighbour.name in checkedNames) && unit.canMoveInto(neighbour)) {
                     frontier.push({territory: neighbour, distance: currentItem.distance + 1})
                 }

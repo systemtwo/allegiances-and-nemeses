@@ -2,22 +2,26 @@ define(["backbone", "knockout", "underscore", "text!/static/templates/editUnitCa
 function(backbone, ko, _, template, _dialogs) {
 
     // Taken from knockout website
-    ko.extenders.numeric = function(target) {
+    ko.extenders.numeric = function(target, enableExtension) {
         //create a writable computed observable to intercept writes to our observable
-        return ko.pureComputed({
-            read: target,  //always return the original observables value
-            write: function(newValue) {
-                var current = target(),
-                    newValueAsNum = parseFloat(+newValue);
+        if (enableExtension) {
+            return ko.pureComputed({
+                read: target,  //always return the original observables value
+                write: function(newValue) {
+                    var current = target(),
+                        newValueAsNum = parseFloat(+newValue);
 
-                //only write if it changed
-                if (!isNaN(newValueAsNum) && newValueAsNum !== current) {
-                    target(newValueAsNum);
-                } else if (newValue !== current) {
-                    target.notifySubscribers(current);
+                    //only write if it changed
+                    if (!isNaN(newValueAsNum) && newValueAsNum !== current) {
+                        target(newValueAsNum);
+                    } else if (newValue !== current) {
+                        target.notifySubscribers(current);
+                    }
                 }
-            }
-        }).extend({ notify: 'always' });
+            }).extend({ notify: 'always' });
+        } else {
+            return target;
+        }
     };
 
     return backbone.View.extend({
@@ -28,7 +32,7 @@ function(backbone, ko, _, template, _dialogs) {
                 var unitObject =  {
                     unitType: ko.observable(unitType),
                     unitInfo: _.object(_.map(info, function (fieldValue, fieldName) {
-                        var observable = ko.observable(fieldValue).extend({numeric: true});
+                        var observable = ko.observable(fieldValue).extend({numeric: fieldName != "terrainType"});
                         observable.subscribe(function (newValue) {
                             info[fieldName] = newValue;
                         });
@@ -53,6 +57,7 @@ function(backbone, ko, _, template, _dialogs) {
                         move: 0,
                         attack: 0,
                         defence: 0,
+                        terrainType: "land",
                         description: ""
                     };
                     var name = "unnamed";
