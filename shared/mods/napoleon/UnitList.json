@@ -7,6 +7,14 @@
         "move": 1, 
         "terrainType": "land"
     }, 
+    "cavalry": {
+        "attack": 3, 
+        "cost": 5, 
+        "defence": 3, 
+        "description": "", 
+        "move": 2, 
+        "terrainType": "land"
+    }, 
     "factory": {
         "attack": 0, 
         "cost": 15, 
@@ -23,10 +31,18 @@
         "move": 1, 
         "terrainType": "land"
     }, 
-    "tank": {
+    "light cavalry": {
         "attack": 3, 
-        "cost": 5, 
-        "defence": 3, 
+        "cost": 6, 
+        "defence": 2, 
+        "description": "", 
+        "move": 3, 
+        "terrainType": "land"
+    }, 
+    "mobile infantry": {
+        "attack": 1, 
+        "cost": 4, 
+        "defence": 2, 
         "description": "", 
         "move": 2, 
         "terrainType": "land"
