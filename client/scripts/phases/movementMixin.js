@@ -1,5 +1,5 @@
-define(["gameAccessor", "helpers", "dialogs", "views/moveUnit/moveUnit"],
-function(_b, _helpers, _dialogs, MoveUnitView) {
+define(["underscore", "gameAccessor", "helpers", "dialogs", "views/moveUnit/moveUnit"],
+function(_, _b, _helpers, _dialogs, MoveUnitView) {
     var movementMixin = {
         strings: {
             selectStart: "Select a territory to move from",
@@ -53,7 +53,8 @@ function(_b, _helpers, _dialogs, MoveUnitView) {
             var board = _b.getBoard();
             var controlledUnits = originTerritory.unitsForCountry(board.currentCountry).filter(this.movableUnit);
             // Make selectable any territory that a unit currently in the clicked territory can move to
-            board.map.setSelectableTerritories(board.territoriesInRange(controlledUnits));
+            var territoriesInRange = board.territoriesInRange(controlledUnits);
+            board.map.setSelectableTerritories(_.filter(territoriesInRange, function (t) { return t != originTerritory }));
             _helpers.helperText(this.strings.selectDest);
         },
 
@@ -85,7 +86,7 @@ function(_b, _helpers, _dialogs, MoveUnitView) {
             var distanceToCurrent = _b.getBoard().distance(unit.beginningOfPhaseTerritory, unit.beginningOfTurnTerritory, unit);
             var distanceToDest = _b.getBoard().distance(unit.beginningOfPhaseTerritory, destination, unit);
             console.log(distanceToCurrent, distanceToDest);
-            return distanceToCurrent + distanceToDest <= unit.unitInfo.move;
+            return distanceToDest >= 0 && distanceToCurrent + distanceToDest <= unit.unitInfo.move;
         },
 
         showUnitSelectionWindow: function (destination) {

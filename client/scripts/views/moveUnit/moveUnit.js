@@ -32,9 +32,17 @@ define(["backbone", "knockout", "text!views/moveUnit/moveUnit.html", "helpers", 
                     else
                         return currentPhase.canMove(unit, view.fromTerritory);
                 }
+                function getUnitHelperText (unit) {
+                    if (unit.beginningOfPhaseTerritory.displayName === unit.beginningOfTurnTerritory.displayName) {
+                        return "Moving from " + unit.beginningOfTurnTerritory.displayName;
+                    } else {
+                        return "Moving from " + unit.beginningOfTurnTerritory.displayName + " through " + unit.beginningOfPhaseTerritory.displayName;
+                    }
+                }
                 function parseUnit(unit) {
                     return {
                         imageSource: _h.getImageSource(unit.unitType, unit.country),
+                        imageTitle: getUnitHelperText(unit),
                         canMove: canMove(unit),
                         onClick: function(unitData) {
                             var origin,destination, undo;

@@ -226,22 +226,25 @@ function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) {
         });
     };
 
-    function addNeighboursToFrontier (frontier, unit, currentItem, checkedNames) {
-            if (unit.canMoveThrough(currentItem.territory) && currentItem.distance < unit.unitInfo.move) {
-                currentItem.territory.connections.forEach(function(neighbour) {
-                    if (!(neighbour.name in checkedNames) && unit.canMoveInto(neighbour)) {
-                        frontier.push({territory: neighbour, distance: currentItem.distance + 1})
-                    }
-                });
-            }
-    }
+    Game.prototype.addNeighboursToFrontier = function (frontier, unit, currentItem, checkedNames) {
+        var that = this;
+        if (unit.canMoveThrough(currentItem.territory) && currentItem.distance < unit.unitInfo.move) {
+            currentItem.territory.connections.forEach(function(neighbour) {
+                // Can't move into enemy territories during non-combat move phase
+                var valid = that.currentPhase.validTerritory && that.currentPhase.validTerritory(neighbour);
+                if (valid && !(neighbour.name in checkedNames) && unit.canMoveInto(neighbour)) {
+                    frontier.push({territory: neighbour, distance: currentItem.distance + 1})
+                }
+            });
+        }
+    };
 
     /**
      * Calculates the distance from one territory to another, for a specific unit
      * @param start Territory
      * @param destination Territory
      * @param unit Unit
-     * @returns {number} Distance to destination. -1 if not found
+     * @returns {number} Distance to destination. -1 if not found or out of unit move range
      */
     Game.prototype.distance = function(start, destination, unit) {
         // MEMO: this function should match Util.py 'distance' method
@@ -257,7 +260,7 @@ function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) {
                 // Found it!
                 return current.distance;
             }
-            addNeighboursToFrontier(frontier, unit, current, checkedNames);
+            this.addNeighboursToFrontier(frontier, unit, current, checkedNames);
             checkedNames[current.territory.name] = true;
         }
         return -1
@@ -288,7 +291,7 @@ function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) {
                     territoryObjects.push(current.territory);
                     validNames[current.territory.name] = true;
                 }
-                addNeighboursToFrontier(frontier, unit, current, checkedNames);
+                that.addNeighboursToFrontier(frontier, unit, current, checkedNames);
                 checkedNames[current.territory.name] = true;
             }
         });
