@@ -34,3 +34,7 @@
 .unit-info-field {
     width: 50px;
 }
+
+.image-selector .unit-image {
+    margin: 20px;
+}

@@ -4,6 +4,7 @@
     <table class="table">
         <tr>
             <th>Unit</th>
+            <th>Unit Image</th>
             <th>Terrain Type</th>
             <th>Cost</th>
             <th>Move</th>
@@ -17,6 +18,9 @@
                 <input data-bind="textInput: unitType">
             </td>
             <!-- ko with: unitInfo -->
+            <td>
+                <img class="unit-image" data-bind="attr: {src: imageSource}, click: $parent.selectImage" alt="No image"/>
+            </td>
             <td>
                 <select data-bind="value: terrainType">
                     <option>land</option>

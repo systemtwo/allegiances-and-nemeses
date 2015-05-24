@@ -4,6 +4,7 @@
         "cost": 4, 
         "defence": 2, 
         "description": "Heavy gun batteries that can support infantry attacks.", 
+        "imageSource": "/static/images/bomber.png", 
         "move": 1, 
         "terrainType": "land"
     }, 
@@ -12,6 +13,7 @@
         "cost": 5, 
         "defence": 3, 
         "description": "", 
+        "imageSource": "/static/images/battleship.png", 
         "move": 2, 
         "terrainType": "land"
     }, 
@@ -20,6 +22,7 @@
         "cost": 15, 
         "defence": 0, 
         "description": "Factories that produce new units.", 
+        "imageSource": "/static/images/factory.png", 
         "move": 0, 
         "terrainType": "land"
     }, 
@@ -28,6 +31,7 @@
         "cost": 3, 
         "defence": 2, 
         "description": "Soldiers who make up the backbone of any ground force.", 
+        "imageSource": "/static/images/infantry.png", 
         "move": 1, 
         "terrainType": "land"
     }, 
@@ -36,6 +40,7 @@
         "cost": 6, 
         "defence": 2, 
         "description": "", 
+        "imageSource": "/static/images/fighter.png", 
         "move": 3, 
         "terrainType": "land"
     }, 
@@ -44,6 +49,7 @@
         "cost": 4, 
         "defence": 2, 
         "description": "", 
+        "imageSource": "/static/images/tank.png", 
         "move": 2, 
         "terrainType": "land"
     }

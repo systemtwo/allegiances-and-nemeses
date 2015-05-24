@@ -1,5 +1,5 @@
-define(["backbone", "knockout", "underscore", "text!/static/templates/editUnitCatalogue.ko.html", "dialogs"],
-function(backbone, ko, _, template, _dialogs) {
+define(["backbone", "knockout", "underscore", "text!/static/templates/editUnitCatalogue.ko.html", "dialogs", 'mapEditor/imageSelector'],
+function(backbone, ko, _, template, _dialogs, ImageSelectorView) {
 
     // Taken from knockout website
     ko.extenders.numeric = function(target, enableExtension) {
@@ -31,13 +31,23 @@ function(backbone, ko, _, template, _dialogs) {
                 var previousUnitType = unitType;
                 var unitObject =  {
                     unitType: ko.observable(unitType),
-                    unitInfo: _.object(_.map(info, function (fieldValue, fieldName) {
-                        var observable = ko.observable(fieldValue).extend({numeric: fieldName != "terrainType"});
+                    unitInfo: _.object(_.map(["cost", "attack", "defence", "move", "terrainType", "imageSource"], function (fieldName) {
+                        var observable = ko.observable(info[fieldName] || "")
+                            .extend({
+                                numeric: !_.contains(["terrainType", "imageSource"], fieldName)
+                            });
                         observable.subscribe(function (newValue) {
                             info[fieldName] = newValue;
                         });
                         return [fieldName, observable];
-                    }))
+                    })),
+                    selectImage: function () {
+                        var imageSelector = new ImageSelectorView();
+                        imageSelector.render();
+                        imageSelector.on("selectImage", function (filePath) {
+                            unitObject.unitInfo.imageSource(filePath);
+                        })
+                    }
                 };
                 unitObject.unitType.subscribe(function (newValue) {
                     unitCatalogue[newValue] = unitCatalogue[previousUnitType];
@@ -57,7 +67,8 @@ function(backbone, ko, _, template, _dialogs) {
                         attack: 0,
                         defence: 0,
                         terrainType: "land",
-                        description: ""
+                        description: "",
+                        imageSource: ""
                     };
                     var name = "unnamed";
                     var counter = 0;
@@ -80,7 +91,12 @@ function(backbone, ko, _, template, _dialogs) {
                 title: "Units",
                 create: _dialogs.replaceCloseButton,
                 width: Math.min(700, window.innerWidth), // never larger than screen, or 600px
-                height: initialHeight
+                height: initialHeight,
+                buttons: {
+                    Close: function () {
+                        that.$el.dialog("close");
+                    }
+                }
             });
         }
     });
