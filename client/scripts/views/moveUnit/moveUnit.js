@@ -34,19 +34,22 @@ define(["backbone", "knockout", "text!views/moveUnit/moveUnit.html", "helpers", 
                 }
                 function getUnitHelperText (unit) {
                     if (unit.beginningOfPhaseTerritory.displayName === unit.beginningOfTurnTerritory.displayName) {
-                        return "Moving from " + unit.beginningOfTurnTerritory.displayName;
+                        return unit.unitType + ": Moving from " + unit.beginningOfTurnTerritory.displayName;
                     } else {
-                        return "Moving from " + unit.beginningOfTurnTerritory.displayName + " through " + unit.beginningOfPhaseTerritory.displayName;
+                        return unit.unitType + ": Moving from " + unit.beginningOfTurnTerritory.displayName + " through " + unit.beginningOfPhaseTerritory.displayName;
                     }
                 }
                 function parseUnit(unit) {
+                    var unitIsMovable = canMove(unit);
                     return {
-                        imageSource: _h.getImageSource(unit.unitType, unit.country),
-                        imageTitle: getUnitHelperText(unit),
-                        canMove: canMove(unit),
+                        imageSource: _h.getImageSource(unit.unitInfo, unit.country),
+                        imageTitle: ko.computed(function () {
+                            return unitIsMovable ? getUnitHelperText(unit) : unit.unitType;
+                        }),
+                        canMove: unitIsMovable,
                         onClick: function(unitData) {
                             var origin,destination, undo;
-                            if (canMove(unit)) {
+                            if (unitIsMovable) {
                                 if (unit.territory == view.fromTerritory) {
                                     viewModel.moveUnitToDestination(unitData);
                                     undo = viewModel.moveUnitToOrigin.bind(viewModel);

@@ -4,7 +4,11 @@
         "cost": 4, 
         "defence": 2, 
         "description": "Heavy gun batteries that can support infantry attacks.", 
-        "imageSource": "/static/images/bomber.png", 
+        "imageSource": {
+            "central": "bomber.png",
+            "russia": "artillery.png",
+            "western": "aa.png"
+        }, 
         "move": 1, 
         "terrainType": "land"
     }, 
@@ -13,7 +17,10 @@
         "cost": 5, 
         "defence": 3, 
         "description": "", 
-        "imageSource": "/static/images/battleship.png", 
+        "imageSource": {
+            "russia": "fighter.png",
+            "western": "bomber.png"
+        }, 
         "move": 2, 
         "terrainType": "land"
     }, 
@@ -22,7 +29,10 @@
         "cost": 15, 
         "defence": 0, 
         "description": "Factories that produce new units.", 
-        "imageSource": "/static/images/factory.png", 
+        "imageSource": {
+            "russia": "factory.png",
+            "western": "battleship.png"
+        }, 
         "move": 0, 
         "terrainType": "land"
     }, 
@@ -31,7 +41,9 @@
         "cost": 3, 
         "defence": 2, 
         "description": "Soldiers who make up the backbone of any ground force.", 
-        "imageSource": "/static/images/infantry.png", 
+        "imageSource": {
+            "russia": "infantry.png"
+        }, 
         "move": 1, 
         "terrainType": "land"
     }, 
@@ -40,7 +52,9 @@
         "cost": 6, 
         "defence": 2, 
         "description": "", 
-        "imageSource": "/static/images/fighter.png", 
+        "imageSource": {
+            "russia": "bomber.png"
+        }, 
         "move": 3, 
         "terrainType": "land"
     }, 
@@ -49,7 +63,9 @@
         "cost": 4, 
         "defence": 2, 
         "description": "", 
-        "imageSource": "/static/images/tank.png", 
+        "imageSource": {
+            "russia": "transport.png"
+        }, 
         "move": 2, 
         "terrainType": "land"
     }

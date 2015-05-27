@@ -20,7 +20,7 @@ define(["backbone", "underscore", "knockout", "text!views/moveUnit/moveUnit.html
                             view.territoryUnitTypes.push(unitType)
                         },
                         imageTitle: unitType,
-                        imageSource: _h.getImageSource(unitType, view.territory.country)
+                        imageSource: _h.getImageSource(unitInfo, view.territory.country)
                     }
                 }),
                 destinationUnits: ko.computed(function () {
@@ -33,7 +33,7 @@ define(["backbone", "underscore", "knockout", "text!views/moveUnit/moveUnit.html
                                 view.territoryUnitTypes.splice(index, 1);
                             },
                             imageTitle: unitType,
-                            imageSource: _h.getImageSource(unitType, view.territory.country)
+                            imageSource: _h.getImageSource(view.unitCatalogue[unitType], view.territory.country)
                         }
                     });
                 })

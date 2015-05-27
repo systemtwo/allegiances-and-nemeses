@@ -29,7 +29,9 @@ define([
         var dialog = $("<div>").appendTo(document.body).append(battlefieldTemplate);
         ko.applyBindings({
             conflict: conflict,
-            getImageSrc: _helpers.getImageSource,
+            getImageSource: function (unitType, country) {
+                return _helpers.getImageSource(board.unitInfo(unitType), country); // MEMO: this retains a copy of the board, may cause issues
+            },
             toggleCollapse: function (data, event) {
                 $(event.currentTarget).toggleClass('collapsed')
             }
@@ -57,7 +59,7 @@ define([
             units: _.map(territory.units(), function (unit) {
                 return {
                     unitType: unit.unitType,
-                    imageSrc: _helpers.getImageSource(unit.unitType, unit.country)
+                    imageSrc: _helpers.getImageSource(unit.unitInfo, unit.country.name)
                 }
             })
         }, dialog[0]);

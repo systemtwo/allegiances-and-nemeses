@@ -1,5 +1,5 @@
-define(["backbone", "svgMap", "components", "helpers", "router", "gameAccessor", "phases/phaseHelper", "dialogs"],
-function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) {
+define(["underscore", "backbone", "svgMap", "components", "helpers", "router", "gameAccessor", "phases/phaseHelper", "dialogs"],
+function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) {
     var Game = function(id, boardInfo, bindTo) {
         var that = this;
         _b.setBoard(this);
@@ -11,13 +11,6 @@ function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) {
             units: [],
             buyList: boardInfo.buyList,
             conflicts: boardInfo.conflicts
-        };
-        // Info about the game that will remain constant
-        this.info = {
-            players: boardInfo.players,
-            connections: [],
-            unitCatalogue: boardInfo.unitCatalogue,
-            imageMap: {} // Map of unitType->imageSource
         };
         this.map = new svgMap.Map(this.boardData, bindTo);
         this.map.on("select:territory", function (territory) {
@@ -35,7 +28,6 @@ function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) {
         this.currentCountry = null;
         this.currentPhase = null;
         this.phaseName = "";
-        this.mapImage = new Image();
         this.parse(boardInfo);
         this.map.drawMap();
         this.on("change", function () {
@@ -59,16 +51,11 @@ function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) {
         this.info = {
             players: boardInfo.players,
             connections: [],
-            unitCatalogue: boardInfo.unitCatalogue,
-            imageMap: {} // Map of unitType->imageSource
+            unitCatalogue: boardInfo.unitCatalogue
         };
 
         this.isPlayerTurn = boardInfo.isPlayerTurn;
         this.wrapsHorizontally = boardInfo.wrapsHorizontally;
-
-        Object.keys(boardInfo.unitCatalogue).forEach(function(unitType) {
-            that.info.imageMap[unitType] = _helpers.getImageSource(unitType);
-        });
 
         this.boardData.countries = boardInfo.countries.map(function(countryInfo) {
             return new _c.Country(countryInfo)
@@ -143,12 +130,6 @@ function(backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) {
             second.connections.push(first);
         });
 
-    };
-
-    Game.prototype.setImage = function(srcImagePath, onLoadFunction) {
-        this.mapImage = this.mapImage || new Image();
-        this.mapImage.src = srcImagePath;
-        this.mapImage.onload = onLoadFunction;
     };
 
     Game.prototype.currentPhaseName = function() {

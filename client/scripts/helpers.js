@@ -18,8 +18,16 @@ define(["enums"], function(enums) {
         $("#helperText").text(text);
     };
 
-    exports.getImageSource = function(unitType, country) {
-        return "/static/images/" + unitType + ".png";
+    exports.getImageSource = function(unitInfo, country) {
+        if (_.isObject(country)) {
+            country = country.name;
+        }
+        var source = unitInfo.imageSource[country];
+        if (source) {
+            return "/static/images/" + source;
+        } else {
+            return "";
+        }
     };
 
     function friendlySeaTerritory (sea, country) {

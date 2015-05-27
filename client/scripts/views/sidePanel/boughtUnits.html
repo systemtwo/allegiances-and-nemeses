@@ -2,7 +2,7 @@
 
 <script type="text/html" id="bought-unit-template">
 <div class="bought-unit" data-bind="click: $root.clickUnit">
-    <img class="bought-unit-image" src="" data-bind="attr: { src: $root.getImageSrc(unitType) },
+    <img class="bought-unit-image" src="" data-bind="attr: { src: $root.getImageSrc(unitType), title: unitType },
         css: {disabledUnit: !$root.canPlace(unitType)}" />
     <span class="placement-territory" data-bind="text: ($root.getDisplayName(territory) || 'Not Placed')"></span>
 </div>

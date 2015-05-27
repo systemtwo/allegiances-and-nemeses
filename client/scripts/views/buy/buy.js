@@ -33,7 +33,7 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
                         });
                         return {
                             unitType: unitType,
-                            imageSrc: _h.getImageSource(unitType, board.currentCountry),
+                            imageSrc: _h.getImageSource(info, board.currentCountry),
                             unitInfo: info,
                             amount: amount,
                             increment: function(data, event) {
@@ -131,7 +131,7 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
                 width: Math.min(600, window.innerWidth), // never larger than screen, or 600px
                 height: initialHeight,
                 buttons: {
-                    "Ok": function () {
+                    "Done": function () {
                         _b.getBoard().nextPhase();
                     }
                 }

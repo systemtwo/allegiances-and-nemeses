@@ -6,7 +6,8 @@ function (d3, _svgMapEditor, UnitSetupView, UnitCatalogueView, _, msg, Territory
         territories: [],
         connections: [],
         showConnections: true,
-        unitCatalogue: {}
+        unitCatalogue: {},
+        countries: []
     };
     var svgMap = null;
     var nodeEditor;
@@ -55,7 +56,7 @@ function (d3, _svgMapEditor, UnitSetupView, UnitCatalogueView, _, msg, Territory
             newTerritory = null;
         });
         $("#editUnits").click(function (){
-            var editUnitWindow = new UnitCatalogueView(mapData.unitCatalogue);
+            var editUnitWindow = new UnitCatalogueView(mapData.unitCatalogue, mapData.countries);
             editUnitWindow.render();
         });
         $("#save").click(function (){

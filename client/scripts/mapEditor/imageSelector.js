@@ -1,24 +1,25 @@
-define(["backbone", "knockout", "underscore", "text!/static/templates/imageSelector.ko.html", "dialogs"],
-function(backbone, ko, _, template, _dialogs) {
+define(["backbone", "knockout", "underscore", "text!/static/templates/imageSelector.ko.html"],
+function(backbone, ko, _, template) {
 
-    var ImageSelectorView = backbone.View.extend({
-        initialize: function() {
+    return backbone.View.extend({
+        initialize: function(options) {
             var that = this;
+
+            this.options = options;
+            this.onClick = _.isFunction(options.onClick) ? options.onClick : function () {};
+
             this.viewModel = {
                 images: ko.observableArray([])
             };
             this.directory = "";
             function imageVM (imageName) {
-                var fullPath = "/static/images/";
-                if (that.directory) {
-                    fullPath += that.directory + "/";
-                }
+                var rootPath = "/static/images/";
+                var directoryPath = that.directory ? that.directory + "/" : "";
                 return {
                     fileName: imageName,
-                    source: fullPath + imageName,
+                    source: rootPath + directoryPath + imageName,
                     onClick: function () {
-                        that.trigger("selectImage", fullPath + imageName);
-                        that.remove();
+                        that.onClick(directoryPath + imageName);
                     }
                 }
             }
@@ -28,27 +29,13 @@ function(backbone, ko, _, template, _dialogs) {
             return this;
         },
         render: function() {
-            var that = this;
-            var initialHeight = Math.min(500, window.innerHeight);
-            ko.applyBindings(this.viewModel, this.$el.append(template)[0]);
-            this.$el.dialog({
-                title: "Choose an image",
-                create: _dialogs.replaceCloseButton,
-                width: Math.min(700, window.innerWidth), // never larger than screen, or 600px
-                height: initialHeight,
-                buttons: {
-                    Cancel: function () {
-                        that.remove();
-                    }
-                }
-            });
+            ko.applyBindings(this.viewModel, $(template).appendTo(this.$el)[0]);
         },
         remove: function () {
-            this.$el.dialog("close");
-            this.off();
             backbone.View.prototype.remove.call(this);
+            if (this.options.onRemove) {
+                this.options.onRemove();
+            }
         }
     });
-    $.extend(ImageSelectorView.prototype, backbone.Event)
-    return ImageSelectorView;
 });

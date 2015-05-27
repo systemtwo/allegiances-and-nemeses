@@ -24,7 +24,8 @@ define(["backbone", "underscore", "knockout", "text!views/sidePanel/boughtUnits.
                     return territory && territory.displayName ? territory.displayName : territoryName;
                 };
                 this.getImageSrc = function(unitType) {
-                    return _h.getImageSource(unitType, _b.getBoard().currentCountry);
+                    var board = _b.getBoard();
+                    return _h.getImageSource(board.unitInfo(unitType), board.currentCountry);
                 };
                 this.canPlace = function(unitType) {
                     return true;
