@@ -27,7 +27,7 @@ function(backbone, ko, _, template) {
             var that = this;
             function imageVM (imageName) {
                 var rootPath = "/static/images/";
-                var directoryPath = that.viewModel.directory.length ? that.viewModel.directory().join("/") + "/" : "";
+                var directoryPath = that.viewModel.directory().length ? that.viewModel.directory().join("/") + "/" : "";
                 return {
                     fileName: imageName,
                     source: rootPath + directoryPath + imageName,

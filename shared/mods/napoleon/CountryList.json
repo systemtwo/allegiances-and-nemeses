@@ -1,26 +1,32 @@
 [
     {
         "name": "russia",
-        "displayName": "Russian Empire",
+        "displayName": "USSR",
         "team": "1",
         "color": "#B00"
     },
     {
         "name": "central",
-        "displayName": "Germanic Alliance",
+        "displayName": "Germany",
         "team": "2",
         "color": "#466676"
     },
     {
         "name": "western",
-        "displayName": "Western Powers",
-        "team": "3",
+        "displayName": "United Kingdom",
+        "team": "1",
         "color": "#E0CC69"
     },
     {
         "name": "ottoman",
-        "displayName": "Ottoman Empire",
-        "team": "4",
+        "displayName": "Japan",
+        "team": "2",
         "color": "#F21"
+    },
+    {
+        "name": "us",
+        "displayName": "United States",
+        "team": "1",
+        "color": "#4E532A"
     }
 ]

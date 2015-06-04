@@ -5,24 +5,58 @@
         "defence": 2, 
         "description": "Heavy gun batteries that can support infantry attacks.", 
         "imageSource": {
-            "central": "bomber.png",
-            "russia": "artillery.png",
-            "western": "aa.png"
+            "central": "Anti Air/German.png", 
+            "ottoman": "Anti Air/Japan.png", 
+            "russia": "Anti Air/Russian.png", 
+            "us": "Anti Air/America.png", 
+            "western": "Anti Air/British.png"
         }, 
         "move": 1, 
         "terrainType": "land"
     }, 
-    "cavalry": {
+    "battleship": {
+        "attack": 4, 
+        "cost": 20, 
+        "defence": 4, 
+        "description": "", 
+        "imageSource": {
+            "central": "Battleships/Bismark.png", 
+            "ottoman": "Battleships/Yamato.png", 
+            "russia": "Battleships/Sovetskaya-Ukraina.png", 
+            "us": "Battleships/USS-Iowa.png", 
+            "western": "Battleships/King-George.png"
+        }, 
+        "move": 2, 
+        "terrainType": "sea"
+    }, 
+    "bomber": {
+        "attack": 4, 
+        "cost": 16, 
+        "defence": 1, 
+        "description": "", 
+        "imageSource": {
+            "central": "Bomber Planes/He-177.png", 
+            "ottoman": "Bomber Planes/Mitsubishi.png", 
+            "russia": "Bomber Planes/Petlyakov.png", 
+            "us": "Bomber Planes/Douglas.png", 
+            "western": "Bomber Planes/Lancaster.png"
+        }, 
+        "move": 6, 
+        "terrainType": "air"
+    }, 
+    "destroyer": {
         "attack": 3, 
-        "cost": 5, 
+        "cost": 12, 
         "defence": 3, 
         "description": "", 
         "imageSource": {
-            "russia": "fighter.png",
-            "western": "bomber.png"
+            "ottoman": "Destroyers/slant.png", 
+            "russia": "Destroyers/commie.png", 
+            "us": "Destroyers/us.png", 
+            "western": "Destroyers/brit.png"
         }, 
         "move": 2, 
-        "terrainType": "land"
+        "terrainType": "sea"
     }, 
     "factory": {
         "attack": 0, 
@@ -30,11 +64,29 @@
         "defence": 0, 
         "description": "Factories that produce new units.", 
         "imageSource": {
-            "russia": "factory.png",
-            "western": "battleship.png"
+            "central": "Neutral/factory.PNG", 
+            "ottoman": "Neutral/factory.PNG", 
+            "russia": "Neutral/factory.PNG", 
+            "us": "Neutral/factory.PNG", 
+            "western": "Neutral/factory.PNG"
         }, 
         "move": 0, 
         "terrainType": "land"
+    }, 
+    "fighter": {
+        "attack": 3, 
+        "cost": 10, 
+        "defence": 4, 
+        "description": "", 
+        "imageSource": {
+            "central": "Fighter Planes/Messerschmidtt.png", 
+            "ottoman": "Fighter Planes/Zero.png", 
+            "russia": "Fighter Planes/Lavochkin.png", 
+            "us": "Fighter Planes/Mustang.png", 
+            "western": "Fighter Planes/Spitfire.png"
+        }, 
+        "move": 4, 
+        "terrainType": "air"
     }, 
     "infantry": {
         "attack": 1, 
@@ -42,31 +94,58 @@
         "defence": 2, 
         "description": "Soldiers who make up the backbone of any ground force.", 
         "imageSource": {
-            "russia": "infantry.png"
+            "central": "Infantry/heinie.png", 
+            "ottoman": "Infantry/jap.png", 
+            "russia": "Infantry/red.png", 
+            "us": "Infantry/yank.png", 
+            "western": "Infantry/brit.png"
         }, 
         "move": 1, 
         "terrainType": "land"
     }, 
-    "light cavalry": {
-        "attack": 3, 
-        "cost": 6, 
+    "sub": {
+        "attack": 2, 
+        "cost": 8, 
         "defence": 2, 
         "description": "", 
         "imageSource": {
-            "russia": "bomber.png"
+            "central": "Submarines/Germany.png", 
+            "ottoman": "Submarines/Japan.png", 
+            "russia": "Submarines/Russia.png", 
+            "us": "Submarines/USA.png", 
+            "western": "Submarines/British.png"
         }, 
-        "move": 3, 
-        "terrainType": "land"
+        "move": 2, 
+        "terrainType": "sea"
     }, 
-    "mobile infantry": {
-        "attack": 1, 
-        "cost": 4, 
-        "defence": 2, 
+    "tank": {
+        "attack": 3, 
+        "cost": 5, 
+        "defence": 3, 
         "description": "", 
         "imageSource": {
-            "russia": "transport.png"
+            "central": "Tanks/King-Tiger.png", 
+            "ottoman": "Tanks/Chi-Ha.png", 
+            "russia": "Tanks/T-34.png", 
+            "us": "Tanks/Sherman.png", 
+            "western": "Tanks/Cruiser.png"
         }, 
         "move": 2, 
         "terrainType": "land"
+    }, 
+    "transport": {
+        "attack": 0, 
+        "cost": 8, 
+        "defence": 0, 
+        "description": "", 
+        "imageSource": {
+            "central": "Transport Ships/german.png", 
+            "ottoman": "Transport Ships/japan.png", 
+            "russia": "Transport Ships/russia.png", 
+            "us": "Transport Ships/us.png", 
+            "western": "Transport Ships/uk.png"
+        }, 
+        "move": 2, 
+        "terrainType": "sea"
     }
 }
