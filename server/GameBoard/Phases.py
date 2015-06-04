@@ -64,6 +64,7 @@ class BuyPhase:
 
     def nextPhase(self):
         board = self.board
+        board.currentCountry.pay(self.costOfUnits(board.buyList))
         board.currentPhase = AttackPhase(board)
         return board.currentPhase
 

@@ -12,6 +12,12 @@ class Country:
             if hasattr(t, "country") and t.country == self:
                 self.ipc += t.income
 
+    def pay(self, amount):
+        if amount > self.ipc:
+            raise Exception("Cannot pay more money ({}) than country has ({})".format(amount, self.ipc))
+
+        self.ipc -= amount
+
     def toDict(self):
         return {
             "name": self.name,
