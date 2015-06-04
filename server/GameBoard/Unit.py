@@ -22,6 +22,7 @@ class Unit:
 
     def reset(self):
         self.originalTerritory = self.territory
+        self.movedToTerritory = self.territory
 
     def isFlying(self):
         return self.unitInfo.terrainType == "air"

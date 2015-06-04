@@ -3,7 +3,6 @@ from Components import Conflict
 from Unit import Unit, BoughtUnit
 import Util
 
-
 """
 Phases handle the major operational logic of the game. Each phase it's own unique logic, and different available actions
 Every phase has a nextPhase method, that progresses to the next phase.
@@ -213,7 +212,7 @@ class ResolvePhase:
         for conflict in self.conflicts:  # TODO include current conflict
             self.autoResolve(conflict.territory)
 
-        # TODO return all BattleReports
+            # TODO return all BattleReports
 
     def retreat(self, conflictTerritory, destination):
         """
@@ -243,7 +242,7 @@ class MovementPhase(BaseMovePhase):
     # can move units that haven't moved in the attack phase, or planes that need to land
     # can't move into enemy territories
     def canMove(self, unit, destination):
-        if not Util.allied(destination, unit.country)\
+        if not Util.allied(destination, unit.country) \
                 or not super(MovementPhase, self).canMove(unit, destination):
             return False
 
@@ -261,7 +260,10 @@ class MovementPhase(BaseMovePhase):
 
     def nextPhase(self):
         board = self.board
-        board.neutralMoveList = self.moveList
+        for unit in self.moveList:
+            (origin, dest) = self.moveList[unit]
+            unit.originalTerritory = unit.territory
+            unit.territory = dest
         board.currentPhase = PlacementPhase(board)
         return board.currentPhase
 
