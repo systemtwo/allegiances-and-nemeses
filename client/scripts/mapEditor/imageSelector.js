@@ -6,15 +6,28 @@ function(backbone, ko, _, template) {
             var that = this;
 
             this.options = options;
-            this.onClick = _.isFunction(options.onClick) ? options.onClick : function () {};
 
+            var directory = ko.observableArray([])
             this.viewModel = {
-                images: ko.observableArray([])
+                directory: directory,
+                images: ko.observableArray([]),
+                directories: ko.observableArray([]),
+                inSubdirectory: ko.computed(function () {
+                    return directory().length;
+                }),
+                upLevel: function () {
+                    directory.pop();
+                    that.fetch();
+                }
             };
-            this.directory = "";
+            this.fetch();
+            return this;
+        },
+        fetch: function () {
+            var that = this;
             function imageVM (imageName) {
                 var rootPath = "/static/images/";
-                var directoryPath = that.directory ? that.directory + "/" : "";
+                var directoryPath = that.viewModel.directory.length ? that.viewModel.directory().join("/") + "/" : "";
                 return {
                     fileName: imageName,
                     source: rootPath + directoryPath + imageName,
@@ -23,12 +36,28 @@ function(backbone, ko, _, template) {
                     }
                 }
             }
-            $.getJSON("/listImages").done(function(imageNames){
-                that.viewModel.images(_.map(imageNames, imageVM));
+            function directoryVM (dirName) {
+                return {
+                    displayName: dirName,
+                    onClick: function () {
+                        that.viewModel.directory.push(dirName);
+                        that.fetch();
+                    }
+                }
+            }
+            $.getJSON("/listImages", {
+                directory: that.viewModel.directory().join("/")
+            }).done(function(directoryContents){
+                that.viewModel.images(_.map(directoryContents.images, imageVM));
+                that.viewModel.directories(_.map(directoryContents.directories, directoryVM));
             });
-            return this;
         },
-        render: function() {
+        onClick: function () {
+            if (_.isFunction(this.options.onClick)) {
+                this.options.onClick.apply(this, arguments)
+            }
+        },
+        render: function () {
             ko.applyBindings(this.viewModel, $(template).appendTo(this.$el)[0]);
         },
         remove: function () {

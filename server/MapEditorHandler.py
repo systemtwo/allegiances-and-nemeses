@@ -42,11 +42,32 @@ class MapEditorHandler(tornado.web.RequestHandler):
             self.write(loader.load("mapEditor.html").generate(moduleInfo=moduleInfo))
 
         elif self.action == self.actions.LIST_IMAGES:
-            directory = os.path.join(config.STATIC_CONTENT_PATH, "images", self.get_argument("directory", ""))
-            fileNames = []  # empty list if directory does not exists
+            """
+            If no directory provided, looks in top level images directory
+            Returns an object containing the file names of the images in the given directory
+            And the names of subdirectories
+            Throws an error if directory does not exist
+            """
+            requestedDirectory = self.get_argument("directory", "")
+            if requestedDirectory.__contains__(".."):
+                self.send_error(500)
+                return
+            directory = os.path.join(config.STATIC_CONTENT_PATH, "images", requestedDirectory)
+            images = []
+            directories = []
             if os.path.isdir(directory):
-                fileNames = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
-            self.write(json.dumps(fileNames))
+                for f in os.listdir(directory):
+                    absolutePath = os.path.join(directory, f)
+                    if os.path.isfile(absolutePath):
+                        images.append(f)
+                    elif os.path.isdir(os.path.join(directory, f)):
+                        directories.append(f)
+                self.write(json.dumps({
+                    "images": images,
+                    "directories": directories
+                }))
+            else:
+                self.send_error(500)
 
     def post(self, **params):
         if self.action == self.actions.MODULE:
