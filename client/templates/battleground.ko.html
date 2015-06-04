@@ -7,11 +7,11 @@
             <div class="report collapsed" data-bind="click: $root.toggleCollapse">
                 <div>Attackers: <span data-bind="text: deadAttackers.length"></span></div>
                 <div class="casualty-details" data-bind="foreach: deadAttackers">
-                    <img data-bind="attr: {src: $root.getImageSource(type, country), title: type }">
+                    <img class="unit-image" data-bind="attr: {src: $root.getImageSource(type, country), title: type }">
                 </div>
                 <div>Defenders: <span data-bind="text: deadDefenders.length"></span></div>
                 <div class="casualty-details" data-bind="foreach: deadDefenders">
-                    <img data-bind="attr: {src: $root.getImageSource(type, country), title: type }">
+                    <img class="unit-image" data-bind="attr: {src: $root.getImageSource(type, country), title: type }">
                 </div>
             </div>
         </div>
@@ -34,7 +34,7 @@
                     Attackers
                 </h2>
                 <div data-bind="foreach: conflict.attackers">
-                    <img data-bind="attr: {src: $root.getImageSource(type, country), title: type }">
+                    <img class="unit-image" data-bind="attr: {src: $root.getImageSource(type, country), title: type }">
                 </div>
             </div>
             <div class="defenders col-sm-6">
@@ -42,7 +42,7 @@
                     Defenders
                 </h2>
                 <div data-bind="foreach: conflict.defenders">
-                    <img data-bind="attr: {src: $root.getImageSource(type, country), title: type }">
+                    <img class="unit-image" data-bind="attr: {src: $root.getImageSource(type, country), title: type }">
                 </div>
             </div>
         </div>
