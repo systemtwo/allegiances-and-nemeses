@@ -2,11 +2,6 @@ define(["lib/d3", "underscore", "backbone"],
 function (d3, _, backbone) {
     var Map = function (mapInfo, appendTo) {
         var map = this;
-        var zoom = d3.behavior.zoom()
-            .scaleExtent([0.1, 10])
-            .on("zoom", function zoomed () {
-              map.container.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
-            });
         this.territories = [];
         this.countries = [];
         this.selectableTerritories = [];
@@ -16,15 +11,18 @@ function (d3, _, backbone) {
             .append("svg")
             .style("border", "black solid")
             .classed("svg-map", true)
-            .on("click", map.onMapClick.bind(map))
-            .call(zoom);
+            .on("click", map.onMapClick.bind(map));
 
         this.container = this.mapElement.append("g")
             .classed("map-element-container", true);
 
+        map.selectorBox = map.mapElement.append("rect")
+            .classed("selector-box", true);
+
         this.territoryContainer = this.container.append("g")
             .classed("connections-container", true);
 
+        this.enableZoom();
         return this;
     };
     var proto = Map.prototype;
@@ -102,7 +100,6 @@ function (d3, _, backbone) {
         this.attachCircle(territoryGroups);
         this.attachDisplayName(territoryGroups);
     };
-
     proto.drawTerritories = function () {
         var map = this;
         var territoryGroups = this.territoryContainer.selectAll(".territory-group")
@@ -158,6 +155,69 @@ function (d3, _, backbone) {
     proto.onCircleClick = function (data){
         if (d3.event.defaultPrevented) return; // click suppressed
         this.trigger("click:circle", data, d3.event);
+    };
+
+    var savedScale = 1.0, savedTranslate = [0, 0];
+    proto.enableZoom = function () {
+        var map = this;
+        var zoom = d3.behavior.zoom()
+            .scaleExtent([0.1, 10])
+            .on("zoom", function zoomed () {
+                savedScale = d3.event.scale;
+                savedTranslate = d3.event.translate;
+                map.container.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+            });
+
+        if (savedScale) zoom.scale(savedScale);
+        if (savedTranslate) zoom.translate(savedTranslate);
+        this.mapElement.call(zoom);
+    };
+    proto.disableZoom = function () {
+        this.mapElement.on(".zoom", null);
+    };
+
+    function translateAndScale(point) {
+        return [(point[0] - savedTranslate[0])/savedScale, (point[1] - savedTranslate[1])/savedScale];
+    }
+    proto.enableDragSelect = function () {
+        var map = this;
+        var drag = (function () {
+            var dragStart = null;
+            return d3.behavior.drag()
+                .on("dragstart", function () {
+                    dragStart = d3.mouse(this);
+                    map.selectorBox
+                        .attr("x", dragStart[0])
+                        .attr("y", dragStart[1])
+                        .classed("active", true);
+                })
+                .on("drag", function () {
+                    d3.event.sourceEvent.stopPropagation();
+                    var x = (dragStart[0] > d3.event.x) ? d3.event.x : dragStart[0];
+                    var y = (dragStart[1] > d3.event.y) ? d3.event.y : dragStart[1];
+                    var width = Math.abs(dragStart[0] - d3.event.x);
+                    var height = Math.abs(dragStart[1] - d3.event.y);
+                    map.selectorBox
+                        .attr("x", x)
+                        .attr("y", y)
+                        .attr("width", width)
+                        .attr("height", height)
+                })
+                .on("dragend", function () {
+                    map.selectorBox
+                        .classed("active", false)
+                        .attr("width", 0)
+                        .attr("height", 0);
+                    map.trigger("selection", translateAndScale(dragStart), translateAndScale(d3.mouse(this)));
+                    dragStart = null;
+                });
+        })();
+
+        this.mapElement.call(drag);
+    };
+
+    proto.disableDragSelect = function () {
+        this.mapElement.on(".drag", null);
     };
 
     return {

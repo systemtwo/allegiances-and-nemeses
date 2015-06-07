@@ -1,6 +1,15 @@
-define(["lib/d3", "mapEditor/svgMapEditor", "mapEditor/unitSetup", "mapEditor/editUnitCatalogue", "underscore", "message", "territoryEditor", "mapEditor/nodeEditor", "components"],
-function (d3, _svgMapEditor, UnitSetupView, UnitCatalogueView, _, msg, TerritoryEditorView, _nodeEditor, _c) {
-
+define(["lib/d3",
+        "mapEditor/svgMapEditor",
+        "mapEditor/unitSetup",
+        "mapEditor/editUnitCatalogue",
+        "underscore",
+        "message",
+        "territoryEditor",
+        "mapEditor/nodeEditor",
+        "components",
+        "lib/mousetrap",
+        "lib/ko.extensions"],
+function (d3, _svgMapEditor, UnitSetupView, UnitCatalogueView, _, msg, TerritoryEditorView, _nodeEditor, _c, Mousetrap) {
     // Local namespace
     var mapData = {
         territories: [],
@@ -35,35 +44,108 @@ function (d3, _svgMapEditor, UnitSetupView, UnitCatalogueView, _, msg, Territory
         BROWSE: "doNothing",
         CREATE: "create"
     };
+    var selectionMode = "add";
     var currentMode = modes.BROWSE;
+    var connectionStart = null;
+    function enableConnect (){
+        svgMap.setSelectableTerritories(mapData.territories);
+        currentMode = modes.CONNECT;
+        setCurrentTerritory(null);
+        connectionStart = null;
+    }
+    function browse (){
+        svgMap.setSelectableTerritories(mapData.territories);
+        currentMode = modes.BROWSE;
+        setCurrentTerritory(null);
+    }
+    function enableCreation (){
+        svgMap.setSelectableTerritories([]);
+        currentMode = modes.CREATE;
+        setCurrentTerritory(null);
+        newTerritory = null;
+        _.each(nodeEditor.selectedNodes(), function (node) {
+            newTerritoryPoint([node.getX(), node.getY()])
+        })
+    }
+    function editUnits (){
+        var editUnitWindow = new UnitCatalogueView(mapData.unitCatalogue, mapData.countries);
+        editUnitWindow.render();
+    }
+    function saveJSON (){
+        $.post("/modules/" + mapData.moduleName, JSON.stringify(getMapDataTransferObject()))
+    }
 
     function bindButtons () {
-        $("#connectButton").click(function (){
-            svgMap.setSelectableTerritories(mapData.territories);
-            currentMode = modes.CONNECT;
-            setCurrentTerritory(null);
-            connectionStart = null;
-        });
-        $("#browseButton").click(function (){
-            svgMap.setSelectableTerritories(mapData.territories);
-            currentMode = modes.BROWSE;
-            setCurrentTerritory(null);
-        });
-        $("#createButton").click(function (){
-            svgMap.setSelectableTerritories([]);
-            currentMode = modes.CREATE;
-            setCurrentTerritory(null);
-            newTerritory = null;
-        });
-        $("#editUnits").click(function (){
-            var editUnitWindow = new UnitCatalogueView(mapData.unitCatalogue, mapData.countries);
-            editUnitWindow.render();
-        });
-        $("#save").click(function (){
-            $.post("/modules/" + mapData.moduleName, JSON.stringify(getMapDataTransferObject()))
-        });
+        $("#connectButton").click(enableConnect);
+        $("#browseButton").click(browse);
+        $("#createButton").click(enableCreation);
+        $("#editUnits").click(editUnits);
+        $("#save").click(saveJSON);
         $("#getJSONButton").click(function (){
             console.log(getMapDataTransferObject());
+        });
+    }
+    function bindKeys () {
+        Mousetrap.bind("ctrl+s", function (e) {
+            e.preventDefault();
+            saveJSON();
+        });
+        Mousetrap.bind("esc", function () {
+            if (currentMode == modes.CONNECT && connectionStart != null) {
+                connectionStart = null;
+            } else if (currentMode != currentMode != modes.BROWSE) {
+                browse();
+            } else if (territoryEditorView.options.territory) {
+                setCurrentTerritory(null);
+            }
+        });
+        Mousetrap.bind("shift", function (e) {
+            e.preventDefault();
+            selectionMode = "add";
+            svgMap.enableDragSelect();
+            svgMap.disableZoom();
+        }, "keydown");
+        Mousetrap.bind("alt", function (e) {
+            e.preventDefault();
+            selectionMode = "subtract";
+            svgMap.enableDragSelect();
+            svgMap.disableZoom();
+        }, "keydown");
+        function reenableZoom (e) {
+            e.preventDefault();
+            svgMap.disableDragSelect();
+            svgMap.enableZoom();
+        }
+        Mousetrap.bind("alt", reenableZoom, "keyup");
+        Mousetrap.bind("shift", reenableZoom, "keyup");
+        Mousetrap.bind("e", function () {
+            editUnits();
+        });
+        Mousetrap.bind("z", function () {
+            enableConnect();
+        });
+        Mousetrap.bind("b", function () {
+            browse();
+        });
+        Mousetrap.bind("c", function () {
+            enableCreation();
+        });
+
+        // Node editor bindings
+        Mousetrap.bind("d", function () {
+            nodeEditor.deselectAllNodes();
+            svgMap.update({
+                nodes: nodeEditor.getNodes()
+            })
+        });
+        Mousetrap.bind("delete", function () {
+            nodeEditor.remove(nodeEditor.selectedNodes())
+        });
+        Mousetrap.bind("s", function () {
+            nodeEditor.split(nodeEditor.selectedNodes())
+        });
+        Mousetrap.bind("a", function () {
+            nodeEditor.merge(nodeEditor.selectedNodes())
         });
     }
 
@@ -156,6 +238,25 @@ function (d3, _svgMapEditor, UnitSetupView, UnitCatalogueView, _, msg, Territory
                 nodeEditor.onNodeClick(node, element);
             }
         });
+        svgMap.on("selection", function (startPosition, endPosition) {
+            var nodesInBounds = _.filter(nodeEditor.getNodes(), function (node) {
+                var x = node.getX(),
+                    y = node.getY();
+
+                return x > Math.min(startPosition[0], endPosition[0]) &&
+                        x <  Math.max(startPosition[0], endPosition[0]) &&
+                        y > Math.min(startPosition[1], endPosition[1]) &&
+                        y <  Math.max(startPosition[1], endPosition[1]);
+            });
+            if (selectionMode === "add") {
+                nodeEditor.selectNodes(nodesInBounds);
+            } else {
+                nodeEditor.deselectNodes(nodesInBounds);
+            }
+            svgMap.update({
+                nodes: nodeEditor.getNodes()
+            })
+        });
         function editNodesForTerritories (territories) {
             nodeEditor.update({
                 territories: territories
@@ -187,6 +288,7 @@ function (d3, _svgMapEditor, UnitSetupView, UnitCatalogueView, _, msg, Territory
         });
 
         bindButtons();
+        bindKeys();
         svgMap.setSelectableTerritories(mapData.territories);
     }
 
@@ -237,7 +339,6 @@ function (d3, _svgMapEditor, UnitSetupView, UnitCatalogueView, _, msg, Territory
         return removedConnection;
     }
 
-    var connectionStart = null;
     // Override the click handler on the canvas element with this function, when in map editor mode
     function territoryClick (territory) {
         if (currentMode == modes.BROWSE) {

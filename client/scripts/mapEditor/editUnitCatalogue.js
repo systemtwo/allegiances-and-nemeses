@@ -1,29 +1,6 @@
 define(["backbone", "knockout", "underscore", "text!/static/templates/editUnitCatalogue.ko.html", "dialogs", 'mapEditor/imageSelector'],
 function(backbone, ko, _, template, _dialogs, ImageSelectorView) {
 
-    // Taken from knockout website
-    ko.extenders.numeric = function(target, enableExtension) {
-        //create a writable computed observable to intercept writes to our observable
-        if (enableExtension) {
-            return ko.pureComputed({
-                read: target,  //always return the original observables value
-                write: function(newValue) {
-                    var current = target(),
-                        newValueAsNum = parseFloat(+newValue);
-
-                    //only write if it changed
-                    if (!isNaN(newValueAsNum) && newValueAsNum !== current) {
-                        target(newValueAsNum);
-                    } else if (newValue !== current) {
-                        target.notifySubscribers(current);
-                    }
-                }
-            }).extend({ notify: 'always' });
-        } else {
-            return target;
-        }
-    };
-
     return backbone.View.extend({
         initialize: function(unitCatalogue, countries) {
             var that = this;

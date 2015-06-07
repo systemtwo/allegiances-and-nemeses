@@ -69,7 +69,14 @@ function (d3, _, backbone, ko, buttonTemplate) {
         var node = this;
         return node.point.x == point[0] && node.point.y == point[1];
     };
-    Node.prototype.distance = function(node) {
+
+    /**
+     * Finds the distance to another node by traversing through neighbours
+     * @param node {Node} Node to find distance to
+     * @param [limiter] {Number}  stop searching once distance is greater than limiter
+     * @returns {Function|*|number|d}
+     */
+    Node.prototype.distance = function(node, limiter) {
         var frontier = [{
                 node: this,
                 distance: 0
@@ -82,7 +89,7 @@ function (d3, _, backbone, ko, buttonTemplate) {
                 distance: 1
             })
         });
-        while (frontier.length > 0) {
+        while (frontier.length > 0 && (!limiter || frontier[0].distance <= limiter)) {
             current = frontier.shift(); // unqueue the first item
             searched.push(current);
             if (current.node == node) {
@@ -125,7 +132,7 @@ function (d3, _, backbone, ko, buttonTemplate) {
                         onClick: function () {
                             editor.remove(editor.selectedNodes())
                         },
-                        enabled: ko.computed(function () {
+                        isEnabled: ko.computed(function () {
                             return editor.selectedNodes().length > 0
                         })
                     },
@@ -134,7 +141,7 @@ function (d3, _, backbone, ko, buttonTemplate) {
                         onClick: function () {
                             editor.merge(editor.selectedNodes())
                         },
-                        enabled: ko.computed(function () {
+                        isEnabled: ko.computed(function () {
                             // TODO all nodes must be a cluster of neighbours
                             return editor.selectedNodes().length > 1;
                         })
@@ -144,7 +151,7 @@ function (d3, _, backbone, ko, buttonTemplate) {
                         onClick: function () {
                             editor.split(editor.selectedNodes())
                         },
-                        enabled: ko.computed(function () {
+                        isEnabled: ko.computed(function () {
                             var selected = editor.selectedNodes();
                             return selected.length === 2 &&
                                 selected[0].distance(selected[1]) === 1;
@@ -179,9 +186,10 @@ function (d3, _, backbone, ko, buttonTemplate) {
         merge: function (nodes) {
             // TODO check nodes are neighbours
             var affectedTerritories = [];
+            var lastNode = nodes[nodes.length - 1];
 
-            var newX = nodes[0].getX(),
-                newY = nodes[0].getY();
+            var newX = lastNode.getX(),
+                newY = lastNode.getY();
             _.each(nodes, function (node) {
                 node.updatePoint(newX, newY);
                 affectedTerritories = affectedTerritories.concat(node.territories);
@@ -222,9 +230,13 @@ function (d3, _, backbone, ko, buttonTemplate) {
                 var insertAfter = insertAfterFirst ? firstIndex : secondIndex;
                 info.path.splice(insertAfter + 1, 0, [newX, newY]);
             });
+            this.deselectAllNodes();
             this.updateNodes();
         },
 
+        /**
+         * @return {Node[]}
+         */
         getNodes: function () {
             var editor = this;
             return _.map(this.nodes, function (node) {
@@ -232,6 +244,10 @@ function (d3, _, backbone, ko, buttonTemplate) {
                 return node;
             });
         },
+
+        /**
+         * @return {Node[]}
+         */
         createNodes: function createNodes (territories) {
             var nodes = [], path;
             function nodeAtPoint(point) {
@@ -306,23 +322,37 @@ function (d3, _, backbone, ko, buttonTemplate) {
             }
         },
 
-        selectNode: function (node) {
-            this.selectedNodes.push(node);
+        /**
+         * Selects one or many nodes
+         * @param nodes {Node|Node[]}
+         */
+        selectNodes: function (nodes) {
+            if (_.isArray(nodes)) {
+                var newSelection = _.union(this.selectedNodes(), nodes);
+                this.selectedNodes(newSelection);
+            } else {
+                this.selectedNodes.push(nodes);
+            }
         },
 
-        deselectNode: function (node) {
+        deselectNodes: function (nodes) {
+            if (!_.isArray(nodes)) nodes = [nodes];
             var filtered = _.filter(this.selectedNodes(), function (n) {
-                return n != node;
+                return !_.contains(nodes, n);
             });
             this.selectedNodes(filtered);
+        },
+
+        deselectAllNodes: function () {
+            this.selectedNodes([]);
         },
 
         onNodeClick: function (node) {
             this.assertNodeValidity(node);
             if (_.contains(this.selectedNodes(), node)) {
-                this.deselectNode(node);
+                this.deselectNodes(node);
             } else {
-                this.selectNode(node);
+                this.selectNodes(node);
             }
             this.trigger("change:selection");
         },

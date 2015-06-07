@@ -10,7 +10,7 @@ requirejs.config({
 });
 
 // Start the main app logic.
-requirejs(['board', "dialogs", "router", "views/sidePanel/sidePanel", "jquery-ui"],
+requirejs(['board', "dialogs", "router", "views/sidePanel/sidePanel", "jquery-ui", "lib/ko.extensions"],
 function ( game, _dialogs, _router, sidePanel) {
     var pathParts = window.location.pathname.split("/");
     var boardId = pathParts[pathParts.length - 1];

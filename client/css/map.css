@@ -31,3 +31,13 @@
 .selected-node {
     fill: hotpink;
 }
+
+.selector-box {
+    stroke: black;
+    fill: rgba(18, 80, 242, 0.2);
+    opacity: 0;
+}
+
+.selector-box.active {
+    opacity: 1;
+}
