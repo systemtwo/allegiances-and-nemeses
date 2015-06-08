@@ -178,6 +178,10 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
         }
     };
 
+    Game.prototype.getCountries = function () {
+        return this.boardData.countries;
+    };
+
     Game.prototype.getCountry = function(name) {
         var countries = this.boardData.countries;
         for (var i=0; i < countries.length; i++) {

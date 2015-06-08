@@ -63,7 +63,7 @@
 }
 
 #side-panel-container {
-    width: 15%;
+    width: 20%;
 }
 
 .side-panel {
@@ -76,6 +76,13 @@
 }
 
 .side-panel .panel-section {
+    display: flex;
+    flex-direction: column;
+}
+.side-panel .panel-header {
+    flex-shrink: 0;
+}
+.side-panel .panels {
     overflow-y: auto;
 }
 

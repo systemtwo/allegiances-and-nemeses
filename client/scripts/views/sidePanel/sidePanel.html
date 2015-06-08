@@ -2,12 +2,18 @@
     <div class="actions">
         <button id="next-phase" class="btn" data-bind="show: canEndPhase, click: endPhase">Next Phase</button>
     </div>
-    <div class="panel-section">
-        <h3>Purchased Units</h3>
-        <div class="bought-units-container"></div>
-    </div>
-    <div class="panel-section">
-        <h3>Conflicts</h3>
-        <div class="conflicts-container"></div>
+    <div class="panels">
+        <div class="panel-section">
+            <h3 class="panel-header">Purchased Units</h3>
+            <div class="bought-units-container panel-content"></div>
+        </div>
+        <div class="panel-section">
+            <h3 class="panel-header">Conflicts</h3>
+            <div class="conflicts-container panel-content"></div>
+        </div>
+        <div class="panel-section">
+            <h3 class="panel-header">Countries</h3>
+            <div class="countries-container panel-content"></div>
+        </div>
     </div>
 </div>

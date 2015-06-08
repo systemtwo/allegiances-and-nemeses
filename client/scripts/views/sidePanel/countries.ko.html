@@ -1,0 +1,24 @@
+<div>
+    <table>
+        <tbody>
+            <tr>
+                <th></th>
+                <th>Country</th>
+                <th>Money</th>
+                <th>Income</th>
+                <th>Player</th>
+            </tr>
+        <!-- ko foreach:  countries -->
+            <tr>
+                <td>
+                    <div class="color" data-bind="style: {'background-color': color}"></div>
+                </td>
+                <td data-bind="text: displayName"></td>
+                <td data-bind="text: money"></td>
+                <td data-bind="text: income"></td>
+                <td data-bind="text: playerName"></td>
+            </tr>
+        <!-- /ko -->
+        </tbody>
+    </table>
+</div>
