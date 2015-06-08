@@ -50,6 +50,7 @@
         "defence": 3, 
         "description": "", 
         "imageSource": {
+            "central": "Destroyers/kraut.png", 
             "ottoman": "Destroyers/slant.png", 
             "russia": "Destroyers/commie.png", 
             "us": "Destroyers/us.png", 
