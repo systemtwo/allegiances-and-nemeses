@@ -138,7 +138,7 @@ function (d3, _svgMapEditor, UnitSetupView, UnitCatalogueView, _, msg, Territory
                 nodes: nodeEditor.getNodes()
             })
         });
-        Mousetrap.bind("delete", function () {
+        Mousetrap.bind("del", function () {
             nodeEditor.remove(nodeEditor.selectedNodes())
         });
         Mousetrap.bind("s", function () {
