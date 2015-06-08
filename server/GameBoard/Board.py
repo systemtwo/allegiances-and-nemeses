@@ -71,7 +71,7 @@ class Board:
             c.collectIncome()
         self.currentCountry = self.countries[0]
 
-        self.currentPhase = BuyPhase(self.currentCountry.ipc, self)
+        self.currentPhase = BuyPhase(self.currentCountry.money, self)
 
     def getStartingCountry(self, terInfo):
         if "country" not in terInfo:

@@ -167,7 +167,7 @@ define(["gameAccessor", "helpers"], function(_b, _h) {
     var Country = function(options) {
         this.name = options.name;
         this.displayName = options.displayName;
-        this.ipc = options.ipc;
+        this.money = options.money;
         this.team = options.team;
         this.color = options.color;
         return this;

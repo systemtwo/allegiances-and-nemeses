@@ -17,7 +17,7 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
                     vm.totalCost(view.moneySpent());
                 });
                 this.isMyTurn = board.isCurrentPlayersTurn();
-                this.currentMoney = board.currentCountry.ipc;
+                this.currentMoney = board.currentCountry.money;
                 this.unitInfoList = _.chain(board.info.unitCatalogue)
                     .map(function(info, unitType) {
                         var amount = ko.observable(view.amount(unitType));
@@ -99,7 +99,7 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buyUnits.html", "h
         capForUnitType: function (unitType) {
             var board = _b.getBoard();
             var info = board.unitInfo(unitType);
-            var remainingMoney = board.currentCountry.ipc - this.moneySpent();
+            var remainingMoney = board.currentCountry.money - this.moneySpent();
             var currentAmount = _b.getBoard().buyList().reduce(function (number, boughtUnit) {
                 if (boughtUnit.unitType == unitType) {
                     return number + 1;

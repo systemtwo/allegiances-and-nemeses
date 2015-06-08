@@ -5,24 +5,24 @@ class Country:
         self.team = teamName
         self.color = color
         self.board = board
-        self.ipc = 0
+        self.money = 0
 
     def collectIncome(self):
         for t in self.board.territories:
             if hasattr(t, "country") and t.country == self:
-                self.ipc += t.income
+                self.money += t.income
 
     def pay(self, amount):
-        if amount > self.ipc:
-            raise Exception("Cannot pay more money ({}) than country has ({})".format(amount, self.ipc))
+        if amount > self.money:
+            raise Exception("Cannot pay more money ({}) than country has ({})".format(amount, self.money))
 
-        self.ipc -= amount
+        self.money -= amount
 
     def toDict(self):
         return {
             "name": self.name,
             "displayName": self.displayName,
             "team": self.team,
-            "ipc": self.ipc,
+            "money": self.money,
             "color": self.color
         }

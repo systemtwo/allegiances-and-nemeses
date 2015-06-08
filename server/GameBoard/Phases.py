@@ -20,10 +20,10 @@ Collect Income -> Collect income from all the territories owned (including conqu
 
 
 class BuyPhase:
-    def __init__(self, ipc, board):
+    def __init__(self, money, board):
         # List[(unitType, cost)]
         self.buyList = []
-        self.moneyCap = ipc
+        self.moneyCap = money
         self.board = board
         self.name = "BuyPhase"
 
@@ -311,5 +311,5 @@ class PlacementPhase:
         self.board.currentCountry.collectIncome()
 
         self.board.nextTurn()
-        self.board.currentPhase = BuyPhase(self.board.currentCountry.ipc, self.board)
+        self.board.currentPhase = BuyPhase(self.board.currentCountry.money, self.board)
         return self.board.currentPhase
