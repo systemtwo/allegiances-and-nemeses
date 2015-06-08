@@ -81,6 +81,13 @@
 }
 .side-panel .panel-header {
     flex-shrink: 0;
+    cursor: zoom-out;
+}
+.side-panel .collapsed .panel-header {
+    cursor: zoom-in;
+}
+.side-panel .collapsed .panel-content {
+    display: none;
 }
 .side-panel .panels {
     overflow-y: auto;

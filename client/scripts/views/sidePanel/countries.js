@@ -29,7 +29,7 @@ define(["backbone", "underscore", "knockout", "text!views/sidePanel/countries.ko
 
         render: function () {
             this.$el.empty();
-            ko.applyBindings(this.viewModel, this.$el.append(template)[0]);
+            ko.applyBindings(this.viewModel, $(template).appendTo(this.$el)[0]);
         }
     });
 });
