@@ -9,13 +9,14 @@ define([
     function(ko, _, _b, battlefieldTemplate, unitsTemplate, _helpers) {
 
     function replaceCloseButton(event, ui) {
-        var widget = $(this).dialog("widget");
+        var element = $(this);
+        var widget = element.dialog("widget");
         $(".ui-dialog-titlebar-close", widget).remove();
         $(".ui-dialog-titlebar", widget).append(
             $("<span>")
                 .addClass("glyphicon glyphicon-remove close-icon")
                 .click(function () {
-                    widget.remove();
+                    element.dialog("close");
                 })
         )
     }
