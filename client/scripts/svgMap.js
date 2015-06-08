@@ -82,7 +82,7 @@ function (d3, _, backbone) {
         circleGroup.append("text")
             .classed("circle-content", true)
             .attr("text-anchor", "middle")
-            .attr("dominant-baseline", "middle")
+            .attr("dominant-baseline", "central")
             .on("click", map.onCircleClick.bind(map));
     };
 
