@@ -1,4 +1,10 @@
-<div class="bought-unit-list" data-bind="css: {'placing-units': inPlacePhase}, template: {name: 'bought-unit-template', foreach: boughtUnits}"></div>
+<div>
+    <button class="btn" data-bind="click: setModePlaceMany">Place Multiple Units</button><br>
+    <div class="bought-unit-list"
+         data-bind="css: {'placing-units': inPlacePhase},
+         template: {name: 'bought-unit-template', foreach: boughtUnits}">
+    </div>
+</div>
 
 <script type="text/html" id="bought-unit-template">
 <div class="bought-unit" data-bind="click: $root.clickUnit">

@@ -1,9 +1,18 @@
-define(["gameAccessor", "helpers", "dialogs", "router"], function(_b, _helpers, _dialogs, _router) {
+define([
+    "gameAccessor",
+    "knockout",
+    "underscore",
+    "helpers",
+    "dialogs",
+    "router",
+    "text!/static/scripts/views/moveUnit/moveUnit.html"],
+function(_b, ko, _, _helpers, _dialogs, _router, moveUnitTemplate) {
     function PlacementPhase() {
         var board = _b.getBoard();
         _helpers.phaseName("Place Units");
         board.map.setSelectableTerritories([]);
         this.placing = null; // The BoughtUnit being placed
+        this.placingMany = false; // true about to place multiple units. Changes onTerritorySelect behavior
         this.setInitialText();
         return this;
     }
@@ -46,6 +55,7 @@ define(["gameAccessor", "helpers", "dialogs", "router"], function(_b, _helpers, 
             return false;
         }
         this.placing = boughtUnit;
+        this.placingMany = false; // exit place many mode
         board.map.setSelectableTerritories(validTerritories);
 
         if (board.unitInfo(boughtUnit.unitType).terrainType == "land") {
@@ -55,6 +65,27 @@ define(["gameAccessor", "helpers", "dialogs", "router"], function(_b, _helpers, 
         }
         return true;
     };
+    PlacementPhase.prototype.beginPlacingMany = function() {
+        var board = _b.getBoard();
+        var validTerritories = board.territoriesForCountry(board.currentCountry);
+        var unitsToPlace = board.buyList().filter(function (boughtUnit) {
+            return !boughtUnit.territory;
+        });
+        var placingFactory = _.some(unitsToPlace, function (boughtUnit) {
+                return boughtUnit.unitType == "factory";
+            });
+
+        if (!placingFactory) {
+            validTerritories = validTerritories.filter(function(t) {
+                return t.hasFactory() && t.previousCountry == board.currentCountry;
+            });
+        }
+
+        board.map.setSelectableTerritories(validTerritories);
+        this.placingMany = true;
+        this.placing = null;
+        _helpers.helperText("Select a territory containing a factory");
+    };
 
     PlacementPhase.prototype.clickNothing = function() {
         this.placeUnit(""); // cancel the unit placement, and reset it to be not placed
@@ -63,27 +94,102 @@ define(["gameAccessor", "helpers", "dialogs", "router"], function(_b, _helpers, 
     PlacementPhase.prototype.onTerritorySelect = function(territory) {
         if (this.placing) {
             this.placeUnit(territory.name);
+        } else if (this.placingMany) {
+            this.placeMany(territory);
         }
+    };
+
+    PlacementPhase.prototype.placeMany = function(territory) {
+        // open a dialog for placing units
+        // load all the territory units, but disable them from being moved
+        // dialog should show territory production capacity
+
+        var that = this;
+        var element = $("<div>");
+        var board = _b.getBoard();
+        board.map.setSelectableTerritories([]);
+        var boughtUnits = ko.observableArray(board.buyList().filter(function (boughtUnit) {
+            return !boughtUnit.territory; // only unplaced units
+        }));
+        var existingUnits = ko.observableArray(territory.units());
+        var placedUnits = ko.observableArray(board.buyList().filter(function (boughtUnit) {
+            return boughtUnit.territory == territory.name;
+        }));
+        var territoryName = territory.name;
+        var viewModel = {
+            originUnits: ko.computed(function () {
+                return _.map(boughtUnits(), function (boughtUnit) {
+                    return {
+                        canMove: true,
+                        onClick: function () {
+                            placedUnits.push(boughtUnit);
+                            boughtUnits.remove(boughtUnit);
+                            that._placeAndSync(boughtUnit, territoryName);
+                        },
+                        imageTitle: boughtUnit.unitType,
+                        imageSource: _helpers.getImageSource(board.unitInfo(boughtUnit.unitType), board.currentCountry)
+                    }
+                })
+            }),
+            destinationUnits: ko.computed(function () {
+                return _.map(placedUnits(), function (boughtUnit) {
+                    return {
+                        canMove: true,
+                        onClick: function () {
+                            placedUnits.remove(boughtUnit);
+                            boughtUnits.push(boughtUnit);
+                            that._placeAndSync(boughtUnit, "");
+                        },
+                        imageTitle: boughtUnit.unitType,
+                        imageSource: _helpers.getImageSource(board.unitInfo(boughtUnit.unitType), board.currentCountry)
+                    }
+                }).concat(_.map(existingUnits(), function (unit) {
+                    return {
+                        canMove: false,
+                        onClick: function () {},
+                        imageTitle: unit.unitType,
+                        imageSource:  _helpers.getImageSource(unit.unitInfo, unit.country)
+                    }
+                }));
+            })
+        };
+        element.dialog({
+            title: "Place units in " + territory.displayName,
+            width: 600,
+            buttons: {
+                "Done": function () {
+                    $(this).dialog("close");
+                }
+            }
+        });
+        ko.applyBindings(viewModel, element.append(moveUnitTemplate)[0]);
     };
 
     PlacementPhase.prototype.placeUnit = function(territoryName) {
         var that = this,
-            previousTerritory = this.placing.territory;
-        this.placing.territory = territoryName;
-         // We rely here on the placing object to be a member of the boards buylist
-        if (!_.contains(_b.getBoard().buyList(), this.placing)) {
-            throw Error("Trying to place a unit not in the buy list")
-        }
+            placing = this.placing,
+            previousTerritory = placing.territory;
 
-        _router.setBuyList(_b.getBoard().buyList()).done(function() {
-            var board = _b.getBoard();
-            board.trigger("change");
+        this.placing = null;
+        var board = _b.getBoard();
+        board.map.setSelectableTerritories([]);
+        this._placeAndSync(placing, territoryName).done(function() {
             that.setInitialText();
-            board.map.setSelectableTerritories([]);
         }).fail(function() {
-            that.placing.territory = previousTerritory;
+            placing.territory = previousTerritory;
             alert("Invalid Territory");
         });
+    };
+
+    PlacementPhase.prototype._placeAndSync = function (unit, territoryName) {
+         // We rely here on the placing object to be a member of the boards buylist
+        if (!_.contains(_b.getBoard().buyList(), unit)) {
+            throw Error("Trying to place a unit not in the buy list")
+        }
+        unit.territory = territoryName;
+        var board = _b.getBoard();
+        board.trigger("change");
+        return _router.setBuyList(_b.getBoard().buyList());
     };
 
     PlacementPhase.prototype.hasUnplacedUnits = function () {
