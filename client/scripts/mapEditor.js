@@ -203,8 +203,7 @@ function (d3, _svgMapEditor, UnitSetupView, UnitCatalogueView, _, msg, Territory
                 console.warn("No country set for territory");
                 return;
             }
-            var countrySetup = mapData.unitSetup[territory.country] || (mapData.unitSetup[territory.country] = {});
-            var territoryUnits = countrySetup[territory.name] || (countrySetup[territory.name] = []);
+            var territoryUnits = mapData.unitSetup[territory.name] || (mapData.unitSetup[territory.name] = []);
             var unitSetupView = new UnitSetupView(territory, territoryUnits, unitCatalogue);
             unitSetupView.render();
         });

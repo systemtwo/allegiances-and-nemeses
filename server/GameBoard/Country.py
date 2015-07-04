@@ -1,5 +1,6 @@
 class Country:
     def __init__(self, name, displayName, teamName, color, board=None):
+        self.eliminated = False
         self.name = name
         self.displayName = displayName
         self.team = teamName
@@ -26,3 +27,6 @@ class Country:
             "money": self.money,
             "color": self.color
         }
+
+    def eliminate(self):
+        self.eliminated = True

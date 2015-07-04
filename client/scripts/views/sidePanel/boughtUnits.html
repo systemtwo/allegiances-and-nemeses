@@ -1,5 +1,5 @@
 <div>
-    <button class="btn" data-bind="click: setModePlaceMany">Place Multiple Units</button><br>
+    <button class="btn" data-bind="click: setModePlaceMany, visible: inPlacePhase">Place Multiple Units</button><br>
     <div class="bought-unit-list"
          data-bind="css: {'placing-units': inPlacePhase},
          template: {name: 'bought-unit-template', foreach: boughtUnits}">

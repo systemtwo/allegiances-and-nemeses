@@ -5,8 +5,12 @@ define(["enums"], function(enums) {
      * @param constructorName The name of the phase
      */
     exports.phaseName = function(constructorName) {
-        var name = enums.phaseDisplayNames[constructorName] || "Unknown Phase";
-        $("#phaseName").text("| " + name);
+        if (constructorName == null) {
+            $("#phaseName").text("");
+        } else {
+            var name = enums.phaseDisplayNames[constructorName] || "Unknown Phase "+constructorName;
+            $("#phaseName").text("| " + name);
+        }
     };
 
     exports.countryName = function(name) {

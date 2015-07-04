@@ -56,6 +56,7 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
 
         this.isPlayerTurn = boardInfo.isPlayerTurn;
         this.wrapsHorizontally = boardInfo.wrapsHorizontally;
+        this.winningTeam = boardInfo.winningTeam;
 
         this.boardData.countries = boardInfo.countries.map(function(countryInfo) {
             return new _c.Country(countryInfo)
@@ -73,16 +74,20 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
         });
 
         this.currentCountry = that.getCountry(boardInfo.currentCountry);
+        _helpers.countryName(this.currentCountry.displayName);
         this.phaseName = boardInfo.currentPhase;
-        if (this.isCurrentPlayersTurn()) {
-            this.currentPhase = phaseHelper.createPhase(boardInfo.currentPhase);
+        if (this.winningTeam) {
+            this.currentPhase = phaseHelper.createPhase("Victory")
         } else {
-            this.currentPhase = phaseHelper.createPhase("ObservePhase");
+            if (this.isCurrentPlayersTurn()) {
+                this.currentPhase = phaseHelper.createPhase(boardInfo.currentPhase);
+            } else {
+                this.currentPhase = phaseHelper.createPhase("ObservePhase");
+            }
+            _helpers.phaseName(this.phaseName);
         }
-        _helpers.phaseName(this.phaseName);
         this.buyList(boardInfo.buyList); // set the buy list
 
-        _helpers.countryName(this.currentCountry.displayName);
         this.initConnections(boardInfo);
         this.map.update(this.boardData);
         this.trigger("change");

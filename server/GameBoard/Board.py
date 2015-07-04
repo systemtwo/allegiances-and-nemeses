@@ -12,6 +12,7 @@ class Board:
         self.units = []
         self.buyList = []
         self.moduleName = moduleName
+        self.winningTeam = None
 
         # load json from module
         with open(Util.filePath(moduleName, "info.json")) as file:
@@ -57,14 +58,11 @@ class Board:
         # add units
         with open(Util.filePath(moduleName, "unitSetup.json")) as unitFile:
             unitSetup = json.load(unitFile)
-            for countryName, territoryUnitMap in unitSetup.iteritems():
-                country = self.getCountryByName(countryName)
-                assert country is not None, "Invalid country name %r" % countryName
-                for tName, unitTypes in territoryUnitMap.iteritems():
-                    territory = self.territoryByName(tName)
-                    assert territory is not None, "Invalid territory name %r" % tName
-                    for unitType in unitTypes:
-                        self.units.append(Unit(self.unitInfo(unitType), country, territory))
+            for tName, unitTypes in unitSetup.iteritems():
+                territory = self.territoryByName(tName)
+                assert territory is not None, "Invalid territory name %r" % tName
+                for unitType in unitTypes:
+                    self.units.append(Unit(self.unitInfo(unitType), territory.country, territory))
 
         # begin
         for c in self.countries:
@@ -94,6 +92,43 @@ class Board:
     def isPlayersTurn(self, userId):
         return self.currentCountry.player == userId
 
+    def checkEliminations(self):
+        self.eliminateCountries()
+        self.checkVictory()
+
+    def checkVictory(self):
+        """
+        If all but one team is eliminated, declares a game winner
+        """
+        remaining = [c for c in self.countries if not c.eliminated]
+        team = remaining[0].team
+        teamWins = True
+        for c in remaining:
+            if c.team != team:
+                teamWins = False
+                break
+        if teamWins:
+            self.winningTeam = team
+
+    def eliminateCountries(self):
+        """
+        Eliminates any countries that have no territories and no units left
+        """
+        for c in self.countries:
+            if c.eliminated:
+                break
+            eliminated = True
+            for t in self.territories:
+                if hasattr(t, "country") and t.country == c:
+                    eliminated = False
+                    break
+            for u in self.units:
+                if u.country == c:
+                    eliminated = False
+                    break
+            if eliminated:
+                c.eliminate()
+
     # Proceed to the next country's turn. This is different than advancing a phase (1/6th of a turn)
     def nextTurn(self):
         self.buyList = []
@@ -103,6 +138,14 @@ class Board:
         for territory in self.territories:
             territory.reset()
 
+        startingCountry = self.currentCountry
+        self._nextCountry()
+        while self.currentCountry.eliminated:
+            self._nextCountry()
+            if self.currentCountry == startingCountry:
+                raise Exception("All other countries are eliminated")
+
+    def _nextCountry(self):
         nextIndex = self.countries.index(self.currentCountry) + 1
         if nextIndex >= len(self.countries):
             self.currentCountry = self.countries[0]
@@ -188,6 +231,8 @@ class Board:
             return self.moduleInfo["wrapsHorizontally"]
         elif fieldName == "moduleName":
             return self.moduleName
+        elif fieldName == "winningTeam":
+            return self.winningTeam
 
         else:
             raise Exception("Unsupported field: " + fieldName)
@@ -207,6 +252,7 @@ class Board:
             # Module info
             "unitCatalogue",
             "wrapsHorizontally",
-            "moduleName"
+            "moduleName",
+            "winningTeam"
         ]
         return self.getFields(allFields)

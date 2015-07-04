@@ -231,7 +231,15 @@ class ResolvePhase:
         unresolvedConflicts = [c for c in self.conflicts if c.outcome == Conflict.inProgress]
         if unresolvedConflicts:
             self.autoResolveAll()
-        self.board.currentPhase = MovementPhase(self.board)
+
+        self.board.checkEliminations()
+        if self.board.currentCountry.eliminated:
+            # will only happen if you attack and lose your last units, and have no territories
+            # in that case, player's turn should end immediately
+            self.board.nextTurn()
+            self.board.currentPhase = BuyPhase(self.board.currentCountry.money, self.board)
+        else:
+            self.board.currentPhase = MovementPhase(self.board)
         return self.board.currentPhase
 
 
