@@ -77,7 +77,7 @@ class Game:
         self.started = True
         #Set up the players
         for user in self.players:
-            print "Adding player", user
+            print("Adding player", user)
             self.board.addPlayer(user, self.players[user])
 
         return True

@@ -16,7 +16,7 @@ class BaseAuthHandler(tornado.web.RequestHandler):
             #We check to see if the user has a session active, if not, we will cause 
             #a new session to be created
             if (not Sessions.SessionManager.getSessionExists(sessionCookie)):
-                print "Forcing session recreation"
+                print("Forcing session recreation")
                 return None
             return sessionCookie
         else:
@@ -41,7 +41,7 @@ class LoginHandler(tornado.web.RequestHandler):
         
         #TODO: Fix this. An attacker can use this to use the server to redirect somewhere else
         self.redirect(self.get_argument("next", u"/"))
-        print "Created user", userNumber
+        print("Created user", userNumber)
         return
 
 

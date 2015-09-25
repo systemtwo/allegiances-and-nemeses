@@ -40,7 +40,7 @@ class LobbyCreateHandler(BaseLobbyHandler):
         renderArguments["modules"] = [{"name": "napoleon"}]
         # renderArguments["modules"] = [{"name": x} for x in os.listdir(self.config.ABS_MODS_PATH)]
         self.render(os.path.join("..", self.LOBBY_HTML_PATH, "lobbynew.html"), **renderArguments)
-        print "rendered"
+        print("rendered")
 
     @tornado.web.authenticated
     def post(self, **params):
@@ -59,7 +59,7 @@ class LobbyCreateHandler(BaseLobbyHandler):
         try:
             validUserInput = schema(userInput)
         except MultipleInvalid as e:
-            print str(e)
+            print(str(e))
             self.send_error(400)
             return
 
@@ -99,7 +99,7 @@ class LobbyGameHandler(BaseLobbyHandler):
         try:
             validUserInput = schema(userInput)
         except MultipleInvalid as e:
-            print str(e)
+            print(str(e))
             self.send_error(400)
             return
 
@@ -129,7 +129,7 @@ class LobbyGameHandler(BaseLobbyHandler):
         try:
             validUserInput = schema(userInput)
         except MultipleInvalid as e:
-            print str(e)
+            print(str(e))
             self.send_error(400)
             return
 
@@ -180,7 +180,7 @@ class LobbyGameJoinHandler(BaseLobbyHandler):
         try:
             validUserInput = schema(userInput)
         except MultipleInvalid as e:
-            print str(e)
+            print(str(e))
             self.send_error(400)
             return
 

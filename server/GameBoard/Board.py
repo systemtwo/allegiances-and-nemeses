@@ -1,9 +1,9 @@
 import json
-from Country import Country
-from Phases import BuyPhase
-from Territory import LandTerritory, SeaTerritory
-from Unit import UnitInfo, Unit
-import Util
+from .Country import Country
+from .Phases import BuyPhase
+from .Territory import LandTerritory, SeaTerritory
+from .Unit import UnitInfo, Unit
+from . import Util
 
 
 class Board:
@@ -81,10 +81,10 @@ class Board:
                 return c
 
     def addPlayer(self, userId, countries):
-        print countries
+        print(countries)
         for country in countries:
             for c in self.countries:
-                print c.name
+                print(c.name)
                 if country == c.name:
                     c.player = userId
                     break

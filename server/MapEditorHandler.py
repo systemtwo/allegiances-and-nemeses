@@ -1,3 +1,4 @@
+import base64
 import tornado.web
 import tornado.template
 
@@ -29,6 +30,8 @@ class MapEditorHandler(tornado.web.RequestHandler):
             moduleInfo = {
                 "moduleName": moduleName
             }
+            with open(GameBoard.Util.filePath(moduleName, "test.jpg")) as imageFile:
+                moduleInfo["stencilImage"] = base64.b64encode(imageFile.read())
             with open(GameBoard.Util.countryFileName(moduleName)) as countryInfo:
                 moduleInfo["countries"] = countryInfo.read()
             with open(GameBoard.Util.unitFileName(moduleName)) as unitInfo:

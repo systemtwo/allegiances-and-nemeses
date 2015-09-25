@@ -1,7 +1,7 @@
 import random
-from Components import Conflict
-from Unit import Unit, BoughtUnit
-import Util
+from .Components import Conflict
+from .Unit import Unit, BoughtUnit
+from . import Util
 
 """
 Phases handle the major operational logic of the game. Each phase it's own unique logic, and different available actions

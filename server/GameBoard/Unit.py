@@ -1,5 +1,5 @@
-import UniqueId
-import Util
+from . import UniqueId
+from . import Util
 
 
 class Unit:

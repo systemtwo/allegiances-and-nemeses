@@ -75,6 +75,7 @@ class BoardsHandler(BaseAuthHandler):
 class Server:
     def __init__(self, config):
         html_path = os.path.join(config.STATIC_CONTENT_PATH, "html")
+        port = 8888
 
         self.gamesManager = GamesManager.GamesManager()
 
@@ -123,7 +124,8 @@ class Server:
         debug=True
         )
 
-        self.app.listen(8888)
+        self.app.listen(port)
+        print("Listening on port {}".format(port))
         self.ioloop = tornado.ioloop.IOLoop.instance()
 
     def start(self):

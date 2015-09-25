@@ -7,6 +7,7 @@ class Country:
         self.color = color
         self.board = board
         self.money = 0
+        self.player = None
 
     def collectIncome(self):
         for t in self.board.territories:

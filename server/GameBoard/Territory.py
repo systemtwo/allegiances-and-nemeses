@@ -1,4 +1,4 @@
-import Util
+from . import Util
 
 
 class BaseTerritory:
