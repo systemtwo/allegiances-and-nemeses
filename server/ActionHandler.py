@@ -1,6 +1,6 @@
 import tornado.web
 
-from voluptuous import Schema, Required, All, Range, MultipleInvalid
+from voluptuous import Schema, Required, All, Range, MultipleInvalid, unicode
 
 from AuthHandlers import BaseAuthHandler
 import Sessions
@@ -25,7 +25,7 @@ class ActionHandler(BaseAuthHandler):
             schema = Schema({
                 Required("action"): unicode,
             }, extra=True)
-            requestData = schema(json.loads(self.request.body))
+            requestData = schema(json.loads(self.request.body.decode("utf-8")))
         except MultipleInvalid as e:
             self.send_error(400)
             return

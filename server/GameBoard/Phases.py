@@ -121,7 +121,7 @@ class AttackPhase(BaseMovePhase):
                 else:
                     hostileTerToAttackers[dest].append(unit)
 
-        return [Conflict(territory, attackers) for territory, attackers in hostileTerToAttackers.iteritems()]
+        return [Conflict(territory, attackers) for territory, attackers in hostileTerToAttackers.items()]
 
     def nextPhase(self):
         board = self.board

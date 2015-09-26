@@ -11,7 +11,7 @@ import config
 
 
 class MapEditorHandler(tornado.web.RequestHandler):
-    actions = utils.Enum(["MODULE_SELECTOR", "PAGE", "LIST_IMAGES", "MODULE", "CREATE"])
+    actions = utils.Enum(["MODULE_SELECTOR", "PAGE", "LIST_IMAGES", "MODULE", "CREATE", "MODULE_INFO"])
 
     def initialize(self, action, config, html_path=""):
         self.HTML_PATH = html_path
@@ -27,11 +27,22 @@ class MapEditorHandler(tornado.web.RequestHandler):
 
         elif self.action == self.actions.PAGE:
             moduleName = params["moduleName"]
+            self.write(loader.load("mapEditor.html").generate(moduleName=moduleName))
+
+        elif self.action == self.actions.MODULE_INFO:
+            moduleName = params["moduleName"]
             moduleInfo = {
                 "moduleName": moduleName
             }
-            with open(GameBoard.Util.filePath(moduleName, "test.jpg")) as imageFile:
-                moduleInfo["stencilImage"] = base64.b64encode(imageFile.read())
+            with open(GameBoard.Util.filePath(moduleName, "info.json")) as file:
+                moduleInfo["metadata"] = json.load(file)
+
+            if "stencilImage" in moduleInfo["metadata"]:
+                stencilData = moduleInfo["metadata"]["stencilImage"]
+                filePath = GameBoard.Util.filePath(moduleName, stencilData.pop("fileName"))
+                with open(filePath, "rb") as imageFile:
+                    stencilData["encoded"] = base64.b64encode(imageFile.read()).decode("utf-8")
+
             with open(GameBoard.Util.countryFileName(moduleName)) as countryInfo:
                 moduleInfo["countries"] = countryInfo.read()
             with open(GameBoard.Util.unitFileName(moduleName)) as unitInfo:
@@ -42,7 +53,8 @@ class MapEditorHandler(tornado.web.RequestHandler):
                 moduleInfo["connections"] = connections.read()
             with open(GameBoard.Util.filePath(moduleName, "unitSetup.json")) as connections:
                 moduleInfo["unitSetup"] = connections.read()
-            self.write(loader.load("mapEditor.html").generate(moduleInfo=moduleInfo))
+
+            self.write(json.dumps(moduleInfo))
 
         elif self.action == self.actions.LIST_IMAGES:
             """
@@ -75,7 +87,7 @@ class MapEditorHandler(tornado.web.RequestHandler):
     def post(self, **params):
         if self.action == self.actions.MODULE:
             moduleName = params["moduleName"]
-            moduleInfo = json.loads(self.request.body)
+            moduleInfo = json.loads(self.request.body.decode("utf-8"))
             if os.path.exists(os.path.join(self.config.ABS_MODS_PATH, moduleName)):
                 def writeFile(key, fileName):
                     if key in moduleInfo:

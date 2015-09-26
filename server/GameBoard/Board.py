@@ -23,7 +23,7 @@ class Board:
 
         with open(Util.unitFileName(moduleName)) as unitInfo:
             self.unitCatalogue = json.load(unitInfo)
-            self.unitInfoDict = {unitType: UnitInfo(unitType, jsonInfo) for unitType, jsonInfo in self.unitCatalogue.iteritems()}
+            self.unitInfoDict = {unitType: UnitInfo(unitType, jsonInfo) for unitType, jsonInfo in self.unitCatalogue.items()}
 
         with open(Util.territoryFileName(moduleName)) as territoryInfo:
             self.territoryInfo = json.load(territoryInfo)
@@ -58,7 +58,7 @@ class Board:
         # add units
         with open(Util.filePath(moduleName, "unitSetup.json")) as unitFile:
             unitSetup = json.load(unitFile)
-            for tName, unitTypes in unitSetup.iteritems():
+            for tName, unitTypes in unitSetup.items():
                 territory = self.territoryByName(tName)
                 assert territory is not None, "Invalid territory name %r" % tName
                 for unitType in unitTypes:
@@ -210,7 +210,7 @@ class Board:
             return {t.name: {
                 "current": t.country.name,
                 "previous": t.previousCountry.name
-            } for t in self.territories if hasattr(t, "country")}
+            } for t in self.territories if hasattr(t, "country") and t.country is not None}
         elif fieldName == "connections":
             return self.connections
         elif fieldName == "units":

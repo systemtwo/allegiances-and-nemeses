@@ -3,7 +3,7 @@
 import os.path
 
 import tornado.web
-from voluptuous import Schema, Required, All, Range, Length, MultipleInvalid
+from voluptuous import Schema, Required, All, Range, Length, MultipleInvalid, unicode
 
 from AuthHandlers import BaseAuthHandler
 import Sessions

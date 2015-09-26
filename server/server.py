@@ -85,6 +85,7 @@ class Server:
             #Map editor (Consider moving into a sub-list in MapEditorHandler)
             (r"/mapEditor", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.MODULE_SELECTOR, html_path=html_path)),
             (r"/mapEditor/(?P<moduleName>[A-z]+)", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.PAGE, html_path=html_path)),
+            (r"/mapEditor/modules/info/(?P<moduleName>[A-z]+)", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.MODULE_INFO, html_path=html_path)),
             (r"/modules/create/?", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.CREATE)),
             (r"/modules/(?P<moduleName>[A-z]+)", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.MODULE)),
 
