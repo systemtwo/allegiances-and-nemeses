@@ -1,4 +1,4 @@
-define(["backbone", "underscore", "knockout", "text!views/sidePanel/boughtUnits.html", "helpers", "gameAccessor"],
+define(["backbone", "underscore", "knockout", "text!views/sidePanel/boughtUnits.ko.html", "helpers", "gameAccessor"],
     function(backbone, _, ko, template, _h, _b) {
     // List of units bought this turn
     var BoughtUnitsView = backbone.View.extend({

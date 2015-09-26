@@ -1,4 +1,4 @@
-define(["backbone", "knockout", "text!views/moveUnit/moveUnit.html", "helpers", "gameAccessor", "router"],
+define(["backbone", "knockout", "text!views/moveUnit/moveUnit.ko.html", "helpers", "gameAccessor", "router"],
     function(backbone, ko, template, _h, _b, _router) {
     var MoveUnitView = backbone.View.extend({
         /**

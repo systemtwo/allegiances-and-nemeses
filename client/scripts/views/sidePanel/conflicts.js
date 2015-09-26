@@ -1,4 +1,4 @@
-define(["backbone", "underscore", "knockout", "text!views/sidePanel/conflictList.ko.html", "gameAccessor", "router", "dialogs"],
+define(["backbone", "underscore", "knockout", "text!views/sidePanel/conflicts.ko.html", "gameAccessor", "router", "dialogs"],
     function(backbone, _, ko, template, _b, _router, _dialogs) {
     // List of units bought this turn
     var ConflictView = backbone.View.extend({
