@@ -150,7 +150,7 @@ function (d3, _svgMapEditor, UnitSetupView, UnitCatalogueView, _, msg, Territory
     }
 
     function initialize (moduleInfo) {
-        _.each(["territories", "countries", "connections", "unitCatalogue", "unitSetup", "moduleName"], function (parameter) {
+        _.each(["territories", "countries", "connections", "unitCatalogue", "unitSetup", "moduleName", "metadata"], function (parameter) {
             if (!moduleInfo[parameter]) {
                 msg.log("Missing parameter: " + parameter)
             }
@@ -166,6 +166,7 @@ function (d3, _svgMapEditor, UnitSetupView, UnitCatalogueView, _, msg, Territory
         mapData.moduleName = moduleInfo.moduleName;
         mapData.unitSetup = JSON.parse(moduleInfo.unitSetup);
         mapData.unitCatalogue = unitCatalogue;
+        mapData.stencilImage = moduleInfo.metadata.stencilImage;
 
         mapData.connections = JSON.parse(moduleInfo.connections).map(function (c) {
             var first = _.find(mapData.territories, {name: c[0]});

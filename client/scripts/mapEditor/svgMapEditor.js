@@ -41,6 +41,9 @@ function (d3, _, backbone, svgMap) {
         if (_.isArray(mapInfo.nodes)) {
             this.nodes = mapInfo.nodes;
         }
+        if (mapInfo.stencilImage) {
+            this.stencilImage = mapInfo.stencilImage;
+        }
     };
     MapEditor.prototype.attachDisplayName = function (territoryGroups) {
         territoryGroups.append("text")
@@ -49,10 +52,23 @@ function (d3, _, backbone, svgMap) {
             .attr("dominant-baseline", "middle");
     };
     MapEditor.prototype.drawMap = function () {
+        this.drawStencilImage();
         this.drawTerritories();
         this.drawConnections();
         this.drawNodes();
         this.addDragEvents();
+    };
+    MapEditor.prototype.drawStencilImage = function () {
+        if (this.stencilImage) {
+            this.stencilImageContainer
+                .attr("xlink:href", "data:image/png;base64," + this.stencilImage.encoded)
+                .style("opacity", 1)
+                .attr("width", this.stencilImage.width)
+                .attr("height", this.stencilImage.height)
+        } else {
+            this.stencilImageContainer
+                .style("opacity", 0)
+        }
     };
     MapEditor.prototype.drawConnections = function () {
         var connectionData = _.map(this.connections, function (pair) {

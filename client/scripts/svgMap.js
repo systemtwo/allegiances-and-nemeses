@@ -16,6 +16,8 @@ function (d3, _, backbone) {
         this.container = this.mapElement.append("g")
             .classed("map-element-container", true);
 
+        this.stencilImageContainer = this.container.append("g").append("image");
+
         map.selectorBox = map.mapElement.append("rect")
             .classed("selector-box", true);
 

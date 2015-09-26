@@ -24,8 +24,9 @@
                 }
             });
             requirejs(["mapEditor"], function (editor) {
-                var moduleInfo = {% raw json_encode(moduleInfo) %};
-                editor.initialize(moduleInfo);
+                $.get("modules/info/{{ moduleName }}").done(function (result) {
+                    editor.initialize(JSON.parse(result));
+                })
             })
         </script>
     </head>
