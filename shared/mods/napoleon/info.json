@@ -1,5 +1,9 @@
 {
     "title": "Napoleonic Wars",
     "wrapsHorizontally": false,
-    "imageName": "napoleon.svg"
+    "stencilImage": {
+        "fileName": "test.jpg",
+        "height": 1000,
+        "width": 2000
+    }
 }
