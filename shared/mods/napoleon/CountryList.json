@@ -3,30 +3,42 @@
         "name": "russia",
         "displayName": "USSR",
         "team": "1",
+        "playable": true,
         "color": "#B00"
     },
     {
         "name": "central",
         "displayName": "Germany",
         "team": "2",
+        "playable": true,
         "color": "#466676"
     },
     {
         "name": "western",
         "displayName": "United Kingdom",
         "team": "1",
+        "playable": true,
         "color": "#E0CC69"
     },
     {
         "name": "japan",
         "displayName": "Japan",
         "team": "2",
+        "playable": true,
         "color": "#F21"
     },
     {
         "name": "us",
         "displayName": "United States",
         "team": "1",
+        "playable": true,
         "color": "#4E532A"
+    },
+    {
+        "name": "neutral",
+        "displayName": "Neutral",
+        "team": "-1",
+        "playable": false,
+        "color": "#bbb"
     }
 ]

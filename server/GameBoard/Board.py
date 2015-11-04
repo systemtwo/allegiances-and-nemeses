@@ -19,7 +19,9 @@ class Board:
             self.moduleInfo = json.load(file)
 
         with open(Util.countryFileName(moduleName)) as countryInfo:
-            self.countries = [Country(c["name"], c["displayName"], c["team"], c["color"], self) for c in json.load(countryInfo)]
+            self.countries = [Country(c["name"], c["displayName"], c["team"], c["color"], c["playable"], self) for c in json.load(countryInfo)]
+
+        self.playableCountries = [c for c in self.countries if c.playable]
 
         with open(Util.unitFileName(moduleName)) as unitInfo:
             self.unitCatalogue = json.load(unitInfo)
@@ -65,11 +67,20 @@ class Board:
                     self.units.append(Unit(self.unitInfo(unitType), territory.country, territory))
 
         # begin
-        for c in self.countries:
+        for c in self.playableCountries:
             c.collectIncome()
-        self.currentCountry = self.countries[0]
+        self.currentCountry = self.playableCountries[0]
 
         self.currentPhase = BuyPhase(self.currentCountry.money, self)
+        self.validateInfo()
+
+    def validateInfo(self):
+        for t in self.territories:
+            if isinstance(t, LandTerritory):
+                if t.country is None:
+                    print("No country on " + t.displayName)
+            if len(t.connections) == 0:
+                print("No connections for " + t.displayName)
 
     def getStartingCountry(self, terInfo):
         if "country" not in terInfo:
@@ -100,7 +111,7 @@ class Board:
         """
         If all but one team is eliminated, declares a game winner
         """
-        remaining = [c for c in self.countries if not c.eliminated]
+        remaining = [c for c in self.playableCountries if not c.eliminated]
         team = remaining[0].team
         teamWins = True
         for c in remaining:
@@ -114,7 +125,7 @@ class Board:
         """
         Eliminates any countries that have no territories and no units left
         """
-        for c in self.countries:
+        for c in self.playableCountries:
             if c.eliminated:
                 break
             eliminated = True
@@ -146,11 +157,11 @@ class Board:
                 raise Exception("All other countries are eliminated")
 
     def _nextCountry(self):
-        nextIndex = self.countries.index(self.currentCountry) + 1
-        if nextIndex >= len(self.countries):
-            self.currentCountry = self.countries[0]
+        nextIndex = self.playableCountries.index(self.currentCountry) + 1
+        if nextIndex >= len(self.playableCountries):
+            self.currentCountry = self.playableCountries[0]
         else:
-            self.currentCountry = self.countries[nextIndex]
+            self.currentCountry = self.playableCountries[nextIndex]
 
     def territoryUnits(self, t):
         unitList = []

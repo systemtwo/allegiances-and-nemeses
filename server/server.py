@@ -60,7 +60,7 @@ class BoardsHandler(BaseAuthHandler):
             self.write(json.dumps(boardInfo))
 
         elif self.action == self.actions.GET_FIELDS:
-            requestedFields = self.request.arguments.get("fieldNames[]")
+            requestedFields = [f.decode("utf-8") for f in self.request.arguments.get("fieldNames[]")]
             board = self.gamesManager.getBoard(int(params["boardId"]))
             response = board.getFields(requestedFields)
             self.write(json.dumps(response))

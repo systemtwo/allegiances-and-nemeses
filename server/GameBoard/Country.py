@@ -1,10 +1,11 @@
 class Country:
-    def __init__(self, name, displayName, teamName, color, board=None):
+    def __init__(self, name, displayName, teamName, color, playable, board=None):
         self.eliminated = False
         self.name = name
         self.displayName = displayName
         self.team = teamName
         self.color = color
+        self.playable = playable
         self.board = board
         self.money = 0
         self.player = None

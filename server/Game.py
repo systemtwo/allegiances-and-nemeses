@@ -68,7 +68,7 @@ class Game:
         return self.players[userId]
 
     def getCountries(self):
-        return self.board.countries
+        return self.board.playableCountries
 
     def startGame(self):
         if self.started:
