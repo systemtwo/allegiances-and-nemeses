@@ -1,7 +1,7 @@
 define(["backbone",
         "underscore",
         "knockout",
-        "text!views/sidePanel/sidePanel.html",
+        "text!views/sidePanel/sidePanel.ko.html",
         "gameAccessor",
         "views/sidePanel/boughtUnits",
         "views/sidePanel/conflicts",

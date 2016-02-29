@@ -1,4 +1,4 @@
-define(["backbone", "underscore", "knockout", "text!views/moveUnit/moveUnit.html", "helpers", "jquery-ui"],
+define(["backbone", "underscore", "knockout", "text!views/moveUnit/moveUnit.ko.html", "helpers", "jquery-ui"],
     function(backbone, _, ko, template, _h) {
     var UnitSetupView = backbone.View.extend({
         initialize: function(territory, territoryUnitTypes, unitCatalogue) {

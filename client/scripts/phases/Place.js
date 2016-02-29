@@ -5,7 +5,7 @@ define([
     "helpers",
     "dialogs",
     "router",
-    "text!/static/scripts/views/moveUnit/moveUnit.html"],
+    "text!/static/scripts/views/moveUnit/moveUnit.ko.html"],
 function(_b, ko, _, _helpers, _dialogs, _router, moveUnitTemplate) {
     function PlacementPhase() {
         var board = _b.getBoard();
