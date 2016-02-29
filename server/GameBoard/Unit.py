@@ -1,5 +1,5 @@
-import UniqueId
-import Util
+from . import UniqueId
+from . import Util
 
 
 class Unit:
@@ -14,6 +14,7 @@ class Unit:
         assert hasattr(country, "name")
         self.type = unitInfo.unitType
         self.unitInfo = unitInfo
+        self.movedToTerritory = territory  # the territory the unit has been moved to. Only relevant on client side.
         self.territory = territory
         self.originalTerritory = territory
         self.country = country
@@ -21,6 +22,7 @@ class Unit:
 
     def reset(self):
         self.originalTerritory = self.territory
+        self.movedToTerritory = self.territory
 
     def isFlying(self):
         return self.unitInfo.terrainType == "air"
@@ -35,7 +37,6 @@ class Unit:
     def canMoveThrough(self, territory):
         """
         Checks if type of unit can move through a territory
-        :param unit: Unit
         :param territory: Territory
         :return: Boolean True if unit can move through, False if it cannot
         """
@@ -43,10 +44,10 @@ class Unit:
         if self.isFlying():
             return True
 
-        if territory.type is "sea":
+        if territory.type == "sea":
             if self.type == "sub":
                 # can move if no destroyers present
-                if territory.containsUnitType("destroyer") == 0:
+                if not territory.containsUnitType("destroyer"):
                     return True
             if len(territory.enemyUnits(self.country)) == 0:
                 return True
@@ -55,8 +56,8 @@ class Unit:
             if Util.allied(territory, self.country):
                 return True
             if self.type == "tank":
-                if len(territory.units()):
-                    return True
+                if len(territory.units()) == 0:
+                    return True  # tanks can blitz through empty territories
         return False
 
     def canMoveInto(self, territory):
@@ -78,8 +79,9 @@ class Unit:
         return {
             "id": self.id.hex,
             "type": self.type,
-            "territory": self.territory.name,
-            "originalTerritory": self.originalTerritory.name,
+            "territory": self.movedToTerritory.name,  # translate to client terminology
+            "beginningOfPhaseTerritory": self.territory.name,
+            "beginningOfTurnTerritory": self.originalTerritory.name,
             "country": self.country.name
         }
 

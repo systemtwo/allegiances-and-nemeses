@@ -2,12 +2,10 @@
     <div class="actions">
         <button id="next-phase" class="btn" data-bind="show: canEndPhase, click: endPhase">Next Phase</button>
     </div>
-    <div>
-        <h3>Purchased Units</h3>
-        <div class="bought-units-container"></div>
-    </div>
-    <div>
-        <h3>Conflicts</h3>
-        <div class="conflicts-container"></div>
+    <div class="panels" data-bind="foreach: panels">
+        <div class="panel-section" data-bind="css: {collapsed: collapsed}">
+            <h3 class="panel-header" data-bind="click: $root.togglePanel, text: header"></h3>
+            <div class="panel-content" data-bind="afterRender: attachContent, css: panelContentsClass"></div>
+        </div>
     </div>
 </div>

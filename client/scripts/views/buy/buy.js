@@ -17,7 +17,7 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buy.ko.html", "hel
                     vm.totalCost(view.moneySpent());
                 });
                 this.isMyTurn = board.isCurrentPlayersTurn();
-                this.currentMoney = board.currentCountry.ipc;
+                this.currentMoney = board.currentCountry.money;
                 this.unitInfoList = _.chain(board.info.unitCatalogue)
                     .map(function(info, unitType) {
                         var amount = ko.observable(view.amount(unitType));
@@ -33,7 +33,7 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buy.ko.html", "hel
                         });
                         return {
                             unitType: unitType,
-                            imageSrc: _h.getImageSource(unitType, board.currentCountry),
+                            imageSrc: _h.getImageSource(info, board.currentCountry),
                             unitInfo: info,
                             amount: amount,
                             increment: function(data, event) {
@@ -99,7 +99,7 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buy.ko.html", "hel
         capForUnitType: function (unitType) {
             var board = _b.getBoard();
             var info = board.unitInfo(unitType);
-            var remainingMoney = board.currentCountry.ipc - this.moneySpent();
+            var remainingMoney = board.currentCountry.money - this.moneySpent();
             var currentAmount = _b.getBoard().buyList().reduce(function (number, boughtUnit) {
                 if (boughtUnit.unitType == unitType) {
                     return number + 1;
@@ -131,7 +131,7 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buy.ko.html", "hel
                 width: Math.min(600, window.innerWidth), // never larger than screen, or 600px
                 height: initialHeight,
                 buttons: {
-                    "Ok": function () {
+                    "Done": function () {
                         _b.getBoard().nextPhase();
                     }
                 }

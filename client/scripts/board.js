@@ -1,5 +1,7 @@
-define(["backbone", "components", "helpers", "router", "gameAccessor", "phases/phaseHelper"], function(backbone, _c, _helpers, _router, _b, phaseHelper) {
-    var Game = function(id, boardInfo) {
+define(["underscore", "backbone", "svgMap", "components", "helpers", "router", "gameAccessor", "phases/phaseHelper", "dialogs"],
+function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) {
+    var Game = function(id, boardInfo, bindTo) {
+        var that = this;
         _b.setBoard(this);
         this.id = id;
         // lists of game objects whose properties will change as the game progresses
@@ -10,19 +12,27 @@ define(["backbone", "components", "helpers", "router", "gameAccessor", "phases/p
             buyList: boardInfo.buyList,
             conflicts: boardInfo.conflicts
         };
-        // Info about the game that will remain constant
-        this.info = {
-            players: boardInfo.players,
-            connections: [],
-            unitCatalogue: boardInfo.unitCatalogue,
-            imageMap: {} // Map of unitType->imageSource
+        this.map = new svgMap.Map(this.boardData, bindTo);
+        this.map.on("select:territory", function (territory) {
+            if (that.currentPhase && that.currentPhase.onTerritorySelect) {
+                that.currentPhase.onTerritorySelect(territory);
+            }
+        });
+        this.map.on("click:circle", function (territory, event) {
+            _dialogs.showTerritoryUnits(territory, that.map.mapElement[0], event);
+        });
+        this.map.getCircleContent = function (territory) {
+            return territory.units().length;
         };
         this.isPlayerTurn = false;
         this.currentCountry = null;
         this.currentPhase = null;
         this.phaseName = "";
-        this.mapImage = new Image();
         this.parse(boardInfo);
+        this.map.drawMap();
+        this.on("change", function () {
+            that.map.drawMap();
+        });
         return this;
     };
     _.extend(Game.prototype, backbone.Events); // mixin the events module
@@ -37,47 +47,49 @@ define(["backbone", "components", "helpers", "router", "gameAccessor", "phases/p
             buyList: [],
             conflicts: boardInfo.conflicts
         };
-        this.buyList(boardInfo.buyList); // set the buy list
         // Info about the game that will remain constant
         this.info = {
             players: boardInfo.players,
             connections: [],
-            unitCatalogue: boardInfo.unitCatalogue,
-            imageMap: {} // Map of unitType->imageSource
+            unitCatalogue: boardInfo.unitCatalogue
         };
 
         this.isPlayerTurn = boardInfo.isPlayerTurn;
         this.wrapsHorizontally = boardInfo.wrapsHorizontally;
-
-        Object.keys(boardInfo.unitCatalogue).forEach(function(unitType) {
-            that.info.imageMap[unitType] = _helpers.getImageSource(unitType);
-        });
+        this.winningTeam = boardInfo.winningTeam;
 
         this.boardData.countries = boardInfo.countries.map(function(countryInfo) {
-            return new _c.Country(countryInfo.name, countryInfo.displayName, countryInfo.team, countryInfo.ipc)
+            return new _c.Country(countryInfo)
         });
 
-        console.table(this.boardData.countries);
         boardInfo.territoryInfo.forEach(function(tInfo) {
-            var country = that.getCountry(tInfo.country);
-            that.boardData.territories.push(new _c.Territory(tInfo.name, tInfo.income, country, tInfo.x, tInfo.y, tInfo.width, tInfo.height))
+            var ownerInfo = boardInfo.territoryOwners[tInfo.name] || {};
+            var country = that.getCountry(ownerInfo.current);
+            var previous = !ownerInfo.previous || ownerInfo.previous == ownerInfo.current ? country : that.getCountry(ownerInfo.previous);
+            that.boardData.territories.push(new _c.Territory(tInfo, country, previous))
         });
 
         boardInfo.units.forEach(function(unit){
-            that.createUnit(unit.id, unit.type, unit.country, unit.territory, unit.originalTerritory)
+            that.createUnit(unit)
         });
 
         this.currentCountry = that.getCountry(boardInfo.currentCountry);
-        this.phaseName = boardInfo.currentPhase;
-        if (this.isCurrentPlayersTurn()) {
-            this.currentPhase = phaseHelper.createPhase(boardInfo.currentPhase);
-        } else {
-            this.currentPhase = phaseHelper.createPhase("ObservePhase");
-        }
-        _helpers.phaseName(this.phaseName);
-
         _helpers.countryName(this.currentCountry.displayName);
+        this.phaseName = boardInfo.currentPhase;
+        if (this.winningTeam) {
+            this.currentPhase = phaseHelper.createPhase("Victory")
+        } else {
+            if (this.isCurrentPlayersTurn()) {
+                this.currentPhase = phaseHelper.createPhase(boardInfo.currentPhase);
+            } else {
+                this.currentPhase = phaseHelper.createPhase("ObservePhase");
+            }
+            _helpers.phaseName(this.phaseName);
+        }
+        this.buyList(boardInfo.buyList); // set the buy list
+
         this.initConnections(boardInfo);
+        this.map.update(this.boardData);
         this.trigger("change");
     };
 
@@ -94,8 +106,15 @@ define(["backbone", "components", "helpers", "router", "gameAccessor", "phases/p
 
     Game.prototype.updateConflicts = function () {
         var that = this;
-        _router.getConflicts(this.id).done(function(conflicts) {
-            that.boardData.conflicts = conflicts;
+        _router.getFields(this.id, ["conflicts", "territoryOwners"]).done(function(response) {
+            that.boardData.conflicts = response.conflicts;
+            _.each(response.territoryOwners, function (info, territoryName) {
+                var territory = that.getTerritory(territoryName);
+                if (territory.country.name != info.current) {
+                    territory.country = that.getCountry(info.current);
+                    territory.previousCountry = that.getCountry(info.previous);
+                }
+            });
             that.trigger("change");
         })
     };
@@ -116,12 +135,6 @@ define(["backbone", "components", "helpers", "router", "gameAccessor", "phases/p
             second.connections.push(first);
         });
 
-    };
-
-    Game.prototype.setImage = function(srcImagePath, onLoadFunction) {
-        this.mapImage = this.mapImage || new Image();
-        this.mapImage.src = srcImagePath;
-        this.mapImage.onload = onLoadFunction;
     };
 
     Game.prototype.currentPhaseName = function() {
@@ -146,18 +159,15 @@ define(["backbone", "components", "helpers", "router", "gameAccessor", "phases/p
         return this.info.unitCatalogue[unitType];
     };
 
-    Game.prototype.createUnit = function(unitId, unitType, country, territory, originalTerritory) {
+    Game.prototype.createUnit = function(unitOptions) {
         // If territory is a string, not a Territory object, assume we were passed the name of the territory
-        if (typeof territory === "string") {
-            territory = this.getTerritory(territory)
-        }
-        if (typeof originalTerritory === "string") {
-            originalTerritory = this.getTerritory(originalTerritory);
-        }
-        if (typeof country === "string") {
-            country = this.getCountry(country); // assume we were passed the country's name
-        }
-        var newUnit = new _c.Unit(unitId, unitType, this.unitInfo(unitType), country, territory, originalTerritory);
+        var countryAndTerritoryInfo = {
+            territory: typeof unitOptions.territory === "string" ? this.getTerritory(unitOptions.territory) : unitOptions.territory,
+            beginningOfPhaseTerritory: typeof unitOptions.beginningOfPhaseTerritory === "string" ? this.getTerritory(unitOptions.beginningOfPhaseTerritory) : unitOptions.beginningOfPhaseTerritory,
+            beginningOfTurnTerritory: typeof unitOptions.beginningOfTurnTerritory === "string" ? this.getTerritory(unitOptions.beginningOfTurnTerritory) : unitOptions.beginningOfTurnTerritory,
+            country: typeof unitOptions.country === "string" ? this.getCountry(unitOptions.country) : unitOptions.country
+        };
+        var newUnit = new _c.Unit(unitOptions.id, unitOptions.type, this.unitInfo(unitOptions.type), countryAndTerritoryInfo);
         this.addUnit(newUnit);
     };
 
@@ -171,6 +181,10 @@ define(["backbone", "components", "helpers", "router", "gameAccessor", "phases/p
         } else {
             return this.mapImage.width
         }
+    };
+
+    Game.prototype.getCountries = function () {
+        return this.boardData.countries;
     };
 
     Game.prototype.getCountry = function(name) {
@@ -202,15 +216,28 @@ define(["backbone", "components", "helpers", "router", "gameAccessor", "phases/p
         });
     };
 
-    // TODO mirror server logic, using unit.canMove and unit.canMoveThrough
+    Game.prototype.addNeighboursToFrontier = function (frontier, unit, currentItem, checkedNames) {
+        var that = this;
+        if (unit.canMoveThrough(currentItem.territory) && currentItem.distance < unit.unitInfo.move) {
+            currentItem.territory.connections.forEach(function(neighbour) {
+                // Can't move into enemy territories during non-combat move phase
+                var valid = !that.currentPhase.validTerritory || that.currentPhase.validTerritory(neighbour);
+                if (valid && !(neighbour.name in checkedNames) && unit.canMoveInto(neighbour)) {
+                    frontier.push({territory: neighbour, distance: currentItem.distance + 1})
+                }
+            });
+        }
+    };
+
     /**
      * Calculates the distance from one territory to another, for a specific unit
      * @param start Territory
      * @param destination Territory
      * @param unit Unit
-     * @returns {number|*}
+     * @returns {number} Distance to destination. -1 if not found or out of unit move range
      */
     Game.prototype.distance = function(start, destination, unit) {
+        // MEMO: this function should match Util.py 'distance' method
         var frontier = [{
                 territory: start,
                 distance: 0
@@ -223,14 +250,10 @@ define(["backbone", "components", "helpers", "router", "gameAccessor", "phases/p
                 // Found it!
                 return current.distance;
             }
+            this.addNeighboursToFrontier(frontier, unit, current, checkedNames);
             checkedNames[current.territory.name] = true;
-            current.territory.connections.forEach(function(c) {
-                if (!(c.name in checkedNames)) {
-                    frontier.push({territory: c, distance: current.distance + 1})
-                }
-            });
         }
-        // throw error, path not found?
+        return -1
     };
 
     /**
@@ -258,14 +281,8 @@ define(["backbone", "components", "helpers", "router", "gameAccessor", "phases/p
                     territoryObjects.push(current.territory);
                     validNames[current.territory.name] = true;
                 }
+                that.addNeighboursToFrontier(frontier, unit, current, checkedNames);
                 checkedNames[current.territory.name] = true;
-                if (current.distance < unit.unitInfo.move) {
-                    current.territory.connections.forEach(function(c) {
-                        if (!(c.name in checkedNames)) {
-                            frontier.push({territory: c, distance: current.distance+1})
-                        }
-                    })
-                }
             }
         });
 

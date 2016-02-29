@@ -1,9 +1,15 @@
-<div class="bought-unit-list" data-bind="css: {'placing-units': inPlacePhase}, template: {name: 'bought-unit-template', foreach: boughtUnits}"></div>
+<div>
+    <button class="btn" data-bind="click: setModePlaceMany, visible: inPlacePhase">Place Multiple Units</button><br>
+    <div class="bought-unit-list"
+         data-bind="css: {'placing-units': inPlacePhase},
+         template: {name: 'bought-unit-template', foreach: boughtUnits}">
+    </div>
+</div>
 
 <script type="text/html" id="bought-unit-template">
 <div class="bought-unit" data-bind="click: $root.clickUnit">
-    <img class="bought-unit-image" src="" data-bind="attr: { src: $root.getImageSrc($data.unitType) },
-        css: {disabledUnit: !$root.canPlace($data.unitType)}" />
-    <span class="placement-territory" data-bind="text: (territory || 'Not Placed')"></span>
+    <img class="unit-image" src="" data-bind="attr: { src: $root.getImageSrc(unitType), title: unitType },
+        css: {disabledUnit: !$root.canPlace(unitType)}" />
+    <span class="placement-territory" data-bind="text: ($root.getDisplayName(territory) || 'Not Placed')"></span>
 </div>
 </script>

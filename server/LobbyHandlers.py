@@ -37,9 +37,10 @@ class LobbyCreateHandler(BaseLobbyHandler):
     @tornado.web.authenticated
     def get(self, **params):
         renderArguments = {}
-        renderArguments["modules"] = [{"name": "default"}]
+        renderArguments["modules"] = [{"name": "napoleon"}]
+        # renderArguments["modules"] = [{"name": x} for x in os.listdir(self.config.ABS_MODS_PATH)]
         self.render(os.path.join("..", self.LOBBY_HTML_PATH, "lobbynew.html"), **renderArguments)
-        print "rendered"
+        print("rendered")
 
     @tornado.web.authenticated
     def post(self, **params):
@@ -58,7 +59,7 @@ class LobbyCreateHandler(BaseLobbyHandler):
         try:
             validUserInput = schema(userInput)
         except MultipleInvalid as e:
-            print str(e)
+            print(str(e))
             self.send_error(400)
             return
 
@@ -98,7 +99,7 @@ class LobbyGameHandler(BaseLobbyHandler):
         try:
             validUserInput = schema(userInput)
         except MultipleInvalid as e:
-            print str(e)
+            print(str(e))
             self.send_error(400)
             return
 
@@ -128,7 +129,7 @@ class LobbyGameHandler(BaseLobbyHandler):
         try:
             validUserInput = schema(userInput)
         except MultipleInvalid as e:
-            print str(e)
+            print(str(e))
             self.send_error(400)
             return
 
@@ -179,14 +180,14 @@ class LobbyGameJoinHandler(BaseLobbyHandler):
         try:
             validUserInput = schema(userInput)
         except MultipleInvalid as e:
-            print str(e)
+            print(str(e))
             self.send_error(400)
             return
 
         self.gamesManager.getGame(validUserInput['gameId'])
 
         userSession = Sessions.SessionManager.getSession(self.current_user)
-        if (self.gamesManager.getGame(validUserInput['gameId']).addPlayer(userSession.getValue("userid"))):
+        if self.gamesManager.getGame(validUserInput['gameId']).addPlayer(userSession.getValue("userid")):
             self.redirect("/lobby/" + str(validUserInput['gameId']))
             #self.write("Joining game :D")
         else:
@@ -198,7 +199,7 @@ class LobbyGameJoinHandler(BaseLobbyHandler):
 class LobbyGameBeginHandler(BaseLobbyHandler):
     @tornado.web.authenticated
     def get(self, **params):
-        game = self.gamesManager.getGame(parms['gameId'])
+        game = self.gamesManager.getGame(params['gameId'])
         game.started = True
         pass
 

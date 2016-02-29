@@ -9,7 +9,10 @@
 </div>
 
 <script type="text/html" id="unit-template">
-<img src="" data-bind="attr: { src: $root.getImageSrc($data) },
-    click: $root.clickUnit,
-    css: {disabledUnit: !$root.canMove($data)}" />
+<img class="unit-image" src="" data-bind="attr: {
+        title: imageTitle,
+        src: imageSource
+    },
+    click: onClick,
+    css: {disabledUnit: !canMove}" />
 </script>

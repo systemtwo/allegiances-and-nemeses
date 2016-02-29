@@ -25,7 +25,7 @@ class ActionHandler(BaseAuthHandler):
             schema = Schema({
                 Required("action"): unicode,
             }, extra=True)
-            requestData = schema(json.loads(self.request.body))
+            requestData = schema(json.loads(self.request.body.decode("utf-8")))
         except MultipleInvalid as e:
             self.send_error(400)
             return

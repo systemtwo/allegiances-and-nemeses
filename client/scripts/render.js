@@ -35,19 +35,10 @@ define(["gameAccessor", "helpers", "router"], function(_b, _h, _router) {
 
         $(canvas).mousemove(function (e) {
             e.preventDefault();
-            var boardCoord = boardCoordinates(e);
-
             if (dragging) {
                 // Move the map
                 offset.x -= e.pageX - previousMouse.x;
                 offset.y -= e.pageY - previousMouse.y;
-            }
-            var t = territoryAtPoint(boardCoord.x, boardCoord.y);
-
-            if (t && territoryIsSelectable(t)) {
-                canvas.style.cursor = "pointer";
-            } else {
-                canvas.style.cursor = "auto";
             }
 
             previousMouse.x = e.pageX;
@@ -79,31 +70,22 @@ define(["gameAccessor", "helpers", "router"], function(_b, _h, _router) {
                 previousMouse.y = e.pageY;
                 return false;
             }
-            var boardCoord = boardCoordinates(e);
-
-            var t = territoryAtPoint(boardCoord.x, boardCoord.y);
-
-            if (t && territoryIsSelectable(t)) {
-                // pass to phase controller
-                if (_b.getBoard().currentPhase && _b.getBoard().currentPhase.onTerritorySelect) {
-                    _b.getBoard().currentPhase.onTerritorySelect(t);
-                }
-            } else {
-                if (_b.getBoard().currentPhase && _b.getBoard().currentPhase.clickNothing) {
-                    _b.getBoard().currentPhase.clickNothing();
-                }
-            }
             previousMouse.x = e.pageX;
             previousMouse.y = e.pageY;
         });
     }
 
-    function boardCoordinates(event) {
-        var canvas = document.getElementById("board");
-        return {
-                x: event.pageX - canvas.offsetLeft + offset.x,
-                y: event.pageY - canvas.offsetTop + offset.y
-            };
+    function onTerritoryClick(t) {
+        if (t && territoryIsSelectable(t)) {
+            // pass to phase controller
+            if (_b.getBoard().currentPhase && _b.getBoard().currentPhase.onTerritorySelect) {
+                _b.getBoard().currentPhase.onTerritorySelect(t);
+            }
+        } else {
+            if (_b.getBoard().currentPhase && _b.getBoard().currentPhase.clickNothing) {
+                _b.getBoard().currentPhase.clickNothing();
+            }
+        }
     }
 
     // Keeps the offset within reasonable bounds
@@ -182,17 +164,12 @@ define(["gameAccessor", "helpers", "router"], function(_b, _h, _router) {
                     x: previousMouse.x - canvas.offsetLeft + offset.x,
                     y: previousMouse.y - canvas.offsetTop + offset.y
                 };
-                if (end.x > _b.getBoard().mapImage.width/2) {
-                    end.x -= _b.getBoard().mapImage.width/2;
+                if (end.x > _b.getBoard().getMapWidth) {
+                    end.x -= _b.getBoard().getMapWidth();
                 }
                 drawLine(origin, end);
             }
             if (showSkeleton) {
-                _b.getBoard().boardData.territories.forEach(function(t) {
-                    drawRect(t.x, t.y, t.width, t.height);
-                });
-                ctx.stroke();
-
                 _b.getBoard().info.connections.forEach(function (c) {
                     drawLine(c[0], c[1])
                 });
@@ -202,7 +179,7 @@ define(["gameAccessor", "helpers", "router"], function(_b, _h, _router) {
             ctx.globalAlpha = 0.3;
             ctx.fillStyle = 'yellow';
             selectableTerritories.forEach(function(t) {
-                drawArc(t.x + t.width/2 , t.y + t.height/2, t.width*1.3, t.height*1.3, true);
+                // TODO highlight selectable
             });
             ctx.restore();
         });
@@ -210,7 +187,7 @@ define(["gameAccessor", "helpers", "router"], function(_b, _h, _router) {
 
     // begin and end just need x and y in board coordinates
     function drawLine(begin, end) {
-        var singleMapWidth = _b.getBoard().mapImage.width/2;
+        var singleMapWidth = _b.getBoard().getMapWidth();
         var canvas = document.getElementById("board");
         var ctx = canvas.getContext("2d");
         var beginX = (begin.x + begin.width/2 || begin.x) - offset.x;
@@ -243,52 +220,6 @@ define(["gameAccessor", "helpers", "router"], function(_b, _h, _router) {
         ctx.stroke();
     }
 
-    // Must call ctx.stroke() after all the calls to this function
-    function drawRect(x, y, width, height) {
-        x -= offset.x;
-        y -= offset.y;
-        var canvas = document.getElementById("board");
-        var ctx = canvas.getContext("2d");
-        var singleMapWidth = _b.getBoard().mapImage.width/2;
-
-        if (x + width < 0) {
-            x += singleMapWidth;
-        } else if (x > canvas.width && x > singleMapWidth) {
-            x -= singleMapWidth;
-        }
-
-        ctx.rect(x, y, width, height);
-    }
-
-    function drawArc(centerX, centerY, width, height, fill) {
-        fill = fill || false;
-        var ratio = height/width;
-        var singleMapWidth = _b.getBoard().mapImage.width/2;
-        var canvas = document.getElementById("board");
-        var ctx = canvas.getContext("2d");
-        centerX -= offset.x;
-        centerY -= offset.y;
-
-        if (_b.getBoard().wrapsHorizontally) {
-            // Right side of circle past canvas left side
-            if (centerX + width/2 < 0) {
-                centerX += singleMapWidth;
-            } else if (centerX - width/2 > canvas.width) { // Left side past canvas right side
-                centerX -= singleMapWidth;
-            }
-        }
-        ctx.save();
-        ctx.scale(1, ratio); // Scale the height
-        ctx.beginPath();
-        ctx.arc(centerX,centerY/ratio,width/2,0,2*Math.PI);
-        if (fill) {
-            ctx.fill();
-        } else {
-            ctx.stroke();
-        }
-        ctx.restore();
-    }
-
     var selectableTerritories = [];
     function setSelectableTerritories(territories) {
         selectableTerritories = territories;
@@ -310,29 +241,9 @@ define(["gameAccessor", "helpers", "router"], function(_b, _h, _router) {
     function territoryIsSelectable(t) {
         return selectableTerritories.indexOf(t) !== -1;
     }
-    function territoryAtPoint(x, y) {
-        var singleBoardWidth = _b.getBoard().getMapWidth();
-        if (_b.getBoard().wrapsHorizontally) {
-            if (x > singleBoardWidth) {
-                x = x - singleBoardWidth;
-            }
-        }
-
-        var territoryList = _b.getBoard().boardData.territories;
-        for (var i=0; i<territoryList.length; i++) {
-            var t = territoryList[i];
-            if (t.x < x &&
-                t.y < y &&
-                t.x + t.width > x &&
-                t.y + t.height > y) {
-                return t;
-            }
-        }
-    }
     return {
         initMap: initMap,
         drawMap: drawMap,
-        drawRect: drawRect,
         drawLine: drawLine,
         offset: offset,
         showArrowFrom: showArrowFrom,
@@ -340,7 +251,6 @@ define(["gameAccessor", "helpers", "router"], function(_b, _h, _router) {
         showSkeleton: setShowSkeleton,
         setSelectableTerritories: setSelectableTerritories,
         setTerritoriesWithUnitsSelectable: setTerritoriesWithUnitsSelectable,
-        territoryIsSelectable: territoryIsSelectable,
-        territoryAtPoint: territoryAtPoint
+        territoryIsSelectable: territoryIsSelectable
     }
 });

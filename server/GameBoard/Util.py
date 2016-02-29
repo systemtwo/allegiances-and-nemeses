@@ -29,7 +29,7 @@ def isFlying(unitType):
 
 def allied(a, b):
     """
-    Returns true if a is allid to b
+    Returns true if a is allied to b
     :param a: Accepts a land or sea territory instance, a unit instance, or a country instance
     :param b:
     :return:

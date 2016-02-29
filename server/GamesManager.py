@@ -19,11 +19,6 @@ class GamesManager:
         else:
             return game.board
 
-    def getConflicts(self, boardId):
-        board = self.getBoard(boardId)
-
-        return [conflict.toDict() for conflict in board.conflicts()]
-
     def newGame(self, gameName, numPlayers, moduleName, creatorId):
         self.lastId += 1
         self.games[self.lastId] = Game.Game(gameName, numPlayers, moduleName, creatorId)

@@ -1,8 +1,7 @@
 import random
-from Components import Conflict
-from Unit import Unit, BoughtUnit
-import Util
-
+from .Components import Conflict
+from .Unit import Unit, BoughtUnit
+from . import Util
 
 """
 Phases handle the major operational logic of the game. Each phase it's own unique logic, and different available actions
@@ -21,10 +20,10 @@ Collect Income -> Collect income from all the territories owned (including conqu
 
 
 class BuyPhase:
-    def __init__(self, ipc, board):
+    def __init__(self, money, board):
         # List[(unitType, cost)]
         self.buyList = []
-        self.moneyCap = ipc
+        self.moneyCap = money
         self.board = board
         self.name = "BuyPhase"
 
@@ -65,6 +64,7 @@ class BuyPhase:
 
     def nextPhase(self):
         board = self.board
+        board.currentCountry.pay(self.costOfUnits(board.buyList))
         board.currentPhase = AttackPhase(board)
         return board.currentPhase
 
@@ -88,6 +88,7 @@ class BaseMovePhase(object):
 
     def move(self, unit, destination):
         if self.canMove(unit, destination):
+            unit.movedToTerritory = destination  # update the unit, affects client only
             self.moveList[unit] = (unit.territory, destination)
             return True
         else:
@@ -105,6 +106,12 @@ class AttackPhase(BaseMovePhase):
         self.name = "AttackPhase"
 
     def conflicts(self):
+        """
+        Get the conflicts that are going to happen
+        Does not mutate state
+
+        :return: List of conflicts
+        """
         hostileTerToAttackers = {}  # list of territories being attacked, and the attacking units
         for unit in self.moveList:
             (origin, dest) = self.moveList[unit]
@@ -113,15 +120,19 @@ class AttackPhase(BaseMovePhase):
                     hostileTerToAttackers[dest] = [unit]
                 else:
                     hostileTerToAttackers[dest].append(unit)
-            else:
-                # not in conflict
-                unit.originalTerritory = unit.territory
-                unit.territory = dest
 
-        return [Conflict(territory, attackers) for territory, attackers in hostileTerToAttackers.iteritems()]
+        return [Conflict(territory, attackers) for territory, attackers in hostileTerToAttackers.items()]
 
     def nextPhase(self):
         board = self.board
+
+        # move all units without conflicts
+        for unit in self.moveList:
+            (origin, dest) = self.moveList[unit]
+            if Util.allied(dest, unit.country):
+                # not in conflict
+                unit.originalTerritory = unit.territory
+                unit.territory = dest
         board.currentPhase = ResolvePhase(self.conflicts(), board)
         return board.currentPhase
 
@@ -186,7 +197,11 @@ class ResolvePhase:
                 # can only take the territory if 1+ attackers are land attackers
                 landAttackers = [u for u in conflict.attackers if u.isLand()]
                 if len(landAttackers) > 0:
-                    territory.country = self.board.currentCountry
+                    # transfer ownership
+                    if Util.allied(territory.previousCountry, self.board.currentCountry):
+                        territory.country = territory.previousCountry
+                    else:
+                        territory.country = self.board.currentCountry
 
                 # now we can update the attackers' current territory. They've officially moved in
                 for u in conflict.attackers:
@@ -198,7 +213,7 @@ class ResolvePhase:
         for conflict in self.conflicts:  # TODO include current conflict
             self.autoResolve(conflict.territory)
 
-        # TODO return all BattleReports
+            # TODO return all BattleReports
 
     def retreat(self, conflictTerritory, destination):
         """
@@ -216,7 +231,15 @@ class ResolvePhase:
         unresolvedConflicts = [c for c in self.conflicts if c.outcome == Conflict.inProgress]
         if unresolvedConflicts:
             self.autoResolveAll()
-        self.board.currentPhase = MovementPhase(self.board)
+
+        self.board.checkEliminations()
+        if self.board.currentCountry.eliminated:
+            # will only happen if you attack and lose your last units, and have no territories
+            # in that case, player's turn should end immediately
+            self.board.nextTurn()
+            self.board.currentPhase = BuyPhase(self.board.currentCountry.money, self.board)
+        else:
+            self.board.currentPhase = MovementPhase(self.board)
         return self.board.currentPhase
 
 
@@ -228,13 +251,13 @@ class MovementPhase(BaseMovePhase):
     # can move units that haven't moved in the attack phase, or planes that need to land
     # can't move into enemy territories
     def canMove(self, unit, destination):
-        if not Util.allied(destination, unit.country)\
+        if not Util.allied(destination, unit.country) \
                 or not super(MovementPhase, self).canMove(unit, destination):
             return False
 
         if unit.isFlying():
             # Gotta have an airport to land in or sometin
-            if hasattr(destination, "originalCountry") and not Util.allied(destination.originalCountry, unit.country):
+            if hasattr(destination, "previousCountry") and not Util.allied(destination.previousCountry, unit.country):
                 return False
 
             previousMove = Util.distance(unit.originalTerritory, unit.territory, unit)
@@ -246,7 +269,10 @@ class MovementPhase(BaseMovePhase):
 
     def nextPhase(self):
         board = self.board
-        board.neutralMoveList = self.moveList
+        for unit in self.moveList:
+            (origin, dest) = self.moveList[unit]
+            unit.originalTerritory = unit.territory
+            unit.territory = dest
         board.currentPhase = PlacementPhase(board)
         return board.currentPhase
 
@@ -293,5 +319,5 @@ class PlacementPhase:
         self.board.currentCountry.collectIncome()
 
         self.board.nextTurn()
-        self.board.currentPhase = BuyPhase(self.board.currentCountry.ipc, self.board)
+        self.board.currentPhase = BuyPhase(self.board.currentCountry.money, self.board)
         return self.board.currentPhase

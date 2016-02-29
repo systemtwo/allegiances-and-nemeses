@@ -17,58 +17,63 @@ define(["backbone", "knockout", "text!views/moveUnit/moveUnit.ko.html", "helpers
             var view = this;
             var MoveUnitVM = function() {
                 var viewModel = this;
-                function sort(unitA, unitB) {
-                    var canMoveA = viewModel.canMove(unitA);
-                    var canMoveB = viewModel.canMove(unitB);
-                    if (canMoveA == canMoveB) {
+                // Sorts unmoveable units to the end of the list
+                function sort(unitInfo, unitInfoB) {
+                    if (unitInfo.canMove == unitInfoB.canMove) {
                         return 0;
                     } else {
-                        return canMoveA ? -1 : 1;
+                        return unitInfo.canMove ? -1 : 1;
                     }
                 }
-                this.originUnits = ko.observableArray(view.fromTerritory.units());
-                this.destinationUnits = ko.observableArray(view.destinationTerritory.units());
-
-                /**
-                 * Returns the location of the image for a unit
-                 * @param unit Unit
-                 * @returns {*}
-                 */
-                this.getImageSrc = function(unit) {
-                    return _h.getImageSource(unit.unitType, unit.country);
-                };
-
-                this.canMove = function(unit) {
+                function canMove(unit) {
                     var currentPhase = _b.getBoard().currentPhase;
                     if (unit.territory == view.fromTerritory)
                         return currentPhase.canMove(unit, view.destinationTerritory);
                     else
                         return currentPhase.canMove(unit, view.fromTerritory);
-                };
-
-                this.clickUnit = function(unit) {
-                    var origin,destination, undo;
-                    if (viewModel.canMove(unit)) {
-                        if (unit.territory == view.fromTerritory) {
-                            viewModel.moveUnitToDestination(unit);
-                            undo = viewModel.moveUnitToOrigin.bind(viewModel);
-                            origin = view.fromTerritory;
-                            unit.territory = destination = view.destinationTerritory;
-                        } else {
-                            viewModel.moveUnitToOrigin(unit);
-                            undo = viewModel.moveUnitToDestination.bind(viewModel);
-                            origin = view.destinationTerritory;
-                            unit.territory = destination = view.fromTerritory;
-                        }
-                        _router.validateMove(origin, destination, unit.id).fail(function onFail() {
-                            unit.territory = origin;
-                            undo(unit);
-                            alert("Invalid move");
-                        }).done(function() {
-                            _b.getBoard().updateConflicts();
-                        });
+                }
+                function getUnitHelperText (unit) {
+                    if (unit.beginningOfPhaseTerritory.displayName === unit.beginningOfTurnTerritory.displayName) {
+                        return unit.unitType + ": Moving from " + unit.beginningOfTurnTerritory.displayName;
+                    } else {
+                        return unit.unitType + ": Moving from " + unit.beginningOfTurnTerritory.displayName + " through " + unit.beginningOfPhaseTerritory.displayName;
                     }
-                };
+                }
+                function parseUnit(unit) {
+                    var unitIsMovable = canMove(unit);
+                    return {
+                        imageSource: _h.getImageSource(unit.unitInfo, unit.country),
+                        imageTitle: ko.computed(function () {
+                            return unitIsMovable ? getUnitHelperText(unit) : unit.unitType;
+                        }),
+                        canMove: unitIsMovable,
+                        onClick: function(unitData) {
+                            var origin,destination, undo;
+                            if (unitIsMovable) {
+                                if (unit.territory == view.fromTerritory) {
+                                    viewModel.moveUnitToDestination(unitData);
+                                    undo = viewModel.moveUnitToOrigin.bind(viewModel);
+                                    origin = view.fromTerritory;
+                                    unit.territory = destination = view.destinationTerritory;
+                                } else {
+                                    viewModel.moveUnitToOrigin(unitData);
+                                    undo = viewModel.moveUnitToDestination.bind(viewModel);
+                                    origin = view.destinationTerritory;
+                                    unit.territory = destination = view.fromTerritory;
+                                }
+                                _router.validateMove(origin, destination, unit.id).fail(function onFail() {
+                                    unit.territory = origin;
+                                    undo(unitData);
+                                    alert("Invalid move");
+                                }).done(function() {
+                                    _b.getBoard().updateConflicts();
+                                });
+                            }
+                        }
+                    }
+                }
+                this.originUnits = ko.observableArray(view.fromTerritory.units().map(parseUnit));
+                this.destinationUnits = ko.observableArray(view.destinationTerritory.units().map(parseUnit));
 
                 this.moveUnitToDestination = function(unit) {
                     viewModel.originUnits.remove(unit);
@@ -90,7 +95,7 @@ define(["backbone", "knockout", "text!views/moveUnit/moveUnit.ko.html", "helpers
         render: function() {
             // For now, and probably for a while, we'll show this as a dialog
             this.$el.dialog({
-                title: "Move Units from " + this.fromTerritory.name + " to " + this.destinationTerritory.name,
+                title: "Move Units from " + this.fromTerritory.displayName + " to " + this.destinationTerritory.displayName,
                 width: 600,
                 buttons: {
                     "Done": function () {

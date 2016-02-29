@@ -27,7 +27,7 @@ class IndexHandler(tornado.web.RequestHandler):
 
 class BoardsHandler(BaseAuthHandler):
     #TODO: Consider spliting this class to handle the different scenarios
-    actions = utils.Enum(["NEW", "ID", "CONFLICTS"])
+    actions = utils.Enum(["NEW", "ID", "GET_FIELDS"])
     nextBoardId = 0
 
     def initialize(self, config, action, gamesManager):
@@ -52,7 +52,6 @@ class BoardsHandler(BaseAuthHandler):
 
             # Return the board info as json
             boardInfo = board.toDict()
-            boardInfo["imagePath"] = os.path.join(self.config.MODS_PATH, boardInfo["moduleName"], boardInfo["imageName"])
 
             #See if it is the user's turn
             userSession = Sessions.SessionManager.getSession(self.current_user)
@@ -60,13 +59,11 @@ class BoardsHandler(BaseAuthHandler):
 
             self.write(json.dumps(boardInfo))
 
-        elif self.action == self.actions.CONFLICTS:
-            conflicts = self.gamesManager.getConflicts(int(params["boardId"]))
-            if conflicts is None:
-                self.set_status(400)
-                return
-
-            self.write(json.dumps(conflicts))
+        elif self.action == self.actions.GET_FIELDS:
+            requestedFields = self.request.arguments.get("fieldNames[]")
+            board = self.gamesManager.getBoard(int(params["boardId"]))
+            response = board.getFields(requestedFields)
+            self.write(json.dumps(response))
 
     @tornado.web.authenticated
     def post(self, **params):
@@ -78,6 +75,7 @@ class BoardsHandler(BaseAuthHandler):
 class Server:
     def __init__(self, config):
         html_path = os.path.join(config.STATIC_CONTENT_PATH, "html")
+        port = 8888
 
         self.gamesManager = GamesManager.GamesManager()
 
@@ -85,15 +83,18 @@ class Server:
             (r"/", IndexHandler, dict(html_path=html_path)),
 
             #Map editor (Consider moving into a sub-list in MapEditorHandler)
-            (r"/mapEditor", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.PAGE, html_path=html_path)),
-            (r"/modules", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.MODULES)),
+            (r"/mapEditor", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.MODULE_SELECTOR, html_path=html_path)),
+            (r"/mapEditor/(?P<moduleName>[A-z]+)", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.PAGE, html_path=html_path)),
+            (r"/mapEditor/modules/info/(?P<moduleName>[A-z]+)", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.MODULE_INFO, html_path=html_path)),
             (r"/modules/create/?", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.CREATE)),
-            (r"/modules/(?P<moduleName>[A-z]+)", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.MODULE_INFO)),
+            (r"/modules/(?P<moduleName>[A-z]+)", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.MODULE)),
+
+            (r"/listImages", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.LIST_IMAGES, html_path=html_path)),
 
             #Board control
             #Consider renaming to /games/
             (r"/boardInfo/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID, gamesManager=self.gamesManager)), #Consider using named regex here
-            (r"/conflicts/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.CONFLICTS, gamesManager=self.gamesManager)),
+            (r"/getFields/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.GET_FIELDS, gamesManager=self.gamesManager)),
             (r"/boards/(?P<boardId>[0-9]+)/action/?", ActionHandler, dict(config=config, gamesManager=self.gamesManager)),
 
             #Serve the static game page
@@ -124,7 +125,8 @@ class Server:
         debug=True
         )
 
-        self.app.listen(8888)
+        self.app.listen(port)
+        print("Listening on port {}".format(port))
         self.ioloop = tornado.ioloop.IOLoop.instance()
 
     def start(self):

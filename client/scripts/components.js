@@ -1,33 +1,112 @@
-define(["gameAccessor"], function(_b) {
+define(["gameAccessor", "helpers"], function(_b, _h) {
 
-    var Unit = function(id, unitType, unitInfo, country, territory, originalTerritory) {
+    var Unit = function(id, unitType, unitInfo, countryAndTerritory) {
         this.id = id;
         this.unitType = unitType;
         this.unitInfo = unitInfo;
-        this.country = country;
-        this.territory = territory;
-        this.beginningOfPhaseTerritory = territory; // start of phase (1/6th of a turn)
-        this.beginningOfTurnTerritory = originalTerritory || territory; // Start of countries turn
+        this.country = countryAndTerritory.country;
+        this.territory = countryAndTerritory.territory;
+        this.beginningOfPhaseTerritory = countryAndTerritory.beginningOfPhaseTerritory; // start of phase (1/6th of a turn)
+        this.beginningOfTurnTerritory = countryAndTerritory.beginningOfTurnTerritory; // Start of countries turn
     };
 
     Unit.prototype.isFlying = function() {
-        return this.unitType === "fighter" || this.unitType === "bomber";
+        return this.unitInfo.terrainType == "air";
+    };
+
+    Unit.prototype.isSea = function() {
+        return this.unitInfo.terrainType == "sea";
+    };
+
+    Unit.prototype.isLand = function() {
+        return this.unitInfo.terrainType == "land";
     };
 
     Unit.prototype.hasNotMoved = function() {
         return this.beginningOfPhaseTerritory === this.beginningOfTurnTerritory;
     };
 
-    var Territory = function(name, income, country, x, y, width, height) {
-        this.name = name;
-        this.income = income;
-        this.country = country;
-        this.previousOwner = country;
+    /**
+     * Checks if type of unit can move through a territory
+     * @param territory {Territory}
+     * @returns {boolean}
+     */
+    Unit.prototype.canMoveThrough = function (territory) {
+        if (this.isFlying()) {
+            return true;
+        }
+
+        if (territory.type == "sea") {
+            if (this.unitType == "sub") {
+                if (!territory.containsUnitType("destroyer")) {
+                    return true;
+                }
+            }
+            if (territory.enemyUnits(this.country).length == 0) {
+                return true
+            }
+        } else if (territory.type == "land") {
+            if (_h.allied(territory, this)) {
+                return true;
+            } else if (this.unitType == "tank") {
+                if (territory.units().length == 0) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    };
+
+    Unit.prototype.canMoveInto = function (territory) {
+        if (this.isFlying()) {
+            return true;
+        }
+        if (territory.type == "sea") {
+            if (this.isSea() || this.isFlying()) {
+                return true;
+            }
+        } else if (territory.type == "land") {
+            if (this.isLand() || this.isFlying()) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    var Territory = function(territoryInfo, countryObject, previousCountry) {
+        this.name = territoryInfo.name;
+        this.displayName = territoryInfo.displayName;
         this.connections = [];
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
+        this.displayInfo = territoryInfo.displayInfo;
+        this.type = territoryInfo.type;
+        if (this.type === "land") {
+            this.income = territoryInfo.income;
+            this.country = countryObject;
+            this.previousCountry = previousCountry;
+        }
+    };
+
+    Territory.createNew = function (point) {
+        point = point || [0,0];
+        return new Territory({
+            name: Math.random().toString(36).substring(7),
+            displayName: "",
+            income: 0,
+            country: null,
+            type: "land",
+            displayInfo: {
+                circle: {
+                    x: point[0],
+                    y: point[1]
+                },
+                name: {
+                    x: point[0],
+                    y: point[1]
+                },
+                path: []
+            }
+        })
     };
 
     Territory.prototype.units = function () {
@@ -46,13 +125,16 @@ define(["gameAccessor"], function(_b) {
     };
 
     Territory.prototype.hasFactory = function() {
-        var units = this.units();
-        for(var i=0; i < units.length; i++) {
-            if (units[i].unitType == "factory") {
-                return true;
-            }
-        }
-        return false;
+        return this.containsUnitType("factory");
+    };
+
+    /**
+     * Checks if the any of the units in this territory are of a given unitType
+     * @param unitType {string}
+     * @returns {boolean}
+     */
+    Territory.prototype.containsUnitType = function(unitType) {
+        return !!_.findWhere(this.units(), {unitType: unitType});
     };
 
     Territory.prototype.unitsForCountry = function(country) {
@@ -82,11 +164,12 @@ define(["gameAccessor"], function(_b) {
         this.territoryName = null;
     };
 
-    var Country = function(name, displayName, team, ipc) {
-        this.name = name;
-        this.displayName = displayName;
-        this.ipc = ipc;
-        this.team = team;
+    var Country = function(options) {
+        this.name = options.name;
+        this.displayName = options.displayName;
+        this.money = options.money;
+        this.team = options.team;
+        this.color = options.color;
         return this;
     };
 

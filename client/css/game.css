@@ -1,0 +1,41 @@
+body, html {
+    height: 100%;
+}
+
+.full-height {
+    height: 100%;
+}
+
+.board-container {
+    padding: 0 20px 0 50px;
+}
+
+#board {
+    position: relative;
+    flex-grow: 1;
+}
+
+.svg-map {
+    position: absolute;
+}
+
+.countries-container table {
+    border-collapse: collapse;
+}
+.countries-container td {
+    padding-right: 10px;
+    padding-left: 5px;
+    height: 50px;
+}
+.countries-container th {
+    padding-right: 10px;
+    padding-left: 5px;
+}
+.countries-container .color {
+    width: 20px;
+    height: 20px;
+}
+.countries-container td:first-of-type {
+    padding: 0;
+    border: none;
+}

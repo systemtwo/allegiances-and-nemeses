@@ -26,8 +26,7 @@
 
             <select name="module">
                 {% for mod in modules %}
-                {# This needs to be bade safe (the value="mod['name']" part) #}
-                <option value="{{mod['name']}}">{{mod['name']}}</option>
+                <option>{{mod['name']}}</option>
                 {% end %}
             </select>
 

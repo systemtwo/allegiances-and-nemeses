@@ -1,0 +1,43 @@
+.svg-map {
+    width:100%;
+    height:100%;
+}
+
+.territory {
+    opacity: 0.8;
+    stroke: #4d4d4d;
+    stroke-width: 1;
+}
+
+.unit-selector-group {
+    cursor: alias;
+}
+
+.unit-selector   {
+    fill: rgb(142, 203, 142);
+}
+
+.selectable .territory {
+    stroke: gold;
+    stroke-width: 2;
+    cursor: pointer;
+}
+
+.selectable .territory-name {
+    cursor: pointer;
+    fill: #333;
+}
+
+.selected-node {
+    fill: hotpink;
+}
+
+.selector-box {
+    stroke: black;
+    fill: rgba(18, 80, 242, 0.2);
+    opacity: 0;
+}
+
+.selector-box.active {
+    opacity: 1;
+}

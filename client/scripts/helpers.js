@@ -5,8 +5,12 @@ define(["enums"], function(enums) {
      * @param constructorName The name of the phase
      */
     exports.phaseName = function(constructorName) {
-        var name = enums.phaseDisplayNames[constructorName] || "Unknown Phase";
-        $("#phaseName").text("| " + name);
+        if (constructorName == null) {
+            $("#phaseName").text("");
+        } else {
+            var name = enums.phaseDisplayNames[constructorName] || "Unknown Phase "+constructorName;
+            $("#phaseName").text("| " + name);
+        }
     };
 
     exports.countryName = function(name) {
@@ -18,8 +22,40 @@ define(["enums"], function(enums) {
         $("#helperText").text(text);
     };
 
-    exports.getImageSource = function(unitType, country) {
-        return "/static/images/" + unitType + ".png";
+    exports.getImageSource = function(unitInfo, country) {
+        if (_.isObject(country)) {
+            country = country.name;
+        }
+        var source = unitInfo.imageSource[country];
+        if (source) {
+            return "/static/images/" + source;
+        } else {
+            return "";
+        }
+    };
+
+    function friendlySeaTerritory (sea, country) {
+        return sea.enemyUnits(country).length == 0;
+    }
+
+    /**
+     * Returns true if a is allied to b
+     * @param a {Unit|Territory|Country}
+     * @return {boolean}
+     */
+    exports.allied = function(a, b) {
+        if (a.country) a = a.country;
+        if (b.country) b = b.country;
+
+        // Handle sea territories
+        if (!a.team) {
+            return friendlySeaTerritory(a, b);
+        } else if (!b.team) {
+            return friendlySeaTerritory(b, a);
+        } else {
+            // standard case - compare two countries
+            return a.team == b.team;
+        }
     };
 
     return exports;

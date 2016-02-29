@@ -1,0 +1,9 @@
+<div>
+    <button data-bind="click: upLevel, visible: inSubdirectory">Up a level</button>
+    <div data-bind="foreach: directories">
+        <button data-bind="click: onClick, text: displayName"></button>
+    </div>
+    <div class="image-selector" data-bind="foreach: images">
+        <img class="unit-image" data-bind="attr: {src: source}, click: onClick, title: fileName"/>
+    </div>
+</div>

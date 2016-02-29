@@ -23,6 +23,7 @@ define(["backbone", "underscore", "knockout", "text!views/sidePanel/conflicts.ko
                     return {
                         templateName: "conflict-outcome-"+conflict.outcome,
                         territoryName: conflict.territoryName,
+                        territoryDisplayName: board.getTerritory(conflict.territoryName).displayName,
                         resolve: function (conflict) {
                             _router.autoResolve(conflict.territoryName).done(function(){
                                 board.updateConflicts();
@@ -67,7 +68,7 @@ define(["backbone", "underscore", "knockout", "text!views/sidePanel/conflicts.ko
 
         render: function() {
             this.$el.empty();
-            ko.applyBindings(this.viewModel, this.$el.append(template)[0]);
+            ko.applyBindings(this.viewModel, $(template).appendTo(this.$el)[0]);
         }
     });
     return ConflictView;

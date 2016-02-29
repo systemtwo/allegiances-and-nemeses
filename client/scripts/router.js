@@ -44,14 +44,11 @@ define(["gameAccessor"], function(_b) {
     /**
      * Resolves with an array of conflicts
      * @param boardId
-     * @returns {jQuery.Deferred}
+     * @param fields {string|string[]} Field names to fetch values for
+     * @returns {jQuery.Deferred} Resolves with an object, with a values keyed by given field names
      */
-    function getConflicts(boardId) {
-        var promise = new $.Deferred();
-        $.getJSON("/conflicts/" + boardId).done(function(conflicts) {
-            promise.resolve(conflicts);
-        });
-        return promise;
+    function getFields(boardId, fields) {
+        return $.getJSON("/getFields/" + boardId, {fieldNames: fields});
     }
     function battle(territoryName) {
         // Perform one tick of a battle
@@ -107,7 +104,7 @@ define(["gameAccessor"], function(_b) {
         newBoard: newBoard,
         setBuyList: setBuyList,
         fetchBoard: fetchBoard,
-        getConflicts: getConflicts,
+        getFields: getFields,
         validateMove: validateMove,
         battle: battle,
         autoResolve: autoResolve,

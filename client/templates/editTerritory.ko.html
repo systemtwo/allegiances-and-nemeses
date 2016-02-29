@@ -1,0 +1,38 @@
+<form class="edit-territory-form form-horizontal" role="form" data-bind="visible: isVisible">
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Name</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" data-bind="value: displayName">
+        </div>
+    </div>
+    <div class="form-group" data-bind="visible: isLandTerritory">
+        <label class="col-sm-2 control-label">Income</label>
+        <div class="col-sm-10">
+            <input type="number" class="form-control" data-bind="value: income">
+        </div>
+    </div>
+    <div class="form-group" data-bind="visible: isLandTerritory">
+        <label class="col-sm-2 control-label">Country</label>
+        <div class="col-sm-10">
+            <select class="form-control" data-bind="options: countryList,
+                optionsText: function(item) {
+                    return item.displayName;
+                },
+                optionsValue: function(item) {
+                    return item.name;
+                },
+                value: country,
+                optionsCaption: 'Choose...'">
+            </select>
+        </div>
+    </div>
+    <div class="checkbox">
+        <label>
+            <input type="checkbox" name="type" data-bind="checked: isLandTerritory">Land Territory
+        </label>
+    </div>
+    <div>
+        <button class="btn" data-bind="click: editPath, visible: !isEditing()">Edit Path</button>
+        <button class="btn" data-bind="click: endEditing, visible: isEditing">End Editing</button>
+    </div>
+</form>
