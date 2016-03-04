@@ -99,7 +99,7 @@ class Server:
 
             #Serve the static game page
             (r"/game/?", GameHandler, dict(config=config)),
-            (r"/game/(?P<boardId>[0-9]+)/?", GameHandler, dict(config=config)),
+            (r"/game/(?P<boardId>[0-9]+)/?", GameHandler, dict(config=config, gamesManager=self.gamesManager)),
 
             #User auth
             (r"/login/?", LoginHandler),
