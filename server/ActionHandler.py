@@ -1,6 +1,6 @@
 import tornado.web
 
-from voluptuous import Schema, Required, All, Range, MultipleInvalid, unicode
+from voluptuous import Schema, Required, All, Range, MultipleInvalid
 
 from AuthHandlers import BaseAuthHandler
 import Sessions
