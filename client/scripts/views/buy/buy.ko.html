@@ -14,7 +14,8 @@
             <th>Quantity</th>
             <th>Unit</th>
             <th>Cost</th>
-            <th>Move</th>
+            <th>Land Move</th>
+            <th>Sea Move</th>
             <th>Attack</th>
             <th>Defend</th>
         </tr>
@@ -41,7 +42,13 @@
             </td>
             <!-- ko with: unitInfo -->
             <td data-bind="text: cost"></td>
-            <td data-bind="text: move"></td>
+            <!-- ko if: terrainType == "air" -->
+                <td colspan="2" data-bind="text: move"></td>
+            <!-- /ko -->
+            <!-- ko if: terrainType != "air" -->
+                <td data-bind="text: landMove"></td>
+                <td data-bind="text: seaMove"></td>
+            <!-- /ko -->
             <td data-bind="text: attack"></td>
             <td data-bind="text: defence"></td>
             <!-- /ko -->

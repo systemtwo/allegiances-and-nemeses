@@ -58,22 +58,6 @@ define(["gameAccessor", "helpers"], function(_b, _h) {
         return false;
     };
 
-    Unit.prototype.canMoveInto = function (territory) {
-        if (this.isFlying()) {
-            return true;
-        }
-        if (territory.type == "sea") {
-            if (this.isSea() || this.isFlying()) {
-                return true;
-            }
-        } else if (territory.type == "land") {
-            if (this.isLand() || this.isFlying()) {
-                return true;
-            }
-        }
-        return false;
-    };
-
     var Territory = function(territoryInfo, countryObject, previousCountry) {
         this.name = territoryInfo.name;
         this.displayName = territoryInfo.displayName;
@@ -144,6 +128,14 @@ define(["gameAccessor", "helpers"], function(_b, _h) {
             return u.territory === that;
         })
     };
+
+    Territory.prototype.isLand = function () {
+        return this.type == "land";
+    };
+
+    Territory.prototype.isSea = function () {
+        return this.type == "sea";
+    }
 
     var conflictOutcomes = {
             DRAW: "draw",

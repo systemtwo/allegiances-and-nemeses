@@ -60,18 +60,6 @@ class Unit:
                     return True  # tanks can blitz through empty territories
         return False
 
-    def canMoveInto(self, territory):
-        if self.isFlying():
-            return True
-
-        if territory.type == "sea":
-            if not self.isLand():
-                return True
-        elif territory.type == "land":
-            if not self.isSea():
-                return True
-        return False
-
     def hasMoved(self):
         return self.originalTerritory is not self.territory
 
@@ -108,12 +96,20 @@ class BoughtUnit:
 
 class UnitInfo:
     def __init__(self, unitType, dictionary):
+        print dictionary
+        print unitType
         self.unitType = unitType
         self.cost = dictionary["cost"]
-        self.movement = dictionary["move"]
+        self.terrainType = dictionary["terrainType"]
+
+        if self.terrainType == "air":
+            self.movement = dictionary["move"]
+        else:
+            self.seaMove = dictionary["seaMove"]
+            self.landMove = dictionary["landMove"]
+
         self.attack = dictionary["attack"]
         self.defence = dictionary["defence"]
-        self.terrainType = dictionary["terrainType"]
 
         if "description" in dictionary:
             self.description = dictionary["description"]

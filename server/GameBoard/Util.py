@@ -51,12 +51,13 @@ def allied(a, b):
 def friendlySeaTerritory(sea, country):
     return len(sea.enemyUnits(country)) == 0
 
+
 # Finds the distance from the start to the goal, based on the unit's type and country
+# Number of territories for a flying unit
+# Dictionary of number of land and sea moves for any other unit
 # -1 if movement not possible
-def distance(start, goal, unit):
-    if start is goal:
-        return 0
-    frontier = [(x, 1) for x in start.connections if unit.canMoveInto(x)]
+def calculateDistance(start, goal, unit):
+    frontier = [(start, _initialDistance(unit))]
     checked = []
 
     while len(frontier) > 0:
@@ -64,13 +65,44 @@ def distance(start, goal, unit):
         if currentTerritory is goal:
             return steps
 
-        if unit.canMoveThrough(currentTerritory) and steps < unit.unitInfo.movement:
+        if unit.canMoveThrough(currentTerritory):
             for t in currentTerritory.connections:
-                if t not in checked and unit.canMoveInto(t):
-                    frontier.append((t, steps + 1))
+                newSteps = _incrementDistance(unit, currentTerritory, t, steps)
+                if t not in checked:
+                    frontier.append((t, newSteps))
 
         checked.append(currentTerritory)
     return -1
+
+
+def _initialDistance(unit):
+    if unit.isFlying():
+        return 0
+    else:
+        return {
+            'land': 0,
+            'sea': 0
+        }
+
+
+def _incrementDistance(unit, origin, destination, distance):
+    if unit.isFlying():
+        return distance + 1
+    else:
+        newLand = distance["land"] + \
+            (1 if origin.isLand() or destination.isLand() else 0)
+        newSea = distance["sea"] + \
+            (1 if origin.isSea() or destination.isSea() else 0)
+        return {
+            'land': newLand,
+            'sea': newSea
+        }
+
+def _distanceInRange(unit, distance):
+    if unit.isFlying():
+        return distance <= unit.movement
+    else:
+        return distance.sea <= unit.unitInfo.seaMove and distance.land <= unit.unitInfo.landMove
 
 
 # Performs a single step in a territory conflict

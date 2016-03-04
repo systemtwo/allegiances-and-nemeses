@@ -95,7 +95,7 @@ class BaseMovePhase(object):
             return False
 
     def canMove(self, unit, destination):
-        return Util.distance(unit.territory, destination, unit) is not -1 and unit.country is self.board.currentCountry
+        return Util.calculateDistance(unit.territory, destination, unit) is not -1 and unit.country is self.board.currentCountry
 
 
 # Units are added to a moveList, but unit.territory does not get modified if they are attacking a territory.
@@ -196,7 +196,7 @@ class ResolvePhase:
 
                 # can only take the territory if 1+ attackers are land attackers
                 landAttackers = [u for u in conflict.attackers if u.isLand()]
-                if len(landAttackers) > 0:
+                if len(landAttackers) > 0 and territory.isLand():
                     # transfer ownership
                     if Util.allied(territory.previousCountry, self.board.currentCountry):
                         territory.country = territory.previousCountry
@@ -260,9 +260,9 @@ class MovementPhase(BaseMovePhase):
             if hasattr(destination, "previousCountry") and not Util.allied(destination.previousCountry, unit.country):
                 return False
 
-            previousMove = Util.distance(unit.originalTerritory, unit.territory, unit)
+            previousMove = Util.calculateDistance(unit.originalTerritory, unit.territory, unit)
             assert previousMove is not -1
-            newMove = Util.distance(unit.territory, destination, unit)
+            newMove = Util.calculateDistance(unit.territory, destination, unit)
             return newMove is not -1 and previousMove + newMove <= unit.unitInfo.movement
         else:
             return not unit.hasMoved()

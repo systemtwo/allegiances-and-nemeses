@@ -99,6 +99,9 @@
 }
 
 /* Buy Units */
+.buy-units-container .table {
+    text-align: center;
+}
 .buy-unit-image {
     width: 30px;
 }

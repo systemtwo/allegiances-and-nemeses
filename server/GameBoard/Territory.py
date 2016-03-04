@@ -18,6 +18,12 @@ class BaseTerritory:
                 return True
         return False
 
+    def isLand(self):
+        return False
+
+    def isSea(self):
+        return False
+
     def __hash__(self):
         return hash(str(self.name))
 
@@ -65,6 +71,9 @@ class LandTerritory(BaseTerritory):
     def reset(self):
         self.previousCountry = self.country
 
+    def isLand(self):
+        return True
+
     def toDict(self):
         return {
             "name": self.name,
@@ -77,6 +86,9 @@ class SeaTerritory(BaseTerritory):
     def __init__(self, board, name, displayName):
         BaseTerritory.__init__(self, board, name, displayName)
         self.type = "sea"
+
+    def isSea(self):
+        return True
 
     def hasFactory(self):
         return False

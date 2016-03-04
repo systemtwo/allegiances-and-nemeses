@@ -76,11 +76,11 @@ class Board:
 
     def validateInfo(self):
         for t in self.territories:
-            if isinstance(t, LandTerritory):
+            if t.isLand():
                 if t.country is None:
-                    print("No country on " + t.displayName)
+                    raise ("No country on " + t.displayName)
             if len(t.connections) == 0:
-                print("No connections for " + t.displayName)
+                raise ("No connections for " + t.displayName)
 
     def getStartingCountry(self, terInfo):
         if "country" not in terInfo:

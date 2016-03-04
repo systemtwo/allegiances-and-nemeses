@@ -10,7 +10,8 @@
             </th>
             <th>Terrain Type</th>
             <th>Cost</th>
-            <th>Move</th>
+            <th>Land Move</th>
+            <th>Sea Move</th>
             <th>Attack</th>
             <th>Defend</th>
         </tr>
@@ -34,9 +35,19 @@
             <td>
                 <input class="unit-info-field" data-bind="textInput: cost">
             </td>
-            <td>
+            <!-- ko if: terrainType() == "air" -->
+            <td colspan="2">
                 <input class="unit-info-field" data-bind="textInput: move">
             </td>
+            <!-- /ko -->
+            <!-- ko if: terrainType() != "air" -->
+            <td>
+                <input class="unit-info-field" data-bind="textInput: landMove">
+            </td>
+            <td>
+                <input class="unit-info-field" data-bind="textInput: seaMove">
+            </td>
+            <!-- /ko -->
             <td>
                 <input class="unit-info-field" data-bind="textInput: attack">
             </td>

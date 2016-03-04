@@ -25,15 +25,17 @@ function(backbone, ko, _, template, _dialogs, ImageSelectorView) {
                     });
                     return [country.name, imagePath]
                 }));
+                var fields = ["cost", "attack", "defence", "landMove", "seaMove", "move", "terrainType"];
                 var unitObject =  {
                     unitType: ko.observable(unitType),
-                    unitInfo: _.object(_.map(["cost", "attack", "defence", "move", "terrainType"], function (fieldName) {
-                        var observable = ko.observable(info[fieldName] || "")
+                    unitInfo: _.object(_.map(fields, function (fieldName) {
+                        var existingValue = info[fieldName];
+                        var observable = ko.observable(existingValue == undefined ? "" : existingValue)
                             .extend({
                                 numeric: !_.contains(["terrainType"], fieldName)
                             });
                         observable.subscribe(function (newValue) {
-                            info[fieldName] = newValue;
+                            info[fieldName] = newValue; // update the unitCatalogue
                         });
                         return [fieldName, observable];
                     })),

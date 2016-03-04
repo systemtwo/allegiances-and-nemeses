@@ -216,14 +216,20 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
         });
     };
 
+
+
     Game.prototype.addNeighboursToFrontier = function (frontier, unit, currentItem, checkedNames) {
         var that = this;
-        if (unit.canMoveThrough(currentItem.territory) && currentItem.distance < unit.unitInfo.move) {
+        if (unit.canMoveThrough(currentItem.territory)) {
             currentItem.territory.connections.forEach(function(neighbour) {
                 // Can't move into enemy territories during non-combat move phase
                 var valid = !that.currentPhase.validTerritory || that.currentPhase.validTerritory(neighbour);
-                if (valid && !(neighbour.name in checkedNames) && unit.canMoveInto(neighbour)) {
-                    frontier.push({territory: neighbour, distance: currentItem.distance + 1})
+                var newDistance = incrementDistance(unit, currentItem.territory, neighbour, currentItem.distance);
+                if (valid &&
+                    !(neighbour.name in checkedNames) &&
+                    that.distanceInRange(unit, newDistance)
+                ) {
+                    frontier.push({territory: neighbour, distance: newDistance})
                 }
             });
         }
@@ -236,12 +242,12 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
      * @param unit Unit
      * @returns {number} Distance to destination. -1 if not found or out of unit move range
      */
-    Game.prototype.distance = function(start, destination, unit) {
+    Game.prototype.calculateDistance = function(start, destination, unit) {
         // MEMO: this function should match Util.py 'distance' method
         var frontier = [{
-                territory: start,
-                distance: 0
-            }];
+            territory: start,
+            distance: initialDistance(unit)
+        }];
         var checkedNames = {};
         while(frontier.length) {
             // unqueue the first item
@@ -255,6 +261,45 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
         }
         return -1
     };
+
+    var initialDistance = function (unit) {
+        if (unit.isFlying()) {
+            return 0;
+        } else {
+            return {
+                land: 0,
+                sea: 0
+            }
+        }
+    };
+    var incrementDistance = function (unit, origin, desitination, distance) {
+        if (unit.isFlying()) {
+            return distance + 1;
+        } else {
+            return {
+                // increment land distance if either origin or destination is a land territory
+                land: distance.land + (origin.isLand() || desitination.isLand() ? 1 : 0),
+                sea: distance.sea + (origin.isSea() || desitination.isSea() ? 1 : 0)
+            };
+        }
+    };
+    Game.prototype.distanceInRange = function (unit, distance) {
+        if (unit.isFlying()) {
+            return distance <= unit.unitInfo.move;
+        } else {
+            return distance.land <= unit.unitInfo.landMove && distance.sea <= unit.unitInfo.seaMove;
+        }
+    };
+    Game.prototype.combineDistances = function (unit, dA, dB) {
+        if (unit.isFlying()) {
+            return dA + dB;
+        } else {
+            return {
+                land: dA.land + dB.land,
+                sea: dA.sea + dB.sea
+            }
+        }
+    }
 
     /**
      * finds all territories in range of a set of units
@@ -271,7 +316,7 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
             var frontier = [
                 {
                     territory: unit.beginningOfPhaseTerritory,
-                    distance: that.distance(unit.beginningOfTurnTerritory, unit.beginningOfPhaseTerritory, unit)
+                    distance: that.calculateDistance(unit.beginningOfTurnTerritory, unit.beginningOfPhaseTerritory, unit)
                 }];
             var checkedNames = {};
             while(frontier.length) {

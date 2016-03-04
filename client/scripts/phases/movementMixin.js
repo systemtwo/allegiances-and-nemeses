@@ -26,8 +26,13 @@ function(_, _b, _helpers, _dialogs, MoveUnitView) {
          * @returns {boolean}
          */
         movableUnit: function(unit) {
-            return unit.unitInfo.move > 0 &&
-                _b.getBoard().currentCountry == unit.country;
+            var belongsToCurrentCountry = _b.getBoard().currentCountry == unit.country;
+
+            if (unit.isFlying()) {
+                return unit.unitInfo.move > 0 && belongsToCurrentCountry;
+            } else {
+                return unit.unitInfo.landMove + unit.unitInfo.seaMove > 0 && belongsToCurrentCountry;
+            }
         },
 
         /**
@@ -83,10 +88,11 @@ function(_, _b, _helpers, _dialogs, MoveUnitView) {
             if (!this.movableUnit(unit))
                 return false;
 
-            var distanceToCurrent = _b.getBoard().distance(unit.beginningOfPhaseTerritory, unit.beginningOfTurnTerritory, unit);
-            var distanceToDest = _b.getBoard().distance(unit.beginningOfPhaseTerritory, destination, unit);
-            console.log(distanceToCurrent, distanceToDest);
-            return distanceToDest >= 0 && distanceToCurrent + distanceToDest <= unit.unitInfo.move;
+            var board = _b.getBoard();
+
+            var distanceToCurrent = board.calculateDistance(unit.beginningOfPhaseTerritory, unit.beginningOfTurnTerritory, unit);
+            var distanceToDest = board.calculateDistance(unit.beginningOfPhaseTerritory, destination, unit);
+            return distanceToDest != -1 && board.distanceInRange(unit, board.combineDistances(unit, distanceToCurrent, distanceToDest));
         },
 
         showUnitSelectionWindow: function (destination) {
