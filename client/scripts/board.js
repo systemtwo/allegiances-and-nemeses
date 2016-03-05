@@ -17,6 +17,9 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
         this.map.getCircleContent = function (territory) {
             return territory.units().length;
         };
+        this.map.isCircleVisible = function (territory) {
+            return territory.units().length > 0;
+        };
         this.isPlayerTurn = false;
         this.currentCountry = null;
         this.currentPhase = null;
@@ -195,6 +198,11 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
                 return this.boardData.territories[i];
             }
         }
+    };
+
+    Game.prototype.getTerritoryDisplayName = function(territoryName) {
+        var territory = this.getTerritory(territoryName);
+        return territory && territory.displayName ? territory.displayName : territoryName;
     };
 
     Game.prototype.territoriesForCountry = function(country) {

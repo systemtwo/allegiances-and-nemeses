@@ -127,14 +127,10 @@ function(_b, ko, _, _helpers, _dialogs, _router, moveUnitTemplate) {
                 return _.map(unitsToPlace(), function (boughtUnit) {
                     var canMove = getTerritoryFilter(boughtUnit)(territory);
 
-                    function getTerritoryDisplayName(territoryName) {
-                        var territory = board.getTerritory(territoryName);
-                        return territory && territory.displayName ? territory.displayName : territoryName;
-                    }
 
                     var imageTitle = boughtUnit.unitType + " | ";
                     if (boughtUnit.territory) {
-                        imageTitle += getTerritoryDisplayName(boughtUnit.territory);
+                        imageTitle += board.getTerritoryDisplayName(boughtUnit.territory);
                     } else {
                         imageTitle += "Not Placed";
                     }

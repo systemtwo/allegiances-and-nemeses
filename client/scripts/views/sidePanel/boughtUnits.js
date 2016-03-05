@@ -19,8 +19,7 @@ define(["backbone", "underscore", "knockout", "text!views/sidePanel/boughtUnits.
                 }
             };
             vm.getDisplayName = function (territoryName) {
-                var territory = _b.getBoard().getTerritory(territoryName);
-                return territory && territory.displayName ? territory.displayName : territoryName;
+                return _b.getBoard().getTerritoryDisplayName(territoryName)
             };
             vm.getImageSrc = function(unitType) {
                 var board = _b.getBoard();

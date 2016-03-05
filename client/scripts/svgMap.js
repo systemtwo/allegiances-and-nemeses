@@ -66,6 +66,10 @@ function (d3, _, backbone) {
         return "";
     };
 
+    proto.isCircleVisible = function (territory) {
+        return true;
+    };
+
     proto.attachPath = function (territoryGroups) {
         var map = this;
         territoryGroups.append("path")
@@ -126,6 +130,8 @@ function (d3, _, backbone) {
                 return "M" + corePath + " z";
             })
             .attr("fill", function (data) { return map.getCountryColor(data.country) });
+        territoryGroups.select(".unit-selector-group")
+            .attr("visibility", function (d) {return map.isCircleVisible(d) ? "visible" : "hidden"});
         territoryGroups.select(".unit-selector")
             .attr("cx", function (data) { return data.displayInfo.circle.x; })
             .attr("cy", function (data) { return data.displayInfo.circle.y; });
