@@ -8,7 +8,7 @@ class GameHandler(ErrorRenderMixin, BaseAuthHandler):
         super(GameHandler, self).initialize(config=config)
         self.config = config
         self.gamesManager = gamesManager
-        #TODO: Make this better
+
         self.ERROR_TEMPLATE_PATH = os.path.join(config.STATIC_CONTENT_PATH, "html")
 
     @tornado.web.authenticated
