@@ -5,16 +5,37 @@ class Conflict(object):
     defenderWin = "defenderWin"
     draw = "draw"
 
-    def __init__(self, territory, initialAttackers):
+    def __init__(self, territory, initialAttackers, initialDefenders):
         """
         :param territory: Territory
-        :param initialAttackers: list of [Unit]
         """
         self.territory = territory
-        self.attackers = initialAttackers
-        self.defenders = territory.units()
+
+        self.attackers = [u for u in initialAttackers if not self.isNonCombatant(u) and not self.isNeutral(u)]
+        self.defenders = [u for u in initialDefenders if not self.isNonCombatant(u) and not self.isNeutral(u)]
+        self.nonCombatants = {
+            'attackers': [u for u in initialAttackers if self.isNonCombatant(u)],
+            'defenders': [u for u in initialDefenders if self.isNonCombatant(u)],
+            'neutral': [u for u in initialAttackers+initialDefenders if self.isNeutral(u)]
+        }
         self.reports = []
         self.outcome = Conflict.inProgress
+
+    def isStalemate(self):
+        combatSum = 0
+        for u in self.attackers:
+            combatSum += u.unitInfo.attack
+        for u in self.defenders:
+            combatSum += u.unitInfo.defence
+
+        return combatSum == 0
+
+    def isNonCombatant(self, unit):
+        return ((self.territory.isLand() and unit.isSea()) or
+                (self.territory.isSea() and unit.isLand()))
+
+    def isNeutral(self, unit):
+        return unit.type == "factory"
 
     def toDict(self):
         return {

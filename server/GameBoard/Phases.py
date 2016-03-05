@@ -1,4 +1,3 @@
-import random
 from .Components import Conflict
 from .Unit import Unit, BoughtUnit
 from . import Util
@@ -105,51 +104,27 @@ class AttackPhase(BaseMovePhase):
         super(AttackPhase, self).__init__(board)
         self.name = "AttackPhase"
 
-    def conflicts(self):
-        """
-        Get the conflicts that are going to happen
-        Does not mutate state
-
-        :return: List of conflicts
-        """
-        hostileTerToAttackers = {}  # list of territories being attacked, and the attacking units
-        for unit in self.moveList:
-            (origin, dest) = self.moveList[unit]
-            if not Util.allied(dest, unit.country):
-                if dest not in hostileTerToAttackers:
-                    hostileTerToAttackers[dest] = [unit]
-                else:
-                    hostileTerToAttackers[dest].append(unit)
-
-        return [Conflict(territory, attackers) for territory, attackers in hostileTerToAttackers.items()]
-
     def nextPhase(self):
         board = self.board
 
         # move all units without conflicts
         for unit in self.moveList:
             (origin, dest) = self.moveList[unit]
-            if Util.allied(dest, unit.country):
-                # not in conflict
-                unit.originalTerritory = unit.territory
-                unit.territory = dest
-        board.currentPhase = ResolvePhase(self.conflicts(), board)
+            # not in conflict
+            unit.territory = dest
+        board.currentPhase = ResolvePhase(board)
         return board.currentPhase
 
 
 class ResolvePhase:
-    def __init__(self, conflicts, board):
+    def __init__(self, board):
         # dictionary of territory ->  list of units
         """
-
-        :param conflicts: List[Conflicts]
         :param board:
         """
-        self.conflicts = conflicts
         self.board = board
         self.name = "ResolvePhase"
 
-    # TODO update logic. May autoresolve a partially resolved conflict
     def autoResolve(self, territory):
         """
         attacks until either defenders or attackers are all dead
@@ -157,9 +132,16 @@ class ResolvePhase:
         :return: bool
         """
 
-        conflict = next((conflict for conflict in self.conflicts if conflict.territory == territory), None)
+        conflict = next((conflict for conflict in self.board.computeConflicts()
+                         if conflict.territory == territory), None)
         if not conflict:
             return False  # or throw error
+
+        self.board.currentConflict = conflict # test code
+
+        def convertNeutralUnits(country):
+            for unit in conflict.nonCombatants["neutral"]:
+                unit.country = country
 
         constraint = 1000
         while conflict.outcome == conflict.inProgress:
@@ -177,21 +159,23 @@ class ResolvePhase:
             for u in outcome.deadAttackers:
                 self.board.removeUnit(u)
 
-            combatSum = 0
-            for u in conflict.attackers:
-                combatSum += u.unitInfo.attack
-            for u in conflict.defenders:
-                combatSum += u.unitInfo.defence
-            if combatSum == 0:
+            # handle case where both sides have no combat value (unable to kill each other)
+            if conflict.isStalemate():
                 conflict.outcome = Conflict.draw
                 break
 
             if len(conflict.attackers) == 0:
                 # defenders win
+                for u in conflict.nonCombatants["attackers"]:
+                    self.board.removeUnit(u)
+                convertNeutralUnits(conflict.territory.country)
                 conflict.outcome = Conflict.defenderWin
                 break
             elif len(conflict.defenders) == 0:
                 # attackers win if no defenders, and 1+ attackers
+                for u in conflict.nonCombatants["defenders"]:
+                    self.board.removeUnit(u)
+                convertNeutralUnits(self.board.currentCountry)
                 conflict.outcome = Conflict.attackerWin
 
                 # can only take the territory if 1+ attackers are land attackers
@@ -203,17 +187,13 @@ class ResolvePhase:
                     else:
                         territory.country = self.board.currentCountry
 
-                # now we can update the attackers' current territory. They've officially moved in
-                for u in conflict.attackers:
-                    u.originalTerritory = u.territory
-                    u.territory = territory
                 break
 
-    def autoResolveAll(self):
-        for conflict in self.conflicts:  # TODO include current conflict
-            self.autoResolve(conflict.territory)
+        self.board.resolvedConflicts.append(conflict)
 
-            # TODO return all BattleReports
+    def autoResolveAll(self):
+        for conflict in self.board.computeConflicts():
+            self.autoResolve(conflict.territory)
 
     def retreat(self, conflictTerritory, destination):
         """
@@ -228,7 +208,7 @@ class ResolvePhase:
         pass
 
     def nextPhase(self):
-        unresolvedConflicts = [c for c in self.conflicts if c.outcome == Conflict.inProgress]
+        unresolvedConflicts = [c for c in self.board.computeConflicts() if c.outcome == Conflict.inProgress]
         if unresolvedConflicts:
             self.autoResolveAll()
 
@@ -271,7 +251,6 @@ class MovementPhase(BaseMovePhase):
         board = self.board
         for unit in self.moveList:
             (origin, dest) = self.moveList[unit]
-            unit.originalTerritory = unit.territory
             unit.territory = dest
         board.currentPhase = PlacementPhase(board)
         return board.currentPhase

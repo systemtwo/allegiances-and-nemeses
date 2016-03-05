@@ -1,9 +1,11 @@
 import json
+import itertools
 from .Country import Country
 from .Phases import BuyPhase
 from .Territory import LandTerritory, SeaTerritory
 from .Unit import UnitInfo, Unit
 from . import Util
+from .Components import Conflict
 
 
 class Board:
@@ -13,19 +15,22 @@ class Board:
         self.buyList = []
         self.moduleName = moduleName
         self.winningTeam = None
+        self.resolvedConflicts = []
 
         # load json from module
         with open(Util.filePath(moduleName, "info.json")) as file:
             self.moduleInfo = json.load(file)
 
         with open(Util.countryFileName(moduleName)) as countryInfo:
-            self.countries = [Country(c["name"], c["displayName"], c["team"], c["color"], c["playable"], self) for c in json.load(countryInfo)]
+            self.countries = [Country(c["name"], c["displayName"], c["team"], c["color"], c["playable"], self) for c in
+                              json.load(countryInfo)]
 
         self.playableCountries = [c for c in self.countries if c.playable]
 
         with open(Util.unitFileName(moduleName)) as unitInfo:
             self.unitCatalogue = json.load(unitInfo)
-            self.unitInfoDict = {unitType: UnitInfo(unitType, jsonInfo) for unitType, jsonInfo in self.unitCatalogue.items()}
+            self.unitInfoDict = {unitType: UnitInfo(unitType, jsonInfo) for unitType, jsonInfo in
+                                 self.unitCatalogue.items()}
 
         with open(Util.territoryFileName(moduleName)) as territoryInfo:
             self.territoryInfo = json.load(territoryInfo)
@@ -34,7 +39,8 @@ class Board:
         for info in self.territoryInfo:
             if info["type"] == "land":
                 startingCountry = self.getStartingCountry(info)
-                self.territories.append(LandTerritory(self, info["name"], info["displayName"], info["income"], startingCountry))
+                self.territories.append(
+                    LandTerritory(self, info["name"], info["displayName"], info["income"], startingCountry))
             elif info["type"] == "sea":
                 self.territories.append(SeaTerritory(self, info["name"], info["displayName"]))
             else:
@@ -184,7 +190,11 @@ class Board:
         return None
 
     def removeUnit(self, u):
-        self.units.remove(u)
+        try:
+            self.units.remove(u)
+        except ValueError:
+            print u.toDict()
+            raise
 
     def unitById(self, id):
         for unit in self.units:
@@ -197,14 +207,27 @@ class Board:
             return None
         return self.unitInfoDict[unitType]
 
-    def conflicts(self):
-        if hasattr(self.currentPhase, "conflicts"):
-            if callable(self.currentPhase.conflicts):
-                return self.currentPhase.conflicts()
+    def computeConflicts(self):
+        # conflict territories are land territories with enemy units, or a sea territory containing unallied untis
+        def filterForConflicts(t):
+            units = [u for u in self.units if u.movedToTerritory == t]
+            if t.isLand():
+                return len([u for u in units if not Util.allied(u, t)]) > 0
             else:
-                return self.currentPhase.conflicts
-        else:
-            return [] # fix this
+                containsUnallied = False
+                for i, j in itertools.combinations(units, 2):
+                    if not Util.allied(i, j):
+                        containsUnallied = True
+                        break
+                return containsUnallied
+
+        def getAttackers(territory):
+            return [u for u in self.units if u.movedToTerritory == t and Util.allied(u, self.currentCountry)]
+
+        def getDefenders(territory):
+            return [u for u in self.units if u.movedToTerritory == t and not Util.allied(u, self.currentCountry)]
+        allConflicts = [Conflict(t, getAttackers(t), getDefenders(t)) for t in self.territories if filterForConflicts(t)]
+        return filter(lambda conflict: not conflict.isStalemate(), allConflicts)
 
     def getFields(self, fieldNames):
         fieldValues = {}
@@ -229,7 +252,7 @@ class Board:
         elif fieldName == "buyList":
             return [bought.toDict() for bought in self.buyList]
         elif fieldName == "conflicts":
-            return [c.toDict() for c in self.conflicts()]
+            return [c.toDict() for c in self.computeConflicts() + self.resolvedConflicts]
 
         elif fieldName == "currentPhase":
             return self.currentPhase.name
