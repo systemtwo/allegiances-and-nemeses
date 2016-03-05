@@ -36,19 +36,10 @@ function(_b, ko, _, _helpers, _dialogs, _router, moveUnitTemplate) {
         // c) Units placed < income of territory
         // d) Units placed < factory limit [optional, expansion only, not implemented yet]
         //    The idea is, different sizes of factories with their own placement limits.
-        var validTerritories = board.territoriesForCountry(board.currentCountry).filter(function(t) {
-            var hasFactory = t.hasFactory();
-            var numberPlacedInTerritory = _.filter(board.boardData.buyList, function(unit){
-                return unit.territory == t;
-            }).length;
 
-            var ownedAllTurn = t.previousCountry == board.currentCountry;
-            var canPlaceFactory = boughtUnit.unitType == "factory" && !hasFactory && t.income > 0; // factories are one per territory (with production)
-            var isUnit = boughtUnit.unitType != "factory"; // otherwise, must place in territories with a factory
-            var hasProductionCapacity = numberPlacedInTerritory < t.income;
-            var canPlaceUnit = isUnit && hasFactory && hasProductionCapacity;
-            return ownedAllTurn && (canPlaceFactory || canPlaceUnit);
-        });
+        var territoryFilter = getTerritoryFilter(boughtUnit);
+
+        var validTerritories = getCandidateTerritories().filter(territoryFilter);
 
         if (!validTerritories.length) {
             alert("No valid territories, cannot place unit");
@@ -58,28 +49,35 @@ function(_b, ko, _, _helpers, _dialogs, _router, moveUnitTemplate) {
         this.placingMany = false; // exit place many mode
         board.map.setSelectableTerritories(validTerritories);
 
-        if (board.unitInfo(boughtUnit.unitType).terrainType == "land") {
-            _helpers.helperText("Place your " + boughtUnit.unitType + " in a territory with a factory.");
+        if (isLand(boughtUnit)) {
+            if (boughtUnit.unitType == "factory") {
+                _helpers.helperText("Place your " + boughtUnit.unitType + " in a territory without a factory.");
+            } else {
+                _helpers.helperText("Place your " + boughtUnit.unitType + " in a territory with a factory.");
+            }
+        } else if ((isSea(boughtUnit) && board.unitInfo(boughtUnit.unitType).landMove>0) || isFlying(boughtUnit)) {
+            _helpers.helperText("Place your " + boughtUnit.unitType +
+                " in territory with a factory or in a sea zone adjacent to a factory.");
         } else {
-            _helpers.helperText("Place your " + boughtUnit.unitType + " in a sea zone adjacent to a territory with a factory.");
+            _helpers.helperText("Place your " + boughtUnit.unitType +
+                " in a sea zone adjacent to a territory with a factory.");
         }
         return true;
     };
     PlacementPhase.prototype.beginPlacingMany = function() {
         var board = _b.getBoard();
-        var validTerritories = board.territoriesForCountry(board.currentCountry);
-        var unitsToPlace = board.buyList().filter(function (boughtUnit) {
-            return !boughtUnit.territory;
-        });
-        var placingFactory = _.some(unitsToPlace, function (boughtUnit) {
-                return boughtUnit.unitType == "factory";
-            });
+        var ownedTerritories = getCandidateTerritories();
+        var filterTerritories = (function () {
+            var allFilters = _.unique(board.buyList().map(getTerritoryFilter));
+            return function (t) {
+                // territory is valid if at least one unit can be placed in in
+                return _.some(allFilters, function (filter) {
+                    return filter(t);
+                })
+            }
+        })();
 
-        if (!placingFactory) {
-            validTerritories = validTerritories.filter(function(t) {
-                return t.hasFactory() && t.previousCountry == board.currentCountry;
-            });
-        }
+        var validTerritories = _.filter(ownedTerritories, filterTerritories);
 
         board.map.setSelectableTerritories(validTerritories);
         this.placingMany = true;
@@ -108,9 +106,17 @@ function(_b, ko, _, _helpers, _dialogs, _router, moveUnitTemplate) {
         var element = $("<div>");
         var board = _b.getBoard();
         board.map.setSelectableTerritories([]);
-        var boughtUnits = ko.observableArray(board.buyList().filter(function (boughtUnit) {
-            return !boughtUnit.territory; // only unplaced units
-        }));
+        var unitsToPlace = ko.observableArray(
+            board.buyList().filter(function (boughtUnit) {
+                return boughtUnit.territory != territory.name;
+            }).sort(function (a, b) {
+                // sort unplaced units to the front
+                // returns -1 if a is undefined and b is defined
+                // 0 if both defined/undefined
+                // 1 if b is undefined, a is defined
+                return +!b.territory - !a.territory;
+            })
+        );
         var existingUnits = ko.observableArray(territory.units());
         var placedUnits = ko.observableArray(board.buyList().filter(function (boughtUnit) {
             return boughtUnit.territory == territory.name;
@@ -118,15 +124,30 @@ function(_b, ko, _, _helpers, _dialogs, _router, moveUnitTemplate) {
         var territoryName = territory.name;
         var viewModel = {
             originUnits: ko.computed(function () {
-                return _.map(boughtUnits(), function (boughtUnit) {
+                return _.map(unitsToPlace(), function (boughtUnit) {
+                    var canMove = getTerritoryFilter(boughtUnit)(territory);
+
+                    function getTerritoryDisplayName(territoryName) {
+                        var territory = board.getTerritory(territoryName);
+                        return territory && territory.displayName ? territory.displayName : territoryName;
+                    }
+
+                    var imageTitle = boughtUnit.unitType + " | ";
+                    if (boughtUnit.territory) {
+                        imageTitle += getTerritoryDisplayName(boughtUnit.territory);
+                    } else {
+                        imageTitle += "Not Placed";
+                    }
                     return {
-                        canMove: true,
+                        canMove: canMove,
                         onClick: function () {
-                            placedUnits.push(boughtUnit);
-                            boughtUnits.remove(boughtUnit);
-                            that._placeAndSync(boughtUnit, territoryName);
+                            if (canMove) {
+                                that._placeAndSync(boughtUnit, territoryName);
+                                placedUnits.push(boughtUnit);
+                                unitsToPlace.remove(boughtUnit);
+                            }
                         },
-                        imageTitle: boughtUnit.unitType,
+                        imageTitle: imageTitle,
                         imageSource: _helpers.getImageSource(board.unitInfo(boughtUnit.unitType), board.currentCountry)
                     }
                 })
@@ -136,9 +157,9 @@ function(_b, ko, _, _helpers, _dialogs, _router, moveUnitTemplate) {
                     return {
                         canMove: true,
                         onClick: function () {
-                            placedUnits.remove(boughtUnit);
-                            boughtUnits.push(boughtUnit);
                             that._placeAndSync(boughtUnit, "");
+                            placedUnits.remove(boughtUnit);
+                            unitsToPlace.unshift(boughtUnit);
                         },
                         imageTitle: boughtUnit.unitType,
                         imageSource: _helpers.getImageSource(board.unitInfo(boughtUnit.unitType), board.currentCountry)
@@ -205,6 +226,82 @@ function(_b, ko, _, _helpers, _dialogs, _router, moveUnitTemplate) {
             return true;
         }
     };
+
+    function getCandidateTerritories() {
+        var board = _b.getBoard();
+        return _b.getBoard().boardData.territories.filter(function (t) {
+            return t.isSea() || t.country == board.currentCountry;
+        })
+    }
+
+    function ownedAllTurn(t) {
+        var board = _b.getBoard();
+        return t.previousCountry == board.currentCountry;
+    }
+
+    function filterForFactory(t) {
+        return !t.hasFactory() && ownedAllTurn(t) && t.income > 0;
+    }
+
+    function filterForLandUnit(t) {
+        var board = _b.getBoard();
+        var hasFactory = t.hasFactory();
+        var numberPlacedInTerritory = _.filter(board.boardData.buyList, function(unit){
+            return unit.territory == t.name;
+        }).length;
+
+        var hasProductionCapacity = numberPlacedInTerritory < t.income;
+        var canPlaceUnit = hasFactory && hasProductionCapacity;
+        return t.isLand() && ownedAllTurn(t) && canPlaceUnit;
+    }
+
+    function filterForSeaUnit(t) {
+        var hasNeighbouringFactory = function() {
+            return _.some(t.connections, function (neighbour) {
+                return neighbour.hasFactory() && ownedAllTurn(neighbour);
+            });
+        };
+
+        return t.isSea() && hasNeighbouringFactory();
+    }
+
+    function landOrSea(t) {
+        return filterForLandUnit(t) || filterForSeaUnit(t);
+    }
+
+    function getTerritoryFilter (boughtUnit) {
+        if (isLand(boughtUnit)) {
+            if (boughtUnit.unitType == "factory") {
+                return filterForFactory;
+            } else {
+                return filterForLandUnit;
+            }
+        } else if (isSea(boughtUnit)) {
+            var board = _b.getBoard();
+            if (board.unitInfo(boughtUnit.unitType).landMove > 0) {
+                return landOrSea;
+            } else {
+                return filterForSeaUnit;
+            }
+        } else if (isFlying(boughtUnit)) {
+            return landOrSea;
+        } else {
+            throw new Error("unknown unit type: " + boughtUnit.unitType)
+        }
+    }
+    function isTerrainType(unit, terrainType) {
+        var board = _b.getBoard();
+        return board.unitInfo(unit.unitType).terrainType == terrainType;
+    }
+    function isFlying(unit) {
+        return isTerrainType(unit, "air")
+    }
+    function isLand(unit) {
+        return isTerrainType(unit, "land")
+    }
+    function isSea(unit) {
+        return isTerrainType(unit, "sea")
+    }
 
     return PlacementPhase;
 });

@@ -4,15 +4,8 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
         var that = this;
         _b.setBoard(this);
         this.id = id;
-        // lists of game objects whose properties will change as the game progresses
-        this.boardData = {
-            countries: [],
-            territories: [],
-            units: [],
-            buyList: boardInfo.buyList,
-            conflicts: boardInfo.conflicts
-        };
-        this.map = new svgMap.Map(this.boardData, bindTo);
+
+        this.map = new svgMap.Map({}, bindTo);
         this.map.on("select:territory", function (territory) {
             if (that.currentPhase && that.currentPhase.onTerritorySelect) {
                 that.currentPhase.onTerritorySelect(territory);
@@ -47,6 +40,7 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
             buyList: [],
             conflicts: boardInfo.conflicts
         };
+        this.buyList(boardInfo.buyList); // set the buy list
         // Info about the game that will remain constant
         this.info = {
             players: boardInfo.players,
@@ -86,7 +80,6 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
             }
             _helpers.phaseName(this.phaseName);
         }
-        this.buyList(boardInfo.buyList); // set the buy list
 
         this.initConnections(boardInfo);
         this.map.update(this.boardData);
@@ -299,7 +292,7 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
                 sea: dA.sea + dB.sea
             }
         }
-    }
+    };
 
     /**
      * finds all territories in range of a set of units
