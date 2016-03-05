@@ -127,7 +127,7 @@ function(_b, ko, _, _helpers, _dialogs, _router, moveUnitTemplate) {
                             that._placeAndSync(boughtUnit, territoryName);
                         },
                         imageTitle: boughtUnit.unitType,
-                        imageSource: _helpers.getImageSource(board.unitInfo(boughtUnit.unitType), board.currentCountry)
+                        imageSource: _helpers.getImageSource(board.unitInfo(boughtUnit.unitType), board.currentCountry, board.moduleName)
                     }
                 })
             }),
@@ -141,14 +141,14 @@ function(_b, ko, _, _helpers, _dialogs, _router, moveUnitTemplate) {
                             that._placeAndSync(boughtUnit, "");
                         },
                         imageTitle: boughtUnit.unitType,
-                        imageSource: _helpers.getImageSource(board.unitInfo(boughtUnit.unitType), board.currentCountry)
+                        imageSource: _helpers.getImageSource(board.unitInfo(boughtUnit.unitType), board.currentCountry, board.moduleName)
                     }
                 }).concat(_.map(existingUnits(), function (unit) {
                     return {
                         canMove: false,
                         onClick: function () {},
                         imageTitle: unit.unitType,
-                        imageSource:  _helpers.getImageSource(unit.unitInfo, unit.country)
+                        imageSource:  _helpers.getImageSource(unit.unitInfo, unit.country, board.moduleName)
                     }
                 }));
             })

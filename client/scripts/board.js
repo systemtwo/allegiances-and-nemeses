@@ -5,12 +5,13 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
         _b.setBoard(this);
         this.id = id;
         // lists of game objects whose properties will change as the game progresses
+        console.log(boardInfo);
         this.boardData = {
             countries: [],
             territories: [],
             units: [],
             buyList: boardInfo.buyList,
-            conflicts: boardInfo.conflicts
+            conflicts: boardInfo.conflicts,
         };
         this.map = new svgMap.Map(this.boardData, bindTo);
         this.map.on("select:territory", function (territory) {
@@ -51,7 +52,8 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
         this.info = {
             players: boardInfo.players,
             connections: [],
-            unitCatalogue: boardInfo.unitCatalogue
+            unitCatalogue: boardInfo.unitCatalogue,
+            moduleName: boardInfo.moduleName,
         };
 
         this.isPlayerTurn = boardInfo.isPlayerTurn;

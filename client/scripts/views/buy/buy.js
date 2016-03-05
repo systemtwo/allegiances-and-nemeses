@@ -31,9 +31,10 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buy.ko.html", "hel
                             amount(view.amount(unitType));
                             subscription = amount.subscribe(onAmountChange);
                         });
+                        console.log(board);
                         return {
                             unitType: unitType,
-                            imageSrc: _h.getImageSource(info, board.currentCountry),
+                            imageSrc: _h.getImageSource(info, board.currentCountry, board.info.moduleName),
                             unitInfo: info,
                             amount: amount,
                             increment: function(data, event) {

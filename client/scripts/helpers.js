@@ -22,13 +22,13 @@ define(["enums"], function(enums) {
         $("#helperText").text(text);
     };
 
-    exports.getImageSource = function(unitInfo, country) {
+    exports.getImageSource = function(unitInfo, country, moduleName) {
         if (_.isObject(country)) {
             country = country.name;
         }
         var source = unitInfo.imageSource[country];
         if (source) {
-            return "/static/images/" + source;
+            return "/static/" + moduleName+ "/images/" + source;
         } else {
             return "";
         }

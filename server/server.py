@@ -52,6 +52,7 @@ class BoardsHandler(BaseAuthHandler):
 
             # Return the board info as json
             boardInfo = board.toDict()
+            print boardInfo['moduleName']
 
             #See if it is the user's turn
             userSession = Sessions.SessionManager.getSession(self.current_user)
