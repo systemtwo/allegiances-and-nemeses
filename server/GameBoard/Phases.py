@@ -168,14 +168,15 @@ class ResolvePhase:
                 # defenders win
                 for u in conflict.nonCombatants["attackers"]:
                     self.board.removeUnit(u)
-                convertNeutralUnits(conflict.territory.country)
+
+                convertNeutralUnits(conflict.defendingCountry)
                 conflict.outcome = Conflict.defenderWin
                 break
             elif len(conflict.defenders) == 0:
                 # attackers win if no defenders, and 1+ attackers
                 for u in conflict.nonCombatants["defenders"]:
                     self.board.removeUnit(u)
-                convertNeutralUnits(self.board.currentCountry)
+                convertNeutralUnits(self.board.currentCountry)  # capture factories
                 conflict.outcome = Conflict.attackerWin
 
                 # can only take the territory if 1+ attackers are land attackers

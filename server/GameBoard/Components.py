@@ -11,6 +11,12 @@ class Conflict(object):
         """
         self.territory = territory
 
+        if territory.isLand():
+            self.defendingCountry = territory.country
+        else:
+            # if it's a sea territory, there MUST be at least one defender
+            self.defendingCountry = initialDefenders[0].country
+
         self.attackers = [u for u in initialAttackers if not self.isNonCombatant(u) and not self.isNeutral(u)]
         self.defenders = [u for u in initialDefenders if not self.isNonCombatant(u) and not self.isNeutral(u)]
         self.nonCombatants = {

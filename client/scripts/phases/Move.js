@@ -17,8 +17,8 @@ function(_b, movementMixin, _helpers) {
     MovementPhase.prototype.canMove = function (unit, destination) {
         if (!this.validTerritory(destination)) {
             return false; // can't attack this phase
-        } else if (unit.isFlying() && !_helpers.allied(unit, destination.previousCountry)) {
-            return false; // can't land in a newly captured territory
+        } else if (unit.isFlying() && (destination.isLand() && !_helpers.allied(unit, destination.previousCountry))) {
+            return false; // can't land in a newly captured land territory
         } else {
             return movementMixin.canMove.call(this, unit, destination)
         }
