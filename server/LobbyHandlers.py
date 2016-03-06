@@ -34,50 +34,31 @@ class LobbyHandler(BaseLobbyHandler):
 
 """Serves a page that allows a game listing to be created"""
 class LobbyCreateHandler(BaseLobbyHandler):
+    defaults = {
+        "roomName": "Untitled Room",
+        "players": 1,
+        "module": "napoleon", #This should be a more sensible default
+        "owner": None,
+    }
+
     @tornado.web.authenticated
     def get(self, **params):
-        renderArguments = {}
-        renderArguments["modules"] = [{"name": "napoleon"}]
-        # renderArguments["modules"] = [{"name": x} for x in os.listdir(self.config.ABS_MODS_PATH)]
-        self.render(os.path.join("..", self.LOBBY_HTML_PATH, "lobbynew.html"), **renderArguments)
-        print("rendered")
+        #Create an empty game room and redirect the user to that room
+        userSession = Sessions.SessionManager.getSession(self.current_user)
 
-    @tornado.web.authenticated
-    def post(self, **params):
-        userInput = {}
-        userInput['roomName'] = self.get_argument("roomname")
-        #FIXME: Unsafe cast!
-        userInput['players'] = int(self.get_argument("players"))
-        userInput['module'] = self.get_argument("module")
-
-        schema = Schema({
-            Required("roomName"): All(unicode, Length(min=1)),
-            Required("players"): All(int, Range(min=1, max=5)),
-            Required("module"): unicode
+        gameSettings = self.defaults.copy()
+        gameSettings.update({
+            "owner": userSession.getValue("userid"),
         })
 
-        try:
-            validUserInput = schema(userInput)
-        except MultipleInvalid as e:
-            print(str(e))
-            self.send_error(400)
-            return
+        gameId = self.gamesManager.newGame(
+            gameSettings["roomName"],
+            gameSettings["players"],
+            gameSettings["module"],
+            gameSettings["owner"])
 
-
-        #TODO: Check for validity of module
-        #ie. Does it exist?
-
-
-        userSession = Sessions.SessionManager.getSession(self.current_user)
-        gameId = self.gamesManager.newGame(validUserInput["roomName"], validUserInput["players"], validUserInput["module"], userSession.getValue("userid"))
-
-        #Add the player
-        self.gamesManager.getGame(gameId).addPlayer(userSession.getValue("userid"))
-
-        #self.gamesManager.getGame(gameId).addPlayer(self.current_user)
-        
         self.redirect("/lobby/" + str(gameId))
-        return
+
 
 """Serves a page that has the details of the game listing (GameInfo)"""
 #FIXME: Consider renaming this class
@@ -110,7 +91,7 @@ class LobbyGameHandler(BaseLobbyHandler):
         renderArguments['gameName'] = game.name
         renderArguments['players'] = game.listPlayers() 
         renderArguments['countries'] = game.getCountries()
-        self.render(os.path.join("..", self.LOBBY_HTML_PATH, "lobbyinfo.html"), **renderArguments)
+        self.render(os.path.join("..", self.LOBBY_HTML_PATH, "lobbygameinfo.html"), **renderArguments)
 
     # Change the game settings, eg. Player <-> Country mapping
     def post(self, **params):
