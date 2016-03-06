@@ -55,9 +55,6 @@ class Unit:
         elif territory.type is "land":
             if Util.allied(territory, self.country):
                 return True
-            if self.type == "tank":
-                if len(territory.units()) == 0:
-                    return True  # tanks can blitz through empty territories
         return False
 
     def hasMoved(self):

@@ -48,10 +48,6 @@ define(["gameAccessor", "helpers"], function(_b, _h) {
         } else if (territory.type == "land") {
             if (_h.allied(territory, this)) {
                 return true;
-            } else if (this.unitType == "tank") {
-                if (territory.units().length == 0) {
-                    return true;
-                }
             }
         }
 
