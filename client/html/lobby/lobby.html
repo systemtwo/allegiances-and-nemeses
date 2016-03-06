@@ -3,54 +3,58 @@
     <head>
         <title>Lobby</title>
         <link href="/static/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all">
+        <link href="/static/css/bootstrap-fixes.css" rel="stylesheet" type="text/css" media="all">
         <link href="/static/css/custom.css" rel="stylesheet" type="text/css" media="all">
         <script src="/static/scripts/lib/jquery-1.11.1.js"></script>
     </head>
 
-    <body class="">
-        <h1>Allegiances and the Nemeses </h1>
-        <h2>Lobby</h2>
+    <body>
+        <div class="container">
+            <h1>Allegiances and the Nemeses </h1>
+            <h2>Lobby</h2>
 
-        <a href="/lobby/create">Create Game</a>
-        <br />
+            <a class="btn btn-primary" href="/lobby/create">Create Game</a>
+            <br />
 
-        <table class="table table-hover">
-            <thead>
-            <tr>
-                <td>
-                    ID
-                </td>
-                <td>
-                    Name
-                </td>
-                <td>
-                    Players
-                </td>
-                <td>
-                    Link
-                </td>
-            </tr>
-            </thead>
+            <table class="table table-hover table-condensed">
+                <thead>
+                <tr>
+                    <th>
+                        ID
+                    </th>
+                    <th>
+                        Name
+                    </th>
+                    <th>
+                        Players
+                    </th>
+                    <th>
+                        Link
+                    </th>
+                </tr>
+                </thead>
 
-            <tbody>
-            {% for item in listings %}
-            <tr>
-                <td>
-                    {{item['id']}}
-                </td>
-                <td>
-                    <a href="/lobby/{{item['id']}}">{{item['game'].name}}</a>
-                </td>
-                <td>
-                    {{item['game'].currPlayers}}/{{item['game'].maxPlayers}}
-                </td>
-                <td>
-                    <a href="/lobby/{{item['id']}}/join">Join</a>
-                </td>
-            </tr>
-            {% end %}
-            </tbody>
-        </table>
+                <tbody>
+                {% for item in listings %}
+                <tr>
+                    <td class="vert-align">
+                        {{item['id']}}
+                    </td>
+                    <td class="vert-align">
+                        {{item['game'].name}}
+                    </td>
+                    <td class="vert-align">
+                        {{item['game'].currPlayers}}/{{item['game'].maxPlayers}}
+                    </td>
+                    <td class="vert-align">
+                        <a class="btn btn-primary" href="/lobby/{{item['id']}}/join">Join</a>
+                    </td>
+                </tr>
+                {% end %}
+                </tbody>
+            </table>
+
+        </div>
 
     </body>
 </html>
