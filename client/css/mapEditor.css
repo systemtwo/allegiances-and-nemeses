@@ -38,3 +38,7 @@
 .image-selector .unit-image {
     margin: 20px;
 }
+
+.territory {
+    opacity: 0.6;
+}

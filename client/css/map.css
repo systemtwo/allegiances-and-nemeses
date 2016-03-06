@@ -4,9 +4,12 @@
 }
 
 .territory {
-    opacity: 0.8;
     stroke: #4d4d4d;
     stroke-width: 1;
+}
+
+.territory-name {
+    fill: #222
 }
 
 .unit-selector-group {
@@ -19,13 +22,13 @@
 
 .selectable .territory {
     stroke: gold;
-    stroke-width: 2;
+    stroke-width: 3;
     cursor: pointer;
 }
 
 .selectable .territory-name {
     cursor: pointer;
-    fill: #333;
+    fill: #111;
 }
 
 .selected-node {

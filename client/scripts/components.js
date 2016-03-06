@@ -135,7 +135,7 @@ define(["gameAccessor", "helpers"], function(_b, _h) {
 
     Territory.prototype.isSea = function () {
         return this.type == "sea";
-    }
+    };
 
     var conflictOutcomes = {
             DRAW: "draw",
@@ -164,6 +164,7 @@ define(["gameAccessor", "helpers"], function(_b, _h) {
         this.money = options.money;
         this.team = options.team;
         this.color = options.color;
+        this.selectableColor = options.selectableColor;
         return this;
     };
 

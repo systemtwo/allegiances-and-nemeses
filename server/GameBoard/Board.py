@@ -23,7 +23,7 @@ class Board:
             self.moduleInfo = json.load(file)
 
         with open(Util.countryFileName(moduleName)) as countryInfo:
-            self.countries = [Country(c["name"], c["displayName"], c["team"], c["color"], c["playable"], self) for c in
+            self.countries = [Country(c["name"], c["displayName"], c["team"], c["color"], c["selectableColor"], c["playable"], self) for c in
                               json.load(countryInfo)]
 
         self.playableCountries = [c for c in self.countries if c.playable]

@@ -39,12 +39,12 @@ function (d3, _, backbone) {
         }
     };
 
-    proto.getCountryColor = function (country) {
+    proto.getCountryColor = function (country, selectable) {
         country = _.isString(country) ? _.findWhere(this.countries, {name: country}) : country;
         if (country) {
-            return country.color;
+            return selectable && country.selectableColor ? country.selectableColor : country.color;
         } else {
-            return "#22b"; // blue
+            return selectable ? "#33c" : "#44d"; // blue
         }
     };
 
@@ -106,8 +106,19 @@ function (d3, _, backbone) {
         this.attachCircle(territoryGroups);
         this.attachDisplayName(territoryGroups);
     };
+
+    proto.isSelectable = function (t) {
+        return _.contains(this.selectableTerritories, t);
+    };
+
     proto.drawTerritories = function () {
         var map = this;
+
+        // sort territories so that selectable territories are last, but land territories are always on top of seas
+        this.territories.sort(function (a, b) {
+            // magic sorting by casting boolean to int (0 or 1)
+            return (+a.isLand() - b.isLand()) || (+map.isSelectable(a) - map.isSelectable(b));
+        });
         var territoryGroups = this.territoryContainer.selectAll(".territory-group")
             .data(this.territories);
 
@@ -129,7 +140,9 @@ function (d3, _, backbone) {
                 }).join(" L");
                 return "M" + corePath + " z";
             })
-            .attr("fill", function (data) { return map.getCountryColor(data.country) });
+            .attr("fill", function (data) {
+                return map.getCountryColor(data.country, map.isSelectable(data))
+            });
         territoryGroups.select(".unit-selector-group")
             .attr("visibility", function (d) {return map.isCircleVisible(d) ? "visible" : "hidden"});
         territoryGroups.select(".unit-selector")
