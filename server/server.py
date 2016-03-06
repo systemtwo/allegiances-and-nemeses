@@ -1,12 +1,10 @@
+import os.path
+import json
+
 import tornado.ioloop
 import tornado.web
 
-from voluptuous import Schema, Required, All, Range, MultipleInvalid
-
-import os.path
-import json
 import Sessions
-
 import utils
 import GamesManager
 from MapEditorHandler import MapEditorHandler

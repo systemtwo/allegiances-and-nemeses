@@ -1,12 +1,11 @@
-import tornado.web
+import json
+import uuid
 
-from voluptuous import Schema, Required, All, Range, MultipleInvalid
+import tornado.web
+from voluptuous import Schema, Required, MultipleInvalid
 
 from AuthHandlers import BaseAuthHandler
 import Sessions
-
-import json
-import uuid
 
 
 class ActionHandler(BaseAuthHandler):
@@ -78,7 +77,6 @@ class ActionHandler(BaseAuthHandler):
 
         elif "battleTick" == action:
             self.assertPhase("ResolvePhase", board)
-            territory = board.territoryByName(requestData["territory"])
 
         elif "retreat" == action:
             self.assertPhase("ResolvePhase", board)
