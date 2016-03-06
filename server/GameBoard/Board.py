@@ -98,13 +98,20 @@ class Board:
                 return c
 
     def addPlayer(self, userId, countries):
-        print(countries)
+        success = True
         for country in countries:
-            for c in self.countries:
-                print(c.name)
-                if country == c.name:
-                    c.player = userId
-                    break
+            success = self.addPlayerToCountry(userId, country) and success
+
+        return success
+
+    def addPlayerToCountry(self, userId, countryName):
+        for c in self.countries:
+            if countryName == c.name:
+                c.player = userId
+                return True
+
+        print ("Cannot add player to country", countryName)
+        return False
 
     def isPlayersTurn(self, userId):
         return self.currentCountry.player == userId
@@ -193,6 +200,7 @@ class Board:
         try:
             self.units.remove(u)
         except ValueError:
+            print ("Error removing unit")
             print u.toDict()
             raise
 

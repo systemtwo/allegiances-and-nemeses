@@ -40,7 +40,7 @@ class LobbyCreateHandler(BaseLobbyHandler):
         renderArguments["modules"] = [{"name": "napoleon"}]
         # renderArguments["modules"] = [{"name": x} for x in os.listdir(self.config.ABS_MODS_PATH)]
         self.render(os.path.join("..", self.LOBBY_HTML_PATH, "lobbynew.html"), **renderArguments)
-        print("rendered")
+        print("rendered lobby")
 
     @tornado.web.authenticated
     def post(self, **params):

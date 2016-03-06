@@ -78,7 +78,9 @@ class Game:
         #Set up the players
         for user in self.players:
             print("Adding player", user)
-            self.board.addPlayer(user, self.players[user])
+            print("Countries: ", self.players[user])
+            if not self.board.addPlayer(user, self.players[user]):
+                print ("Problem adding player to board", user, self.players[user])
 
         return True
 

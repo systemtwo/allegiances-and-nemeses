@@ -96,8 +96,6 @@ class BoughtUnit:
 
 class UnitInfo:
     def __init__(self, unitType, dictionary):
-        print dictionary
-        print unitType
         self.unitType = unitType
         self.cost = dictionary["cost"]
         self.terrainType = dictionary["terrainType"]
