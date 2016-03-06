@@ -12,7 +12,16 @@ import GamesManager
 from MapEditorHandler import MapEditorHandler
 from ActionHandler import ActionHandler
 from AuthHandlers import LoginHandler, LogoutHandler, BaseAuthHandler
-from LobbyHandlers import LobbyHandler, LobbyCreateHandler, LobbyGameHandler, LobbyGameJoinHandler, LobbyGameBeginHandler, LobbyGameUpdateHandler, LobbyGameDeleteHandler
+from LobbyHandlers import (
+    LobbyHandler,
+    LobbyCreateHandler,
+    LobbyGameHandler,
+    LobbyGameInfoHandler,
+    LobbyGameJoinHandler,
+    LobbyGameBeginHandler,
+    LobbyGameUpdateHandler,
+    LobbyGameDeleteHandler,
+)
 from GameHandler import GameHandler
 
 
@@ -111,6 +120,7 @@ class Server:
             (r"/lobby/(?P<gameId>[0-9]+)/?", LobbyGameHandler, dict(config=config, gamesManager=self.gamesManager)),
 
             #Lobby API routes
+            (r"/lobby/(?P<gameId>[0-9]+)/info/?", LobbyGameInfoHandler, dict(config=config, gamesManager=self.gamesManager)),
             (r"/lobby/(?P<gameId>[0-9]+)/join/?", LobbyGameJoinHandler, dict(config=config, gamesManager=self.gamesManager)),
             (r"/lobby/(?P<gameId>[0-9]+)/begin/?", LobbyGameBeginHandler, dict(config=config, gamesManager=self.gamesManager)),
             (r"/lobby/(?P<gameId>[0-9]+)/update/?", LobbyGameUpdateHandler, dict(config=config, gamesManager=self.gamesManager)),

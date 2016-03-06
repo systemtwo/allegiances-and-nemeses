@@ -18,6 +18,23 @@ class BaseLobbyHandler(BaseAuthHandler):
         
         self.LOBBY_HTML_PATH = os.path.join(self.config.STATIC_CONTENT_PATH, "html", "lobby")
 
+    def _game_id_valid(self, game_id):
+        #Ensure the game_id is an int
+        try:
+            schema = Schema({
+                Required("gameId"): All(int),
+            })
+            userInput = {"gameId": int(game_id)}
+            validUserInput = schema(userInput)
+        except MultipleInvalid as e:
+            return False
+
+        #Ensure the game has been created
+        if (self.gamesManager.getGame(int(game_id))):
+            return True
+        return False
+
+
 """Serves the lobby page"""
 class LobbyHandler(BaseLobbyHandler):
     @tornado.web.authenticated
@@ -27,10 +44,6 @@ class LobbyHandler(BaseLobbyHandler):
         
         self.render(os.path.join("..", self.LOBBY_HTML_PATH, "lobby.html"), **renderArguments)
 
-
-        #with open(os.path.join(self.LOBBY_HTML_PATH, "lobbynew.html")) as f:
-        #Consider doing t = tornado.Template(file.read())
-        #self.write(t.generate(params))
 
 """Serves a page that allows a game listing to be created"""
 class LobbyCreateHandler(BaseLobbyHandler):
@@ -61,37 +74,22 @@ class LobbyCreateHandler(BaseLobbyHandler):
 
 
 """Serves a page that has the details of the game listing (GameInfo)"""
-#FIXME: Consider renaming this class
 class LobbyGameHandler(BaseLobbyHandler):
     @tornado.web.authenticated
-    def get(self, **params):
-        userInput = {}
-
-        #TODO: Validate the game id
-        #FIXME? We hackishly cast here...
-        userInput['gameId'] = int(params["gameId"])
-        #userInput['countryId'] = self.get_argument("countryId")
-
-        schema = Schema({
-            Required("gameId"): All(int),
-        #    Required("countryId"): All(unicode, Length(min=1))
-        })
-
-        try:
-            validUserInput = schema(userInput)
-        except MultipleInvalid as e:
-            print(str(e))
-            self.send_error(400)
+    def get(self, gameId):
+        gameId = int(gameId)
+        if not self._game_id_valid(gameId):
+            self.send_error(404)
             return
 
-        game = self.gamesManager.getGame(validUserInput["gameId"])
+        userSession = Sessions.SessionManager.getSession(self.current_user)
+        userid = userSession.getValue("userid")
 
-        #TODO: Fix renderArguments so that the point to the actual data
-        renderArguments = {}
-        renderArguments['gameName'] = game.name
-        renderArguments['players'] = game.listPlayers() 
-        renderArguments['countries'] = game.getCountries()
-        self.render(os.path.join("..", self.LOBBY_HTML_PATH, "lobbygameinfo.html"), **renderArguments)
+        #We assume if you are hitting this page, you want to join the game
+        game = self.gamesManager.getGame(gameId)
+        game.addPlayer(userid)
+
+        self.render(os.path.join("..", self.LOBBY_HTML_PATH, "lobbygameinfo.html"))
 
     # Change the game settings, eg. Player <-> Country mapping
     def post(self, **params):
@@ -140,7 +138,26 @@ class LobbyGameHandler(BaseLobbyHandler):
         #FIXME: use os.path.join or something
         self.redirect(u"/game/" + str(validUserInput["gameId"]))
 
-        
+
+class LobbyGameInfoHandler(BaseLobbyHandler):
+    @tornado.web.authenticated
+    def get(self, gameId):
+        gameId = int(gameId)
+        if not self._game_id_valid(gameId):
+            self.send_error(404)
+
+        game = self.gamesManager.getGame(gameId)
+
+        gameInfo = {
+            "name": game.name,
+            "players": game.listPlayers(),
+            "maxPlayers": game.maxPlayers,
+            "creatorId": game.creatorId,
+            "moduleName": game.moduleName,
+            "started": game.started,
+        }
+
+        self.finish(gameInfo)
 
 
 """
