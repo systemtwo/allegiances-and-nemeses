@@ -21,15 +21,15 @@
         "team": "1",
         "playable": true,
         "color": "#FD8",
-        "selectableColor": "#EC8"
+        "selectableColor": "#EC7"
     },
     {
         "name": "japan",
         "displayName": "Japan",
         "team": "2",
         "playable": true,
-        "color": "#F32",
-        "selectableColor": "#D21"
+        "color": "#F9502F",
+        "selectableColor": "#FF3C16"
     },
     {
         "name": "us",
