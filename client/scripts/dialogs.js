@@ -21,10 +21,9 @@ define([
         )
     }
 
-    function showBattle(tName) {
+    function showBattle(conflict) {
         // get the conflict
         var board = _b.getBoard();
-        var conflict = board.getConflictByTerritoryName(tName);
 
         // render a dialog for it
         var dialog = $("<div>").appendTo(document.body).append(battlefieldTemplate);
@@ -39,7 +38,7 @@ define([
         }, dialog[0]);
 
         dialog.dialog({
-            title: "Battle for " + board.getTerritory(tName).displayName,
+            title: "Battle for " + board.getTerritoryDisplayName(conflict.territoryName),
             create: replaceCloseButton,
             width: 600,
             height: 400

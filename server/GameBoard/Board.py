@@ -252,7 +252,8 @@ class Board:
         elif fieldName == "buyList":
             return [bought.toDict() for bought in self.buyList]
         elif fieldName == "conflicts":
-            return [c.toDict() for c in self.computeConflicts() + self.resolvedConflicts]
+            # current and past conflicts in reverse chronological order
+            return [c.toDict() for c in self.computeConflicts() + list(reversed(self.resolvedConflicts))]
 
         elif fieldName == "currentPhase":
             return self.currentPhase.name

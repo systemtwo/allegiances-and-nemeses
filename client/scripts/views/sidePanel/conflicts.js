@@ -24,13 +24,13 @@ define(["backbone", "underscore", "knockout", "text!views/sidePanel/conflicts.ko
                         templateName: "conflict-outcome-"+conflict.outcome,
                         territoryName: conflict.territoryName,
                         territoryDisplayName: board.getTerritoryDisplayName(conflict.territoryName),
-                        resolve: function (conflict) {
+                        resolve: function () {
                             _router.autoResolve(conflict.territoryName).done(function(){
                                 board.updateConflicts();
                             })
                         },
-                        openBattle: function (conflict) {
-                            _dialogs.showBattle(conflict.territoryName)
+                        openBattle: function () {
+                            _dialogs.showBattle(conflict)
                         }
                     }
                 });
