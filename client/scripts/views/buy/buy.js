@@ -129,12 +129,7 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buy.ko.html", "hel
                 title: "Unit List",
                 closeOnEscape: false,
                 width: Math.min(600, window.innerWidth), // never larger than screen, or 600px
-                height: initialHeight,
-                buttons: {
-                    "Done": function () {
-                        _b.getBoard().nextPhase();
-                    }
-                }
+                height: initialHeight
             });
         }
     });
