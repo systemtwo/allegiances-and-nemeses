@@ -205,6 +205,11 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
         return territory && territory.displayName ? territory.displayName : territoryName;
     };
 
+    Game.prototype.getCountryDisplayName = function(countryName) {
+        var country = this.getCountry(countryName);
+        return country && country.displayName ? country.displayName : countryName;
+    };
+
     Game.prototype.territoriesForCountry = function(country) {
         return this.boardData.territories.filter(function(t) {
             return t.country == country;

@@ -1,4 +1,4 @@
-from .Components import Conflict
+from .Components import ConflictOutcomes
 from .Unit import Unit, BoughtUnit
 from . import Util
 
@@ -139,56 +139,15 @@ class ResolvePhase:
 
         self.board.currentConflict = conflict # test code
 
-        def convertNeutralUnits(country):
-            for unit in conflict.nonCombatants["neutral"]:
-                unit.country = country
-
         constraint = 1000
-        while conflict.outcome == conflict.inProgress:
+        while conflict.outcome == ConflictOutcomes.inProgress:
             # bit of safety
             constraint -= 1
             if constraint == 0:
                 print("Auto-resolve does not complete")
                 break
 
-            outcome = Util.battle(conflict.attackers, conflict.defenders)
-            conflict.reports.append(outcome)
-            # may want to revisit this
-            for u in outcome.deadDefenders:
-                self.board.removeUnit(u)
-            for u in outcome.deadAttackers:
-                self.board.removeUnit(u)
-
-            # handle case where both sides have no combat value (unable to kill each other)
-            if conflict.isStalemate():
-                conflict.outcome = Conflict.draw
-                break
-
-            if len(conflict.attackers) == 0:
-                # defenders win
-                for u in conflict.nonCombatants["attackers"]:
-                    self.board.removeUnit(u)
-
-                convertNeutralUnits(conflict.defendingCountry)
-                conflict.outcome = Conflict.defenderWin
-                break
-            elif len(conflict.defenders) == 0:
-                # attackers win if no defenders, and 1+ attackers
-                for u in conflict.nonCombatants["defenders"]:
-                    self.board.removeUnit(u)
-                convertNeutralUnits(self.board.currentCountry)  # capture factories
-                conflict.outcome = Conflict.attackerWin
-
-                # can only take the territory if 1+ attackers are land attackers
-                landAttackers = [u for u in conflict.attackers if u.isLand()]
-                if len(landAttackers) > 0 and territory.isLand():
-                    # transfer ownership
-                    if Util.allied(territory.previousCountry, self.board.currentCountry):
-                        territory.country = territory.previousCountry
-                    else:
-                        territory.country = self.board.currentCountry
-
-                break
+            conflict.battle()
 
         self.board.resolvedConflicts.append(conflict)
 
@@ -209,9 +168,7 @@ class ResolvePhase:
         pass
 
     def nextPhase(self):
-        unresolvedConflicts = [c for c in self.board.computeConflicts() if c.outcome == Conflict.inProgress]
-        if unresolvedConflicts:
-            self.autoResolveAll()
+        self.autoResolveAll()  # autoresolve any remaining conflicts
 
         self.board.checkEliminations()
         if self.board.currentCountry.eliminated:

@@ -105,35 +105,12 @@ def _distanceInRange(unit, distance):
         return distance.sea <= unit.unitInfo.seaMove and distance.land <= unit.unitInfo.landMove
 
 
-# Performs a single step in a territory conflict
-# Takes in a list of attackers and defenders. Removes casualties from list
-def battle(attackers, defenders):
-    keys = ["attack", "defence"]
-    combatants = {
-        "attack": attackers,
-        "defence": defenders
-    }
-    # counts number of each side that must die
-    scoredHits = {}
-    for key in keys:
-        scoredHits[key] = _calculateHits(combatants[key], key)
-
-    casualties = {}
-    for key in keys:
-        if key == "attack":
-            otherKey = "defence"
-        else:
-            otherKey = "attack"
-        casualties[key] = _calculateCasualties(combatants[key], scoredHits[otherKey], key)
-
-    return BattleReport(combatants, casualties)
-
-
-def _calculateHits(units, combatValueKey):
+def calculateHits(units, combatValueKey):
     # Calculate hits. Chance for a hit is attack/6 for attackers, defence/6 for defenders
     scoredHits = 0
     for u in units:
-        if random.randint(1, 6) <= u.unitInfo[combatValueKey]:
+        randomRoll = random.randint(1, 6)
+        if randomRoll <= u.unitInfo[combatValueKey]:
             scoredHits += 1
     return scoredHits
 
@@ -141,18 +118,26 @@ def _calculateHits(units, combatValueKey):
 def totalDeathProbability(units, combatValueKey):
     total = 0
     for u in units:
-        info = u.unitInfo
-        if info[combatValueKey] > 0:
-            total += 1.0 / info[combatValueKey]
+        total += getDeathProbability(u, combatValueKey)
     return total
 
+def getDeathProbability(unit, combatValueKey):
+    return 1.0 / (unit.unitInfo[combatValueKey] + 0.1)  # adding 0.1 fixes 0 combat value case
 
-def _calculateCasualties(units, hits, combatValueKey):
+
+def calculateCasualties(units, hits, combatValueKey):
     # there's a weighted chance of each unit dying. We sum the weights for all the units
+    """
+    Calculates which units will die and removes them from the list of units
+    :param units: The units that must suffer casualties
+    :param hits: The number of units to kill. If greater than the number of units,
+    :param combatValueKey: Use the attack or defence combat values
+    :return: Array of the units killed
+    """
     casualties = []
     summedHitChance = totalDeathProbability(units, combatValueKey)
 
-    # kill random peeps. chance of dying is 1/attack or 1/defence
+    # kill random peeps. chance of dying is 1/(attack+0.1) or 1/(defence+0.1)
     # using the sum of the weights, we take a random number that's less than the sum
     # Then we add up the weights of each unit until the total exceeds our random number
     # That unlucky unit is now dead
@@ -164,15 +149,13 @@ def _calculateCasualties(units, hits, combatValueKey):
         rand = random.random() * summedHitChance
         runningTotal = 0
         for unit in units:
-            combatValue = unit.unitInfo[combatValueKey]
-            if combatValue > 0:  # units with a combat value of 0 are immortal.
-                runningTotal += 1.0 / combatValue
-                if runningTotal >= rand:
-                    # this dude dies
-                    casualties.append(unit)
-                    units.remove(unit)
-                    hits -= 1
-                    break
+            runningTotal += getDeathProbability(unit,combatValueKey)
+            if runningTotal >= rand:
+                # this dude dies
+                casualties.append(unit)
+                units.remove(unit)
+                hits -= 1
+                break
         # recalculate hit chance
         summedHitChance = totalDeathProbability(units, combatValueKey)
 
@@ -182,19 +165,3 @@ def _calculateCasualties(units, hits, combatValueKey):
         while len(units) > 0:
             casualties.append(units.pop())
     return casualties
-
-
-class BattleReport:
-    def __init__(self, survivors, casualties):
-        self.survivingAttackers = survivors["attack"][:]
-        self.survivingDefenders = survivors["defence"][:]
-        self.deadAttackers = casualties["attack"][:]
-        self.deadDefenders = casualties["defence"][:]
-
-    def toDict(self):
-        return {
-            "survivingAttackers": [u.toDict() for u in self.survivingAttackers],
-            "survivingDefenders": [u.toDict() for u in self.survivingDefenders],
-            "deadAttackers": [u.toDict() for u in self.deadAttackers],
-            "deadDefenders": [u.toDict() for u in self.deadDefenders]
-        }

@@ -153,6 +153,8 @@ define(["gameAccessor", "helpers"], function(_b, _h) {
         this.defenders = [];
         this.reports = [];
         this.outcome = "";
+        this.attackingCountry = "";
+        this.defendingCountry = "";
         this.territoryName = null;
     };
 

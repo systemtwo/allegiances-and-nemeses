@@ -1,5 +1,6 @@
 import json
 import itertools
+
 from .Country import Country
 from .Phases import BuyPhase
 from .Territory import LandTerritory, SeaTerritory
@@ -230,11 +231,12 @@ class Board:
                 return containsUnallied
 
         def getAttackers(territory):
-            return [u for u in self.units if u.movedToTerritory == t and Util.allied(u, self.currentCountry)]
+            return [u for u in self.units if u.movedToTerritory == territory and Util.allied(u, self.currentCountry)]
 
         def getDefenders(territory):
-            return [u for u in self.units if u.movedToTerritory == t and not Util.allied(u, self.currentCountry)]
-        allConflicts = [Conflict(t, getAttackers(t), getDefenders(t)) for t in self.territories if filterForConflicts(t)]
+            return [u for u in self.units if u.movedToTerritory == territory and not Util.allied(u, self.currentCountry)]
+
+        allConflicts = [Conflict(self, t, getAttackers(t), getDefenders(t), None, None) for t in self.territories if filterForConflicts(t)]
         return filter(lambda conflict: not conflict.isStalemate(), allConflicts)
 
     def getFields(self, fieldNames):
