@@ -28,3 +28,9 @@ class GamesManager:
         #Have this return a more lightweight representation instead, like board 
         #title and ids
         return [{"id": gameId, "game": self.games[gameId]} for gameId in self.games]
+
+    def deleteGame(self, gameId):
+        if gameId in self.games:
+            del self.games[gameId]
+            return True
+        return False

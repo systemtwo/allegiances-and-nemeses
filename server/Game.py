@@ -82,6 +82,10 @@ class Game:
 
         return True
 
+    def newBoard(self, module_name):
+        #TODO: Validate here or in the Board that the module exists
+        self.board = GameBoard.Board(module_name)
+
     def toDict(self):
         return {
             "players": self.players,

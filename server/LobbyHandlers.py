@@ -1,9 +1,10 @@
 #TODO:
 #I think we can remove the validation for the gameId url param
 import os.path
+import json
 
 import tornado.web
-from voluptuous import Schema, Required, All, Range, Length, MultipleInvalid
+from voluptuous import Schema, Required, All, Range, Length, MultipleInvalid, Optional
 
 from AuthHandlers import BaseAuthHandler
 import Sessions
@@ -73,7 +74,11 @@ class LobbyCreateHandler(BaseLobbyHandler):
         self.redirect("/lobby/" + str(gameId))
 
 
-"""Serves a page that has the details of the game listing (GameInfo)"""
+"""
+Serves a page that has the details of the game listing (GameInfo)
+
+Also implicitly causes player to join the game
+"""
 class LobbyGameHandler(BaseLobbyHandler):
     @tornado.web.authenticated
     def get(self, gameId):
@@ -139,6 +144,14 @@ class LobbyGameHandler(BaseLobbyHandler):
         self.redirect(u"/game/" + str(validUserInput["gameId"]))
 
 
+
+
+## API routes
+
+
+"""
+Returns the game info as a JSON object
+"""
 class LobbyGameInfoHandler(BaseLobbyHandler):
     @tornado.web.authenticated
     def get(self, gameId):
@@ -197,21 +210,80 @@ class LobbyGameJoinHandler(BaseLobbyHandler):
 class LobbyGameBeginHandler(BaseLobbyHandler):
     @tornado.web.authenticated
     def get(self, **params):
-        game = self.gamesManager.getGame(params['gameId'])
-        game.started = True
-        pass
+        gameId = int(params['gameId'])
+        if not self._game_id_valid(gameId):
+            self.send_error(500)
+            return
+
+        game = self.gamesManager.getGame(gameId)
+        if not game.startGame():
+            self.send_error(500)
+            return
+
 
 """Updates the settings of a game"""
 class LobbyGameUpdateHandler(BaseLobbyHandler):
     @tornado.web.authenticated
     def post(self, **params):
-        pass
+        gameId = int(params['gameId'])
+        if not self._game_id_valid(gameId):
+            self.send_error(500)
+            return
+
+        userData = json.loads(self.request.body)
+
+        schema = Schema({
+            Optional("countryPlayer"): All([Schema({"country": unicode, "userId": unicode})]),
+            Optional("gameName"): All(unicode),
+            Optional("maxPlayers"): All(int),
+            Optional("moduleName"): All(unicode),
+        })
+        userInput = {"gameId": int(game_id)}
+
+        try:
+            validUserInput = schema(userInput)
+            if "countryPlayer" in validUserInput:
+                self._set_country_players(game, validUserInput['countryPlayer'])
+            if "gameName" in validUserInput:
+                self._set_game_name(game, validUserInput['gameName'])
+            if "maxPlayers" in validUserInput:
+                self._set_num_players(game, validUserInput['maxPlayers'])
+            if "module_name" in validUserInput:
+                self._set_module_name(game, validUserInput['moduleName'])
+
+        except MultipleInvalid as e:
+            self.send_error(403)
+            return
+
+    def _set_game_name(self, game, name):
+        game.name = name
+
+    def _set_num_players(self, game, num_players):
+        game.maxPlayers = num_players
+
+    def _set_module_name(self, game, module_name):
+        game.newBoard(module_name)
+
+    def _set_country_players(self, game, country_player_map):
+        # Reset and set player country map
+        game.clearPlayerCountries()
+        for entry in country_player_map:
+            game.addPlayerCountry(entry['userId'], entry['country'])
+
 
 """Deletes a game listing"""
 class LobbyGameDeleteHandler(BaseLobbyHandler):
     @tornado.web.authenticated
-    def get(self, **params):
-        pass
+    def post(self, **params):
+        gameId = int(params['gameId'])
+        if not self._game_id_valid(gameId):
+            self.send_error(500)
+            return
 
-
-
+        game = self.gamesManager.getGame(gameId)
+        userSession = Sessions.SessionManager.getSession(self.current_user)
+        if game.owner == userSession.getValue("userid"):
+            self.gamesManager.deleteGame(gameId)
+        else:
+            self.send_error(403)
+            return
