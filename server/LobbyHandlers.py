@@ -144,8 +144,6 @@ class LobbyGameHandler(BaseLobbyHandler):
         self.redirect(u"/game/" + str(validUserInput["gameId"]))
 
 
-
-
 ## API routes
 
 
@@ -209,7 +207,7 @@ class LobbyGameJoinHandler(BaseLobbyHandler):
 """Initiates a game from a game listing"""
 class LobbyGameBeginHandler(BaseLobbyHandler):
     @tornado.web.authenticated
-    def get(self, **params):
+    def post(self, **params):
         gameId = int(params['gameId'])
         if not self._game_id_valid(gameId):
             self.send_error(500)
