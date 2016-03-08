@@ -125,13 +125,13 @@ class Conflict(object):
             raise Exception("Unknown conflict outcome", self.outcome)
 
     def getOutcome(self):
-        if len(self.defenders) == 0 and len(self.attackers) > 0:
-            if self.territory.isLand and self.hasLandAttackers():
-                return ConflictOutcomes.occupationVictory
-            elif self.territory.isSea():
-                return ConflictOutcomes.attackerWinWithCapture
-            elif len(self.nonCombatants["defenders"]) > 0:
-                return ConflictOutcomes.attackerWin
+        someAttackNoDef = len(self.defenders) == 0 and len(self.attackers) > 0
+        if someAttackNoDef and self.territory.isLand and self.hasLandAttackers():
+            return ConflictOutcomes.occupationVictory
+        elif someAttackNoDef and self.territory.isSea():
+            return ConflictOutcomes.attackerWinWithCapture
+        elif someAttackNoDef and len(self.nonCombatants["defenders"]) > 0:
+            return ConflictOutcomes.attackerWin
         elif len(self.attackers) == 0 and (self.territory.isLand or len(self.defenders) > 0):
             return ConflictOutcomes.defenderWin
         elif self.isStalemate():
@@ -146,7 +146,8 @@ class Conflict(object):
         for u in self.defenders:
             combatSum += u.unitInfo.defence
 
-        cannotCapture = self.territory.isLand and not self.hasLandAttackers() and\
+        # an air or sea unit is not able to capture a land territory on their own, leading to a stalemate
+        cannotCapture = len(self.defenders) == 0 and self.territory.isLand and not self.hasLandAttackers() and\
             len(self.nonCombatants["defenders"]) == 0
 
         return combatSum == 0 or cannotCapture
