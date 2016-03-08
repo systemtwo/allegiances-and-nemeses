@@ -1,14 +1,20 @@
-define(["underscore", "backbone", "svgMap", "components", "helpers", "router", "gameAccessor", "phases/phaseHelper", "dialogs"],
-function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) {
+define(["underscore", "backbone", "knockout", "svgMap", "components", "helpers", "router", "gameAccessor", "phases/phaseHelper", "dialogs"],
+function(_, backbone, ko, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) {
     var Game = function(id, boardInfo, bindTo) {
         var that = this;
         _b.setBoard(this);
         this.id = id;
+        this.inTerritoryInfoMode = ko.observable(false);
+        this.selectedTerritory = ko.observable(null);
 
         this.map = new svgMap.Map({}, bindTo);
         this.map.on("select:territory", function (territory) {
-            if (that.currentPhase && that.currentPhase.onTerritorySelect) {
-                that.currentPhase.onTerritorySelect(territory);
+            if (that.inTerritoryInfoMode()) {
+                that.selectedTerritory(territory);
+            } else {
+                if (that.currentPhase && that.currentPhase.onTerritorySelect) {
+                    that.currentPhase.onTerritorySelect(territory);
+                }
             }
         });
         this.map.on("click:circle", function (territory, event) {
@@ -339,14 +345,32 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
 
         return territoryObjects;
     };
-    Game.prototype.getConflictByTerritoryName = function(tName) {
-        var conflicts = this.boardData.conflicts;
-        for (var i = 0; i < conflicts.length; i++) {
-            if (conflicts[i].territoryName == tName) {
-                return conflicts[i];
-            }
+
+    Game.prototype.toggleTerritoryInfoMode = function () {
+        if (this.inTerritoryInfoMode()) {
+            this.exitTerritoryInfoMode();
+        } else {
+            this.enterTerritoryInfoMode()
         }
-        return null;
+        this.inTerritoryInfoMode(!this.inTerritoryInfoMode());
+    };
+
+    Game.prototype.enterTerritoryInfoMode = function () {
+        this.backupTerritories = this.map.selectableTerritories;
+        this.map.setSelectableTerritories(this.boardData.territories);
+    };
+
+    Game.prototype.exitTerritoryInfoMode = function () {
+        this.map.setSelectableTerritories(this.backupTerritories);
+        this.backupTerritories = [];
+    };
+
+    Game.prototype.setSelectableTerritories = function (territories) {
+        if (this.inTerritoryInfoMode()) {
+            this.backupTerritories = territories;
+        } else {
+            this.map.setSelectableTerritories(territories);
+        }
     };
 
     Game.prototype.nextPhase = function() {

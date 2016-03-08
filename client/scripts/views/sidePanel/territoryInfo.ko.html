@@ -1,0 +1,14 @@
+<div data-bind="if: selectedTerritory">
+    <div>
+        <span>Name: </span>
+        <span data-bind="text: selectedTerritory().displayName"></span>
+    </div>
+    <div>
+        <span>Controlled By: </span>
+        <span data-bind="text: selectedTerritory().country.displayName"></span>
+    </div>
+    <div>
+        <span>Income: </span>
+        <span data-bind="text: selectedTerritory().income"></span>
+    </div>
+</div>

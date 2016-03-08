@@ -5,8 +5,9 @@ define(["backbone",
         "gameAccessor",
         "views/sidePanel/boughtUnits",
         "views/sidePanel/conflicts",
-        "views/sidePanel/countries"],
-    function(backbone, _, ko, template, _b, BoughtUnitView, ConflictView, CountriesView) {
+        "views/sidePanel/countries",
+        "views/sidePanel/territoryInfo"],
+    function(backbone, _, ko, template, _b, BoughtUnitView, ConflictView, CountriesView, TerritoryInfoView) {
     var exports = {};
 
     exports.SidePanel = backbone.View.extend({
@@ -35,6 +36,12 @@ define(["backbone",
                 togglePanel: togglePanel,
                 panels: [
                     {
+                        header: "Territory Info",
+                        panelContentsClass: "territory-info-container",
+                        attachContent: createRenderCallback(TerritoryInfoView),
+                        collapsed: ko.observable(false)
+                    },
+                    {
                         header: "Purchased Units",
                         panelContentsClass: "bought-units-container",
                         attachContent: createRenderCallback(BoughtUnitView),
@@ -61,6 +68,13 @@ define(["backbone",
             SidePanelVM.endPhase = function () {
                 _b.getBoard().nextPhase();
             };
+
+            SidePanelVM.toggleTerritoryInfoMode = function () {
+                _b.getBoard().toggleTerritoryInfoMode();
+            };
+            SidePanelVM.infoModeActive = ko.computed(function () {
+                return _b.getBoard().inTerritoryInfoMode();
+            });
             return SidePanelVM;
         }
     });

@@ -10,7 +10,7 @@ function(_b, ko, _, _helpers, _dialogs, _router, moveUnitTemplate) {
     function PlacementPhase() {
         var board = _b.getBoard();
         _helpers.phaseName("Place Units");
-        board.map.setSelectableTerritories([]);
+        board.setSelectableTerritories([]);
         this.placing = null; // The BoughtUnit being placed
         this.placingMany = false; // true about to place multiple units. Changes onTerritorySelect behavior
         this.setInitialText();
@@ -47,7 +47,7 @@ function(_b, ko, _, _helpers, _dialogs, _router, moveUnitTemplate) {
         }
         this.placing = boughtUnit;
         this.placingMany = false; // exit place many mode
-        board.map.setSelectableTerritories(validTerritories);
+        board.setSelectableTerritories(validTerritories);
 
         if (isLand(boughtUnit)) {
             if (boughtUnit.unitType == "factory") {
@@ -79,7 +79,7 @@ function(_b, ko, _, _helpers, _dialogs, _router, moveUnitTemplate) {
 
         var validTerritories = _.filter(ownedTerritories, filterTerritories);
 
-        board.map.setSelectableTerritories(validTerritories);
+        board.setSelectableTerritories(validTerritories);
         this.placingMany = true;
         this.placing = null;
         _helpers.helperText("Select a territory containing a factory");
@@ -105,7 +105,7 @@ function(_b, ko, _, _helpers, _dialogs, _router, moveUnitTemplate) {
         var that = this;
         var element = $("<div>");
         var board = _b.getBoard();
-        board.map.setSelectableTerritories([]);
+        board.setSelectableTerritories([]);
         var unitsToPlace = ko.observableArray(
             board.buyList().filter(function (boughtUnit) {
                 return boughtUnit.territory != territory.name;
@@ -189,7 +189,7 @@ function(_b, ko, _, _helpers, _dialogs, _router, moveUnitTemplate) {
 
         this.placing = null;
         var board = _b.getBoard();
-        board.map.setSelectableTerritories([]);
+        board.setSelectableTerritories([]);
         this._placeAndSync(placing, territoryName).done(function() {
             that.setInitialText();
         }).fail(function() {

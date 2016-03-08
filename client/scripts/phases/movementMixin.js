@@ -50,7 +50,7 @@ function(_, _b, _helpers, _dialogs, MoveUnitView) {
                     territories.push(u.territory)
                 }
             });
-            board.map.setSelectableTerritories(territories);
+            board.setSelectableTerritories(territories);
             _helpers.helperText(this.strings.selectStart);
         },
 
@@ -59,7 +59,7 @@ function(_, _b, _helpers, _dialogs, MoveUnitView) {
             var controlledUnits = originTerritory.unitsForCountry(board.currentCountry).filter(this.movableUnit);
             // Make selectable any territory that a unit currently in the clicked territory can move to
             var territoriesInRange = board.territoriesInRange(controlledUnits);
-            board.map.setSelectableTerritories(_.filter(territoriesInRange, function (t) { return t != originTerritory }));
+            board.setSelectableTerritories(_.filter(territoriesInRange, function (t) { return t != originTerritory }));
             _helpers.helperText(this.strings.selectDest);
         },
 
