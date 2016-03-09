@@ -19,10 +19,8 @@ Collect Income -> Collect income from all the territories owned (including conqu
 
 
 class BuyPhase:
-    def __init__(self, money, board):
+    def __init__(self, board):
         # List[(unitType, cost)]
-        self.buyList = []
-        self.moneyCap = money
         self.board = board
         self.name = "BuyPhase"
 
@@ -44,7 +42,7 @@ class BuyPhase:
 
         sumCost = self.costOfUnits(parsedBuyList)
 
-        if sumCost <= self.moneyCap:
+        if sumCost <= self.board.currentCountry.money:
             self.board.buyList = parsedBuyList[:]  # copy in buyList
             return True
         else:
@@ -57,9 +55,6 @@ class BuyPhase:
             unitInfo = self.board.unitInfo(bought.unitType)
             sumCost += unitInfo.cost
         return sumCost
-
-    def money(self):
-        return self.costOfUnits(self.buyList)
 
     def nextPhase(self):
         board = self.board
@@ -98,6 +93,13 @@ class BaseMovePhase(object):
             return Util.calculateDistance(unit.territory, destination, unit, self.board.units)
         return  unit.country is self.board.currentCountry and getDistance() is not -1
 
+    def nextPhase(self):
+        # move all units without conflicts
+        for unit in self.moveList:
+            (origin, dest) = self.moveList[unit]
+            # not in conflict
+            unit.territory = dest
+
 
 # Units are added to a moveList, but unit.territory does not get modified if they are attacking a territory.
 # when they win, unit.territory is updated, and unit.originalTerritory is set
@@ -107,13 +109,8 @@ class AttackPhase(BaseMovePhase):
         self.name = "AttackPhase"
 
     def nextPhase(self):
+        BaseMovePhase.nextPhase(self)
         board = self.board
-
-        # move all units without conflicts
-        for unit in self.moveList:
-            (origin, dest) = self.moveList[unit]
-            # not in conflict
-            unit.territory = dest
         board.currentPhase = ResolvePhase(board)
         return board.currentPhase
 
@@ -177,7 +174,7 @@ class ResolvePhase:
             # will only happen if you attack and lose your last units, and have no territories
             # in that case, player's turn should end immediately
             self.board.nextTurn()
-            self.board.currentPhase = BuyPhase(self.board.currentCountry.money, self.board)
+            self.board.currentPhase = BuyPhase(self.board)
         else:
             self.board.currentPhase = MovementPhase(self.board)
         return self.board.currentPhase
@@ -208,17 +205,14 @@ class MovementPhase(BaseMovePhase):
             return not unit.hasMoved()
 
     def nextPhase(self):
+        BaseMovePhase.nextPhase(self)
         board = self.board
-        for unit in self.moveList:
-            (origin, dest) = self.moveList[unit]
-            unit.territory = dest
         board.currentPhase = PlacementPhase(board)
         return board.currentPhase
 
 
 class PlacementPhase:
     def __init__(self, board):
-        self.toPlace = board.buyList[:]  # list of units to place on the board
         self.board = board
         self.name = "PlacementPhase"
 
@@ -258,5 +252,5 @@ class PlacementPhase:
         self.board.collectIncome(self.board.currentCountry)
 
         self.board.nextTurn()
-        self.board.currentPhase = BuyPhase(self.board.currentCountry.money, self.board)
+        self.board.currentPhase = BuyPhase(self.board)
         return self.board.currentPhase

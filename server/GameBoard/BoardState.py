@@ -8,26 +8,29 @@ import json
 
 # This file handles exporting game state, and creating a game state from a snapshot or module definition
 
+_sharedFields = [
+    "countries",
+    "territories",
+    "units",
+    "buyList",
+    "currentPhase",
+    "currentCountry",
+    "winningTeam",
+
+    # Module info
+    "unitCatalogue"
+]
 # Exporters
 def exportBoardToClient(board):
-    allFields = [
-        "countries",
-        "territories",
-        "units",
-        "buyList",
-        "conflicts",
-        "currentPhase",
-        "currentCountry",
-        "winningTeam",
-
-        # Module info
-        "unitCatalogue"
-    ]
-    return getFields(board, allFields)
+    clientFields = _sharedFields[:]
+    clientFields.append("conflicts")
+    return getFields(board, clientFields)
 
 # needed to export/import board state for save games, debugging, etc
 def exportBoardState(board):
-    pass
+    clientFields = _sharedFields[:]
+    clientFields.append("pastConflicts")
+    return getFields(board, clientFields)
 
 
 def getFields(board, fieldNames):
@@ -41,11 +44,10 @@ def _getField(board, fieldName):
         return [c.toDict() for c in board.countries]
     elif fieldName == "units":
         return [u.toDict() for u in board.units]
+    elif fieldName == "territories":
+        return [t.toDict() for t in board.territories]
     elif fieldName == "buyList":
         return [bought.toDict() for bought in board.buyList]
-    elif fieldName == "conflicts":
-        # current and past conflicts in reverse chronological order
-        return [c.toDict() for c in board.computeConflicts() + list(reversed(board.resolvedConflicts))]
 
     elif fieldName == "currentPhase":
         return board.currentPhase.name
@@ -59,11 +61,11 @@ def _getField(board, fieldName):
     elif fieldName == "winningTeam":
         return board.winningTeam
 
-    # For full state export
-    elif fieldName == "territories":
-        return [t.toDict() for t in board.territories]
-    elif fieldName == "fullCurrentPhase":
-        return board.currentPhase.toDict()  # TODO implement for each phase
+    # for client export
+    elif fieldName == "conflicts":
+        # current and past conflicts in reverse chronological order
+        return [c.toDict() for c in board.computeConflicts() + list(reversed(board.resolvedConflicts))]
+    # For full state export only
     elif fieldName == "pastConflicts":
         # current and past conflicts in reverse chronological order
         return [c.toDict() for c in board.resolvedConflicts]
