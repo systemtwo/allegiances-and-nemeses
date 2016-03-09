@@ -37,7 +37,7 @@ class BuyPhase:
             if hasattr(bought, "unitType"):
                 parsedBuyList.append(bought)
             elif isinstance(bought, dict) and u'unitType' in bought and u'territory' in bought:
-                territory = self.board.territoryByName(bought[u"territory"])
+                territory = Util.getByName(self.board.territories, bought[u"territory"])
                 parsedBuyList.append(BoughtUnit(bought[u"unitType"], territory))
             else:
                 raise Exception("Invalid buy list", buyList)
@@ -94,7 +94,9 @@ class BaseMovePhase(object):
             return False
 
     def canMove(self, unit, destination):
-        return Util.calculateDistance(unit.territory, destination, unit) is not -1 and unit.country is self.board.currentCountry
+        def getDistance():
+            return Util.calculateDistance(unit.territory, destination, unit, self.board.units)
+        return  unit.country is self.board.currentCountry and getDistance() is not -1
 
 
 # Units are added to a moveList, but unit.territory does not get modified if they are attacking a territory.
@@ -198,9 +200,9 @@ class MovementPhase(BaseMovePhase):
             if hasattr(destination, "previousCountry") and not Util.allied(destination.previousCountry, unit.country):
                 return False
 
-            previousMove = Util.calculateDistance(unit.originalTerritory, unit.territory, unit)
+            previousMove = Util.calculateDistance(unit.originalTerritory, unit.territory, unit, self.board.units)
             assert previousMove is not -1
-            newMove = Util.calculateDistance(unit.territory, destination, unit)
+            newMove = Util.calculateDistance(unit.territory, destination, unit, self.board.units)
             return newMove is not -1 and previousMove + newMove <= unit.unitInfo.movement
         else:
             return not unit.hasMoved()
@@ -234,7 +236,7 @@ class PlacementPhase:
             if hasattr(bought, "unitType"):
                 boughtUnit = bought
             elif isinstance(bought, dict) and u'unitType' in bought and u'territory' in bought:
-                territory = self.board.territoryByName(bought[u"territory"])
+                territory = Util.getByName(self.board.territories, bought[u"territory"])
                 boughtUnit = BoughtUnit(bought[u"unitType"], territory)
             else:
                 raise Exception("Invalid buy list", buyList)
@@ -253,7 +255,7 @@ class PlacementPhase:
             unitInfo = self.board.unitInfo(u.unitType)
             if u.territory is not None:
                 self.board.units.append(Unit(unitInfo, self.board.currentCountry, u.territory))
-        self.board.currentCountry.collectIncome()
+        self.board.collectIncome(self.board.currentCountry)
 
         self.board.nextTurn()
         self.board.currentPhase = BuyPhase(self.board.currentCountry.money, self.board)

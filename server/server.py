@@ -13,6 +13,8 @@ from AuthHandlers import LoginHandler, LogoutHandler, BaseAuthHandler
 from LobbyHandlers import LobbyHandler, LobbyCreateHandler, LobbyGameHandler, LobbyGameJoinHandler, LobbyGameBeginHandler, LobbyGameUpdateHandler, LobbyGameDeleteHandler
 from GameHandler import GameHandler
 
+from GameBoard import BoardState
+
 
 class IndexHandler(tornado.web.RequestHandler):
     def initialize(self, html_path):
@@ -49,7 +51,7 @@ class BoardsHandler(BaseAuthHandler):
             board = game.board
 
             # Return the board info as json
-            boardInfo = board.toDict()
+            boardInfo = BoardState.exportBoardToClient(board)
 
             #See if it is the user's turn
             userSession = Sessions.SessionManager.getSession(self.current_user)
@@ -60,7 +62,7 @@ class BoardsHandler(BaseAuthHandler):
         elif self.action == self.actions.GET_FIELDS:
             requestedFields = [f.decode("utf-8") for f in self.request.arguments.get("fieldNames[]")]
             board = self.gamesManager.getBoard(int(params["boardId"]))
-            response = board.getFields(requestedFields)
+            response = BoardState.getFields(board, requestedFields)
             self.write(json.dumps(response))
 
     @tornado.web.authenticated

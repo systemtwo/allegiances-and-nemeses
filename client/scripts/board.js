@@ -58,7 +58,6 @@ function(_, backbone, ko, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialo
         };
 
         this.isPlayerTurn = boardInfo.isPlayerTurn;
-        this.wrapsHorizontally = boardInfo.wrapsHorizontally;
         this.winningTeam = boardInfo.winningTeam;
 
         this.boardData.countries = boardInfo.countries.map(function(countryInfo) {
@@ -175,14 +174,6 @@ function(_, backbone, ko, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialo
 
     Game.prototype.addUnit = function(unit) {
         this.boardData.units.push(unit);
-    };
-
-    Game.prototype.getMapWidth = function() {
-        if (this.wrapsHorizontally) {
-            return this.mapImage.width/2;
-        } else {
-            return this.mapImage.width
-        }
     };
 
     Game.prototype.getCountries = function () {

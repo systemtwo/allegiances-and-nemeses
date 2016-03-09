@@ -1,5 +1,4 @@
 from . import UniqueId
-from . import Util
 
 
 class Unit:
@@ -32,30 +31,6 @@ class Unit:
 
     def isSea(self):
         return self.unitInfo.terrainType == "sea"
-
-    # Checks if a unit can move through a territory to another
-    def canMoveThrough(self, territory):
-        """
-        Checks if type of unit can move through a territory
-        :param territory: Territory
-        :return: Boolean True if unit can move through, False if it cannot
-        """
-
-        if self.isFlying():
-            return True
-
-        if territory.type == "sea":
-            if self.type == "sub":
-                # can move if no destroyers present
-                if not territory.containsUnitType("destroyer"):
-                    return True
-            if len(territory.enemyUnits(self.country)) == 0:
-                return True
-
-        elif territory.type is "land":
-            if Util.allied(territory, self.country):
-                return True
-        return False
 
     def hasMoved(self):
         return self.originalTerritory is not self.territory
@@ -106,8 +81,13 @@ class UnitInfo:
         self.attack = dictionary["attack"]
         self.defence = dictionary["defence"]
 
+        self._dictionary = dictionary  # store for exporting
+
         if "description" in dictionary:
             self.description = dictionary["description"]
+
+    def toDict(self):
+        return self._dictionary
 
     def __getitem__(self, item):
         return getattr(self, item)

@@ -52,11 +52,18 @@ def friendlySeaTerritory(sea, country):
     return len(sea.enemyUnits(country)) == 0
 
 
-# Finds the distance from the start to the goal, based on the unit's type and country
-# Number of territories for a flying unit
-# Dictionary of number of land and sea moves for any other unit
-# -1 if movement not possible
-def calculateDistance(start, goal, unit):
+def calculateDistance(start, goal, unit, allUnits):
+    """
+    Finds the distance from the start to the goal, based on the unit's type and country
+    :param start: Territory to start from
+    :param goal: Terriotry to get to
+    :param unit: The unit to calculate the distance for. Different unit types will move differently
+    :param allUnits: All units on the board. Needed for determining if a territory contains enemy units
+    :return:
+        Number of territories for a flying unit
+        Dictionary of number of land and sea moves for any other unit
+        -1 if movement not possible
+    """
     frontier = [(start, _initialDistance(unit))]
     checked = []
 
@@ -65,7 +72,7 @@ def calculateDistance(start, goal, unit):
         if currentTerritory is goal:
             return steps
 
-        if unit.canMoveThrough(currentTerritory):
+        if canMoveThrough(unit, currentTerritory, allUnits):
             for t in currentTerritory.connections:
                 newSteps = _incrementDistance(unit, currentTerritory, t, steps)
                 if t not in checked:
@@ -165,3 +172,52 @@ def calculateCasualties(units, hits, combatValueKey):
         while len(units) > 0:
             casualties.append(units.pop())
     return casualties
+
+def unitsInTerritory(allUnits, territory):
+    unitList = []
+    for u in allUnits:
+        if u.territory == territory:
+            unitList.append(u)
+    return unitList
+
+def enemyUnits(units, country):
+    return [u for u in units if not allied(u.country, country)]
+
+def getByName(items, name):
+    name = str(name)
+    for item in items:
+        if item.name == name:
+            return item
+    return None
+
+def containsUnitType(units, unitType):
+    for u in units:
+        if u.type is unitType:
+            return True
+
+    return False
+
+
+# Checks if a unit can move through a territory to another
+def canMoveThrough(unit, territory, allUnits):
+    """
+    Checks if type of unit can move through a territory
+    :param territory: Territory
+    :return: Boolean True if unit can move through, False if it cannot
+    """
+
+    if unit.isFlying():
+        return True
+
+    if territory.type == "sea":
+        if unit.type == "sub":
+            # can move if no destroyers present
+            if not containsUnitType(territory, "destroyer"):
+                return True
+        if len(enemyUnits(allUnits, unit.country)) == 0:
+            return True
+
+    elif territory.type is "land":
+        if allied(territory, unit.country):
+            return True
+    return False
