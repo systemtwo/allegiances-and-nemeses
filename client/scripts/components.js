@@ -55,15 +55,29 @@ define(["gameAccessor", "helpers"], function(_b, _h) {
     };
 
     var Territory = function(territoryInfo, countryObject, previousCountry) {
-        this.name = territoryInfo.name;
-        this.displayName = territoryInfo.displayName;
-        this.connections = [];
-        this.displayInfo = territoryInfo.displayInfo;
-        this.type = territoryInfo.type;
+        this.setBasicFields(territoryInfo);
         if (this.type === "land") {
             this.income = territoryInfo.income;
             this.country = countryObject;
             this.previousCountry = previousCountry;
+        }
+    };
+
+    Territory.prototype.setBasicFields = function (territoryInfo) {
+        this.name = territoryInfo.name;
+        this.displayName = territoryInfo.displayName;
+        this.connections = territoryInfo.connections;
+        this.displayInfo = territoryInfo.displayInfo;
+        this.type = territoryInfo.type;
+    };
+
+    Territory.prototype.update = function (territoryInfo) {
+        var board = _b.getBoard();
+
+        this.setBasicFields(territoryInfo);
+        if (this.isLand() && this.country.name != territoryInfo.country) {
+            this.country = board.getCountry(territoryInfo.country);
+            this.previousCountry = board.getCountry(territoryInfo.previousCountry);
         }
     };
 

@@ -6,22 +6,22 @@ from .Board import Board
 
 import json
 
-# Exports and imports board state
+# This file handles exporting game state, and creating a game state from a snapshot or module definition
+
+# Exporters
 def exportBoardToClient(board):
     allFields = [
         "countries",
-        "territoryInfo",
-        "territoryOwners",
-        "connections",
+        "territories",
         "units",
         "buyList",
         "conflicts",
         "currentPhase",
         "currentCountry",
+        "winningTeam",
 
         # Module info
-        "unitCatalogue",
-        "winningTeam"
+        "unitCatalogue"
     ]
     return getFields(board, allFields)
 
@@ -39,15 +39,6 @@ def getFields(board, fieldNames):
 def _getField(board, fieldName):
     if fieldName == "countries":
         return [c.toDict() for c in board.countries]
-    elif fieldName == "territoryInfo":
-        return board.territoryInfo
-    elif fieldName == "territoryOwners":
-        return {t.name: {
-            "current": t.country.name,
-            "previous": t.previousCountry.name
-        } for t in board.territories if t.isLand()}
-    elif fieldName == "connections":
-        return board.connections
     elif fieldName == "units":
         return [u.toDict() for u in board.units]
     elif fieldName == "buyList":
@@ -107,9 +98,9 @@ def loadFromModuleName(moduleName):
         if info["type"] == "land":
             startingCountry = _getOriginalOwner(countries, info)
             territories.append(
-                LandTerritory(info["name"], info["displayName"], info["income"], startingCountry))
+                LandTerritory(info["name"], info["displayName"], info["income"], startingCountry, info["displayInfo"]))
         elif info["type"] == "sea":
-            territories.append(SeaTerritory(info["name"], info["displayName"]))
+            territories.append(SeaTerritory(info["name"], info["displayName"], info["displayInfo"]))
         else:
             print("Territory info does not have valid type")
             print(info)
@@ -140,7 +131,7 @@ def loadFromModuleName(moduleName):
             for unitType in unitTypes:
                 units.append(Unit(unitInfoDict[unitType], territory.country, territory))
 
-    return Board([], territoryInfo, unitInfoDict, territories, units, countries, connections)
+    return Board([], unitInfoDict, territories, units, countries)
 
 
 def _getOriginalOwner(countries, terInfo):

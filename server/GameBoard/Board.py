@@ -5,7 +5,7 @@ from . import Util
 from .Components import Conflict
 
 class Board:
-    def __init__(self, players, territoryInfo, unitInfoDict, territories, units, countries, connections, phase=None):
+    def __init__(self, players, unitInfoDict, territories, units, countries, phase=None):
         self.players = players
         self.units = units
         self.buyList = []
@@ -15,9 +15,6 @@ class Board:
         self.countries = countries
         self.playableCountries = [c for c in countries if c.playable]
         self.territories = territories
-        self.connections = connections  # TODO dschwarz remove
-
-        self.territoryInfo = territoryInfo  # TODO dschwarz remove (export more info from territories)
         self.unitInfoDict = unitInfoDict
 
         # begin

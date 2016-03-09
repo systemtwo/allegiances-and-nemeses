@@ -53,7 +53,6 @@ function(_, backbone, ko, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialo
         // Info about the game that will remain constant
         this.info = {
             players: boardInfo.players,
-            connections: [],
             unitCatalogue: boardInfo.unitCatalogue
         };
 
@@ -64,11 +63,10 @@ function(_, backbone, ko, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialo
             return new _c.Country(countryInfo)
         });
 
-        boardInfo.territoryInfo.forEach(function(tInfo) {
-            var ownerInfo = boardInfo.territoryOwners[tInfo.name] || {};
-            var country = that.getCountry(ownerInfo.current);
-            var previous = !ownerInfo.previous || ownerInfo.previous == ownerInfo.current ? country : that.getCountry(ownerInfo.previous);
-            that.boardData.territories.push(new _c.Territory(tInfo, country, previous))
+        boardInfo.territories.forEach(function(territory) {
+            var country = that.getCountry(territory.country);
+            var previous = !territory.previousCountry || territory.previousCountry == territory.country ? country : that.getCountry(territory.previousCountry);
+            that.boardData.territories.push(new _c.Territory(territory, country, previous))
         });
 
         boardInfo.units.forEach(function(unit){
@@ -89,7 +87,7 @@ function(_, backbone, ko, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialo
             _helpers.phaseName(this.phaseName);
         }
 
-        this.initConnections(boardInfo);
+        this.initConnections();
         this.map.update(this.boardData);
         this.trigger("change");
     };
@@ -107,33 +105,26 @@ function(_, backbone, ko, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialo
 
     Game.prototype.updateConflicts = function () {
         var that = this;
-        _router.getFields(this.id, ["conflicts", "territoryOwners"]).done(function(response) {
+        _router.getFields(this.id, ["conflicts", "territories"]).done(function(response) {
             that.boardData.conflicts = response.conflicts;
-            _.each(response.territoryOwners, function (info, territoryName) {
-                var territory = that.getTerritory(territoryName);
-                if (territory.country.name != info.current) {
-                    territory.country = that.getCountry(info.current);
-                    territory.previousCountry = that.getCountry(info.previous);
-                }
+            _.each(response.territories, function (info) {
+                var territory = that.getTerritory(info.name);
+                territory.update(info);
             });
             that.trigger("change");
         })
     };
 
-    Game.prototype.initConnections = function(connectionJson) {
+    Game.prototype.initConnections = function() {
         var that = this;
-        connectionJson.connections.map(function(c) {
-            var first = null,
-                second = null;
-            that.boardData.territories.forEach(function(t) {
-                if (t.name == c[0]){
-                    first = t;
-                } else if (t.name == c[1]) {
-                    second = t;
+        that.boardData.territories.map(function(origin) {
+            origin.connections = origin.connections.map(function (neighbourName) {
+                var foundTerritory = _.findWhere(that.boardData.territories, {name: neighbourName});
+                if (!foundTerritory) {
+                    throw new Error("Could not find territory " + neighbourName);
                 }
+                return foundTerritory;
             });
-            first.connections.push(second);
-            second.connections.push(first);
         });
 
     };

@@ -1,8 +1,9 @@
 class BaseTerritory:
-    def __init__(self, name, displayName, territoryType):
+    def __init__(self, name, displayName, territoryType, displayInfo):
         self.name = name
         self.displayName = displayName
         self.connections = []
+        self.displayInfo = displayInfo
         self.type = territoryType
         # id tag
 
@@ -27,7 +28,10 @@ class BaseTerritory:
     def toDict(self):
         return {
             "name": self.name,
-            "type": self.type
+            "displayName": self.displayName,
+            "displayInfo": self.displayInfo,
+            "type": self.type,
+            "connections": [t.name for t in self.connections]
         }
 
     def reset(self):
@@ -35,13 +39,11 @@ class BaseTerritory:
 
 
 class LandTerritory(BaseTerritory):
-    def __init__(self, name, displayName, income, country):
-        BaseTerritory.__init__(self, name, displayName, "land")
-        self.connections = []
+    def __init__(self, name, displayName, income, country, displayInfo):
+        BaseTerritory.__init__(self, name, displayName, "land", displayInfo)
         self.income = income
         self.country = country
         self.previousCountry = country
-        self.type = "land"
 
     def reset(self):
         self.previousCountry = self.country
@@ -60,8 +62,8 @@ class LandTerritory(BaseTerritory):
 
 
 class SeaTerritory(BaseTerritory):
-    def __init__(self, name, displayName):
-        BaseTerritory.__init__(self, name, displayName, "sea")
+    def __init__(self, name, displayName, displayInfo):
+        BaseTerritory.__init__(self, name, displayName, "sea", displayInfo)
 
     def isSea(self):
         return True
