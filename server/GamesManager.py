@@ -1,11 +1,12 @@
 import Game
 
+import uuid
+
 """A class to manage games"""
 class GamesManager:
     def __init__(self):
         self.games = {}
-        self.lastId = 0
-    
+
     def getGame(self, gameId):
         if gameId in self.games:
             return self.games[gameId]
@@ -20,9 +21,9 @@ class GamesManager:
             return game.board
 
     def newGame(self, gameName, numPlayers, moduleName, creatorId):
-        self.lastId += 1
-        self.games[self.lastId] = Game.Game(gameName, numPlayers, moduleName, creatorId)
-        return self.lastId
+        gameId = str(uuid.uuid4())
+        self.games[gameId] = Game.Game(gameName, numPlayers, moduleName, creatorId)
+        return gameId
 
     def listGames(self):
         #Have this return a more lightweight representation instead, like board 
