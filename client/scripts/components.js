@@ -54,7 +54,9 @@ define(["gameAccessor", "helpers"], function(_b, _h) {
         return false;
     };
 
+    // IMPORTANT: call initConnections after creating all territories
     var Territory = function(territoryInfo, countryObject, previousCountry) {
+        this.connections = territoryInfo.connections;
         this.setBasicFields(territoryInfo);
         if (this.type === "land") {
             this.income = territoryInfo.income;
@@ -63,10 +65,10 @@ define(["gameAccessor", "helpers"], function(_b, _h) {
         }
     };
 
+    // Does not update connections
     Territory.prototype.setBasicFields = function (territoryInfo) {
         this.name = territoryInfo.name;
         this.displayName = territoryInfo.displayName;
-        this.connections = territoryInfo.connections;
         this.displayInfo = territoryInfo.displayInfo;
         this.type = territoryInfo.type;
     };
@@ -114,7 +116,7 @@ define(["gameAccessor", "helpers"], function(_b, _h) {
     Territory.prototype.enemyUnits = function (country) {
         var that = this;
         return _b.getBoard().boardData.units.filter(function(u) {
-            return country.team == u.country.team && u.territory === that;
+            return country.team != u.country.team && u.territory === that;
         })
     };
 

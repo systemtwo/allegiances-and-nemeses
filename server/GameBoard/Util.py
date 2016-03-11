@@ -27,11 +27,13 @@ def isFlying(unitType):
         return True
 
 
-def allied(a, b):
+def allied(a, b, relevantUnits):
     """
     Returns true if a is allied to b
     :param a: Accepts a land or sea territory instance, a unit instance, or a country instance
     :param b:
+    :param relevantUnits: When determining if a sea territory is allied to a country, it is necessary to check if any
+    unallied units are in that territory
     :return:
     """
     if hasattr(a, "country"):
@@ -41,15 +43,18 @@ def allied(a, b):
 
     # doesn't have attr country, and doesn't have a team
     if not hasattr(a, "team"):
-        return friendlySeaTerritory(a, b)
+        return friendlySeaTerritory(a, b, relevantUnits)
     elif not hasattr(b, "team"):
-        return friendlySeaTerritory(b, a)
+        return friendlySeaTerritory(b, a, relevantUnits)
+    else:
+        return alliedCountries(a, b)
 
+def alliedCountries(a, b):
     return a.team == b.team
 
 
-def friendlySeaTerritory(sea, country):
-    return len(sea.enemyUnits(country)) == 0
+def friendlySeaTerritory(sea, country, relevantUnits):
+    return len(enemyUnits(relevantUnits, country, sea)) == 0
 
 
 def calculateDistance(start, goal, unit, allUnits):
@@ -180,8 +185,8 @@ def unitsInTerritory(allUnits, territory):
             unitList.append(u)
     return unitList
 
-def enemyUnits(units, country):
-    return [u for u in units if not allied(u.country, country)]
+def enemyUnits(units, country, territory):
+    return [u for u in units if u.territory == territory and not alliedCountries(u.country, country)]
 
 def getByName(items, name):
     name = str(name)
@@ -214,10 +219,10 @@ def canMoveThrough(unit, territory, allUnits):
             # can move if no destroyers present
             if not containsUnitType(territory, "destroyer"):
                 return True
-        if len(enemyUnits(allUnits, unit.country)) == 0:
+        if friendlySeaTerritory(territory, unit.country, allUnits):
             return True
 
     elif territory.type is "land":
-        if allied(territory, unit.country):
+        if alliedCountries(territory.country, unit.country):
             return True
     return False

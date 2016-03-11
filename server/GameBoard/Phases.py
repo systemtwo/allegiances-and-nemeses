@@ -91,7 +91,7 @@ class BaseMovePhase(object):
     def canMove(self, unit, destination):
         def getDistance():
             return Util.calculateDistance(unit.territory, destination, unit, self.board.units)
-        return  unit.country is self.board.currentCountry and getDistance() is not -1
+        return unit.country is self.board.currentCountry and getDistance() is not -1
 
     def nextPhase(self):
         # move all units without conflicts
@@ -188,13 +188,13 @@ class MovementPhase(BaseMovePhase):
     # can move units that haven't moved in the attack phase, or planes that need to land
     # can't move into enemy territories
     def canMove(self, unit, destination):
-        if not Util.allied(destination, unit.country) \
+        if not Util.allied(destination, unit.country, self.board.units) \
                 or not super(MovementPhase, self).canMove(unit, destination):
             return False
 
         if unit.isFlying():
             # Gotta have an airport to land in or sometin
-            if hasattr(destination, "previousCountry") and not Util.allied(destination.previousCountry, unit.country):
+            if hasattr(destination, "previousCountry") and not Util.alliedCountries(destination.previousCountry, unit.country):
                 return False
 
             previousMove = Util.calculateDistance(unit.originalTerritory, unit.territory, unit, self.board.units)

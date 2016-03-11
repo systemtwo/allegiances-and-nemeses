@@ -154,21 +154,22 @@ class Board:
         def filterForConflicts(t):
             units = [u for u in self.units if u.movedToTerritory == t]
             if t.isLand():
-                return len([u for u in units if not Util.allied(u, t)]) > 0
+                return len([u for u in units if not Util.allied(u, t, units)]) > 0
             else:
-                containsUnallied = False
+                containsUnallied = False  # whether there a units from two different teams in a single territory
                 for i, j in itertools.combinations(units, 2):
-                    if not Util.allied(i, j):
+                    if not Util.alliedCountries(i.country, j.country):
                         containsUnallied = True
                         break
                 return containsUnallied
 
         def getAttackers(territory):
-            return [u for u in self.units if u.movedToTerritory == territory and Util.allied(u, self.currentCountry)]
+            return [u for u in self.units
+                    if u.movedToTerritory == territory and Util.alliedCountries(u.country, self.currentCountry)]
 
         def getDefenders(territory):
             return [u for u in self.units if
-                    u.movedToTerritory == territory and not Util.allied(u, self.currentCountry)]
+                    u.movedToTerritory == territory and not Util.alliedCountries(u.country, self.currentCountry)]
 
         allConflicts = [Conflict(self, t, getAttackers(t), getDefenders(t), None, None) for t in self.territories if
                         filterForConflicts(t)]
