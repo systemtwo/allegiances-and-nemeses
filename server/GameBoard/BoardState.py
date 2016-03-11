@@ -1,10 +1,11 @@
+import json
+from GameBoard.Conflict import Conflict, BattleReport
+
 import Util
 from .Country import Country
 from .Territory import LandTerritory, SeaTerritory
 from .Unit import Unit, UnitInfo
 from .Board import Board
-
-import json
 
 # This file handles exporting game state, and creating a game state from a snapshot or module definition
 
@@ -26,6 +27,7 @@ def exportBoardToClient(board):
     clientFields.append("conflicts")
     return getFields(board, clientFields)
 
+
 # needed to export/import board state for save games, debugging, etc
 def exportBoardState(board):
     clientFields = _sharedFields[:]
@@ -38,6 +40,7 @@ def getFields(board, fieldNames):
     for field in fieldNames:
         fieldValues[field] = _getField(board, field)
     return fieldValues
+
 
 def _getField(board, fieldName):
     if fieldName == "countries":
@@ -57,7 +60,7 @@ def _getField(board, fieldName):
     elif fieldName == "unitCatalogue":
         return {
             unitType: info.toDict() for unitType, info in board.unitInfoDict.iteritems()
-        }
+            }
     elif fieldName == "winningTeam":
         return board.winningTeam
 
@@ -75,17 +78,65 @@ def _getField(board, fieldName):
 
 
 # Importers
+
+def createTerritory(info, countries):
+    if info["type"] == "land":
+        startingCountry = _getOriginalOwner(countries, info)
+        return LandTerritory(info["name"], info["displayName"], info["income"], startingCountry, info["displayInfo"])
+    elif info["type"] == "sea":
+        return SeaTerritory(info["name"], info["displayName"], info["displayInfo"])
+    else:
+        raise Exception("Territory info does not have valid type")
+
+
+def createCountry(info):
+    return Country(info["name"], info["displayName"], info["team"], info["color"], info["selectableColor"], info["playable"])
+
+
 def loadFromDict(fields):
-    pass
+    countries = [createCountry(countryInfo) for countryInfo in fields["countries"]]
+    territories = [createTerritory(tInfo, countries) for tInfo in fields["territories"]]
+
+    for info in fields["territories"]:
+        territory = Util.getByName(territories, info["name"])
+        territory.connections = [Util.getByName(territories, neighbour) for neighbour in info["connections"]]
+
+    unitInfo = {unitType: UnitInfo(unitType, unitInfo) for unitType, unitInfo in fields["unitCatalogue"].items()}
+
+    units = []
+    for unitDef in fields["units"]:
+        newUnit = Unit(unitInfo[unitDef["type"]], unitDef["country"], unitDef["beginningOfPhaseTerritory"])
+        newUnit.originalTerritory = unitDef["beginningOfTurnTerritory"]
+        units.append(newUnit)
+
+    board = Board([], unitInfo, territories, units, countries, fields["phaseName"])
+    for conflict in fields["pastConflicts"]:
+        conflict = Conflict(board,
+                            Util.getByName(territories, conflict["territoryName"]),
+                            [Util.getByName(units, unit["name"]) for unit in conflict["attackers"]],
+                            [Util.getByName(units, unit["name"]) for unit in conflict["defenders"]],
+                            Util.getByName(countries, conflict["attackingCountry"]),
+                            Util.getByName(countries, conflict["defendingCountry"]))
+
+        conflict.reports = [
+            BattleReport(survivors={
+                "attack": report["survivingAttackers"],
+                "defence": report["survivingDefenders"]
+            }, casualties={
+                "attack": report["deadAttackers"],
+                "defence": report["deadDefenders"]
+            })
+            for report in conflict["reports"]
+        ]
+        board.resolvedConflicts.append(conflict)
+    board.currentCountry = Util.getByName(countries, fields["currentCountry"])
+    return board
 
 
 def loadFromModuleName(moduleName):
     # load json from module
     with open(Util.countryFileName(moduleName)) as countryInfo:
-        countries = [
-            Country(c["name"], c["displayName"], c["team"], c["color"], c["selectableColor"], c["playable"]) for c
-            in
-            json.load(countryInfo)]
+        countries = [createCountry(cInfo) for cInfo in json.load(countryInfo)]
 
     with open(Util.unitFileName(moduleName)) as unitInfo:
         unitCatalogue = json.load(unitInfo)
@@ -95,17 +146,7 @@ def loadFromModuleName(moduleName):
     with open(Util.territoryFileName(moduleName)) as territoryInfo:
         territoryInfo = json.load(territoryInfo)
 
-    territories = []
-    for info in territoryInfo:
-        if info["type"] == "land":
-            startingCountry = _getOriginalOwner(countries, info)
-            territories.append(
-                LandTerritory(info["name"], info["displayName"], info["income"], startingCountry, info["displayInfo"]))
-        elif info["type"] == "sea":
-            territories.append(SeaTerritory(info["name"], info["displayName"], info["displayInfo"]))
-        else:
-            print("Territory info does not have valid type")
-            print(info)
+    territories = [createTerritory(info, countries) for info in territoryInfo]
 
     with open(Util.connectionFileName(moduleName)) as connections:
         connections = json.load(connections)

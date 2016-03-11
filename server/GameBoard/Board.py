@@ -1,11 +1,11 @@
 import itertools
 
-from .Phases import BuyPhase
+from .Phases import BuyPhase, AttackPhase, ResolvePhase, MovementPhase, PlacementPhase
 from . import Util
-from .Components import Conflict
+from .Conflict import Conflict
 
 class Board:
-    def __init__(self, players, unitInfoDict, territories, units, countries, phase=None):
+    def __init__(self, players, unitInfoDict, territories, units, countries, phaseName=None):
         self.players = players
         self.units = units
         self.buyList = []
@@ -22,10 +22,19 @@ class Board:
             self.collectIncome(c)
         self.currentCountry = self.playableCountries[0]
 
-        if phase:
-            self.currentPhase = phase
+        if phaseName:
+            if phaseName == "BuyPhase":
+                self.currentPhase = BuyPhase(self)
+            elif phaseName == "AttackPhase":
+                self.currentPhase = AttackPhase(self)
+            elif phaseName == "ResolvePhase":
+                self.currentPhase = ResolvePhase(self)
+            elif phaseName == "MovementPhase":
+                self.currentPhase = MovementPhase(self)
+            elif phaseName == "PlacementPhase":
+                self.currentPhase = PlacementPhase(self)
         else:
-            self.currentPhase = BuyPhase(self.currentCountry.money, self)
+            self.currentPhase = BuyPhase(self)
 
         self.validateInfo()
 

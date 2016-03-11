@@ -1,4 +1,4 @@
-from .Components import ConflictOutcomes
+from .Conflict import ConflictOutcomes
 from .Unit import Unit, BoughtUnit
 from . import Util
 
