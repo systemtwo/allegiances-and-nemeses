@@ -105,18 +105,21 @@ def loadFromDict(fields):
 
     units = []
     for unitDef in fields["units"]:
-        newUnit = Unit(unitInfo[unitDef["type"]], unitDef["country"], unitDef["beginningOfPhaseTerritory"])
-        newUnit.originalTerritory = unitDef["beginningOfTurnTerritory"]
+        newUnit = Unit(
+            unitInfo[unitDef["type"]],
+            Util.getByName(countries, unitDef["country"]),
+            Util.getByName(territories, unitDef["beginningOfPhaseTerritory"]))
+        newUnit.originalTerritory = Util.getByName(territories, unitDef["beginningOfTurnTerritory"])
         units.append(newUnit)
 
-    board = Board([], unitInfo, territories, units, countries, fields["phaseName"])
-    for conflict in fields["pastConflicts"]:
+    board = Board([], unitInfo, territories, units, countries, fields["currentPhase"])
+    for conflictInfo in fields["pastConflicts"]:
         conflict = Conflict(board,
-                            Util.getByName(territories, conflict["territoryName"]),
-                            [Util.getByName(units, unit["name"]) for unit in conflict["attackers"]],
-                            [Util.getByName(units, unit["name"]) for unit in conflict["defenders"]],
-                            Util.getByName(countries, conflict["attackingCountry"]),
-                            Util.getByName(countries, conflict["defendingCountry"]))
+                            Util.getByName(territories, conflictInfo["territoryName"]),
+                            [Util.getByName(units, unit["name"]) for unit in conflictInfo["attackers"]],
+                            [Util.getByName(units, unit["name"]) for unit in conflictInfo["defenders"]],
+                            Util.getByName(countries, conflictInfo["attackingCountry"]),
+                            Util.getByName(countries, conflictInfo["defendingCountry"]))
 
         conflict.reports = [
             BattleReport(survivors={
@@ -126,7 +129,7 @@ def loadFromDict(fields):
                 "attack": report["deadAttackers"],
                 "defence": report["deadDefenders"]
             })
-            for report in conflict["reports"]
+            for report in conflictInfo["reports"]
         ]
         board.resolvedConflicts.append(conflict)
     board.currentCountry = Util.getByName(countries, fields["currentCountry"])

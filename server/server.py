@@ -1,5 +1,6 @@
 import os.path
 import json
+import errno
 
 import tornado.ioloop
 import tornado.web
@@ -10,7 +11,8 @@ import GamesManager
 from MapEditorHandler import MapEditorHandler
 from ActionHandler import ActionHandler
 from AuthHandlers import LoginHandler, LogoutHandler, BaseAuthHandler
-from LobbyHandlers import LobbyHandler, LobbyCreateHandler, LobbyGameHandler, LobbyGameJoinHandler, LobbyGameBeginHandler, LobbyGameUpdateHandler, LobbyGameDeleteHandler
+from LobbyHandlers import LobbyHandler, LobbyCreateHandler, LobbyGameHandler, LobbyGameJoinHandler, LobbyGameBeginHandler, LobbyGameUpdateHandler, LobbyGameDeleteHandler, \
+    LobbySaveGameHandler, LobbyLoadGameHandler
 from GameHandler import GameHandler
 
 from GameBoard import BoardState
@@ -72,12 +74,32 @@ class BoardsHandler(BaseAuthHandler):
         return
 
 
+def createSaveFileIfMissing():
+    # http://stackoverflow.com/a/10979569
+    flags = os.O_CREAT | os.O_EXCL | os.O_WRONLY
+
+    try:
+        file_handle = os.open('saveGames.json', flags)
+    except OSError as e:
+        if e.errno == errno.EEXIST:  # Failed as the file already exists.
+            pass
+        else:  # Something unexpected went wrong so reraise the exception.
+            raise
+    else:  # No exception, so the file must have been created successfully.
+        with os.fdopen(file_handle, 'w') as file_obj:
+            # Using `os.fdopen` converts the handle to an object that acts like a
+            # regular Python file object, and the `with` context manager means the
+            # file will be automatically closed when we're done with it.
+            file_obj.write("{}")
+
 class Server:
     def __init__(self, config):
         html_path = os.path.join(config.STATIC_CONTENT_PATH, "html")
         port = 8888
 
         self.gamesManager = GamesManager.GamesManager()
+
+        createSaveFileIfMissing()
 
         self.app = tornado.web.Application([
             (r"/", IndexHandler, dict(html_path=html_path)),
@@ -115,6 +137,10 @@ class Server:
             (r"/lobby/(?P<gameId>[A-z0-9\-]+)/begin/?", LobbyGameBeginHandler, dict(config=config, gamesManager=self.gamesManager)),
             (r"/lobby/(?P<gameId>[A-z0-9\-]+)/update/?", LobbyGameUpdateHandler, dict(config=config, gamesManager=self.gamesManager)),
             (r"/lobby/(?P<gameId>[A-z0-9\-]+)/delete/?", LobbyGameDeleteHandler, dict(config=config, gamesManager=self.gamesManager)),
+
+            #Load/Save games
+            (r"/save/(?P<gameId>[A-z0-9\-]+)/?", LobbySaveGameHandler, dict(config=config, gamesManager=self.gamesManager)),
+            (r"/load/(?P<saveGameId>[A-z0-9\-]+)/?", LobbyLoadGameHandler, dict(config=config, gamesManager=self.gamesManager)),
 
             #Static files
             (r"/shared/(.*)", utils.NoCacheStaticFileHandler, {"path": config.SHARED_CONTENT_PATH}),

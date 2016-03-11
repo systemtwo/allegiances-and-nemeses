@@ -23,6 +23,7 @@ class Country:
             "team": self.team,
             "money": self.money,
             "color": self.color,
+            "playable": self.playable,
             "selectableColor": self.selectableColor
         }
 

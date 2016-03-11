@@ -215,5 +215,15 @@ class LobbyGameDeleteHandler(BaseLobbyHandler):
     def get(self, **params):
         pass
 
+class LobbySaveGameHandler(BaseLobbyHandler):
+    @tornado.web.authenticated
+    def get(self, **params):
+        saveGameId = self.gamesManager.saveGame(params['gameId'])
+        self.write(saveGameId)
 
 
+class LobbyLoadGameHandler(BaseLobbyHandler):
+    @tornado.web.authenticated
+    def get(self, **params):
+        gameId = self.gamesManager.loadGame(params['saveGameId'])
+        self.redirect("/lobby/" + gameId)
