@@ -97,6 +97,7 @@ class LobbyGameHandler(BaseLobbyHandler):
         self.render(os.path.join("..", self.LOBBY_HTML_PATH, "lobbygameinfo.html"))
 
     # Change the game settings, eg. Player <-> Country mapping
+    #TODO: Remove this
     def post(self, **params):
         userInput = {}
 
