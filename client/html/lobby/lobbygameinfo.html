@@ -1,13 +1,120 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Lobby</title>
+        <title>New Game</title>
         <link href="/static/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all">
+        <link href="/static/css/lobby.css" rel="stylesheet" type="text/css" media="all">
     </head>
 
     <body>
         <div class="container">
-            Hello, World!
+            <div class="row">
+                <div class="col-md-3">
+                    <form>
+                        <div class="form-group">
+                            <label for="roomNameText">Room Name</label>
+                            <input type="text" class="form-control" id="roomNameText" placeholder="Room Name">
+                        </div>
+                        <div class="form-group">
+                            <label for="moduleName">Map</label>
+                            <select id="moduleName">
+                                <option>Classic</option>
+                                <option>Modern</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="numPlayers">Number of players</label>
+                            <select id="numPlayers">
+                                <option>1</option>
+                                <option>2</option>
+                                <option>3</option>
+                                <option>4</option>
+                                <option>5</option>
+                            </select>
+                        </div>
+
+                        <img class="center-block" src="https://placehold.it/250x200" />
+                        
+                        <div class="form-group">
+                            <button class="btn btn-primary pull-right space-out">Create Game</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-9">
+                    <h2>Faction 1</h2>
+                    <div class="columnize">
+                        <div class="item">
+                            <div class="panel panel-primary">
+                                <div class="panel-heading">
+                                    Country Name
+                                    <div class="pull-right">
+                                        <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                    </div>
+                                </div>
+                                <div class="panel-body">
+                                    John Smith
+                                </div>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    Country Name
+                                    <div class="pull-right">
+                                        <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                    </div>
+                                </div>
+                                <div class="panel-body">
+                                    Panel body goes here
+                                </div>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    Country Name
+                                    <div class="pull-right">
+                                        <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                    </div>
+                                </div>
+                                <div class="panel-body">
+                                    Panel body goes here
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <h2>Faction 2</h2>
+                    <div class="columnize">
+                        <div class="item">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    Country Name
+                                    <div class="pull-right">
+                                        <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                    </div>
+                                </div>
+                                <div class="panel-body">
+                                    Panel body goes here
+                                </div>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    Country Name
+                                    <div class="pull-right">
+                                        <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                    </div>
+                                </div>
+                                <div class="panel-body">
+                                    Panel body goes here
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </body>
 </html>
