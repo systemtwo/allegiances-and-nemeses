@@ -1,0 +1,41 @@
+/*Columnizer*/
+.columnize {
+ -moz-column-width: 18em;
+ -webkit-column-width: 18em;
+ -moz-column-gap: 1em;
+ -webkit-column-gap:1em; 
+}
+
+.item {
+ display: inline-block;
+ padding:  .25rem;
+ width:  100%; 
+}
+
+.panel-tile {
+ position:relative;
+ display: block;
+}
+
+/*Spacing utils*/
+.space-out {
+    margin: 5px;
+}
+
+.space-top {
+    margin-top: 5px;
+}
+
+.space-top-lots {
+    margin-top: 15px;
+}
+
+/*Custom panel styling*/
+.panel-hoverable:hover {
+    box-shadow: 0px 0px 8px rgba(82, 168, 236, 0.6);
+}
+
+/*Text*/
+.text-placeholder {
+    color: #767676;
+}
