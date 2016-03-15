@@ -9,6 +9,10 @@
     <body>
         <div class="container">
             <div class="row">
+                <h1>Create Game</h1>
+            </div>
+
+            <div class="row">
                 <div class="col-md-3">
                     <form>
                         <div class="form-group">
@@ -34,18 +38,20 @@
                             </select>
                         </div>
 
-                        <img class="center-block" src="https://placehold.it/250x200" />
+                        <label for="mapPreview">Map Preview</label>
+                        <img id="mapPreview" class="center-block img-responsive" src="https://placehold.it/250x200" />
                         
                         <div class="form-group">
                             <button class="btn btn-primary pull-right space-out">Create Game</button>
                         </div>
                     </form>
+                    <div class="clearfix"></div>
                 </div>
                 <div class="col-md-9">
                     <h2>Faction 1</h2>
                     <div class="columnize">
                         <div class="item">
-                            <div class="panel panel-primary">
+                            <div class="panel panel-primary panel-hoverable">
                                 <div class="panel-heading">
                                     Country Name
                                     <div class="pull-right">
@@ -53,12 +59,12 @@
                                     </div>
                                 </div>
                                 <div class="panel-body">
-                                    John Smith
+                                    <strong>John Smith</strong>
                                 </div>
                             </div>
                         </div>
                         <div class="item">
-                            <div class="panel panel-default">
+                            <div class="panel panel-default panel-hoverable">
                                 <div class="panel-heading">
                                     Country Name
                                     <div class="pull-right">
@@ -66,12 +72,12 @@
                                     </div>
                                 </div>
                                 <div class="panel-body">
-                                    Panel body goes here
+                                    <span class="text-placeholder">Click to claim country</span>
                                 </div>
                             </div>
                         </div>
                         <div class="item">
-                            <div class="panel panel-default">
+                            <div class="panel panel-default panel-hoverable">
                                 <div class="panel-heading">
                                     Country Name
                                     <div class="pull-right">
@@ -79,7 +85,7 @@
                                     </div>
                                 </div>
                                 <div class="panel-body">
-                                    Panel body goes here
+                                    <span class="text-placeholder">Click to claim country</span>
                                 </div>
                             </div>
                         </div>
@@ -87,7 +93,7 @@
                     <h2>Faction 2</h2>
                     <div class="columnize">
                         <div class="item">
-                            <div class="panel panel-default">
+                            <div class="panel panel-default panel-hoverable">
                                 <div class="panel-heading">
                                     Country Name
                                     <div class="pull-right">
@@ -95,12 +101,12 @@
                                     </div>
                                 </div>
                                 <div class="panel-body">
-                                    Panel body goes here
+                                    <span class="text-placeholder">Click to claim country</span>
                                 </div>
                             </div>
                         </div>
                         <div class="item">
-                            <div class="panel panel-default">
+                            <div class="panel panel-default panel-hoverable">
                                 <div class="panel-heading">
                                     Country Name
                                     <div class="pull-right">
@@ -108,7 +114,7 @@
                                     </div>
                                 </div>
                                 <div class="panel-body">
-                                    Panel body goes here
+                                    <span class="text-placeholder">Click to claim country</span>
                                 </div>
                             </div>
                         </div>
