@@ -226,4 +226,4 @@ class LobbyLoadGameHandler(BaseLobbyHandler):
     @tornado.web.authenticated
     def get(self, **params):
         gameId = self.gamesManager.loadGame(params['saveGameId'])
-        self.redirect("/lobby/" + gameId)
+        self.redirect("/game/" + gameId)

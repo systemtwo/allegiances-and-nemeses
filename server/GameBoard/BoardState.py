@@ -1,10 +1,11 @@
 import json
-from GameBoard.Conflict import Conflict, BattleReport
 
 import Util
+import Conflict
 from .Country import Country
 from .Territory import LandTerritory, SeaTerritory
-from .Unit import Unit, UnitInfo
+import Unit
+from .Unit import UnitInfo
 from .Board import Board
 
 # This file handles exporting game state, and creating a game state from a snapshot or module definition
@@ -90,7 +91,10 @@ def createTerritory(info, countries):
 
 
 def createCountry(info):
-    return Country(info["name"], info["displayName"], info["team"], info["color"], info["selectableColor"], info["playable"])
+    country = Country(info["name"], info["displayName"], info["team"], info["color"], info["selectableColor"], info["playable"])
+    if "player" in info:
+        country.setPlayer(info["player"])
+    return country
 
 
 def loadFromDict(fields):
@@ -105,32 +109,14 @@ def loadFromDict(fields):
 
     units = []
     for unitDef in fields["units"]:
-        newUnit = Unit(
-            unitInfo[unitDef["type"]],
-            Util.getByName(countries, unitDef["country"]),
-            Util.getByName(territories, unitDef["beginningOfPhaseTerritory"]))
-        newUnit.originalTerritory = Util.getByName(territories, unitDef["beginningOfTurnTerritory"])
+        newUnit = Unit.fromDict(unitDef, unitInfo, countries, territories)
         units.append(newUnit)
 
-    board = Board([], unitInfo, territories, units, countries, fields["currentPhase"])
+    board = Board(unitInfo, territories, units, countries, fields["currentPhase"])
     for conflictInfo in fields["pastConflicts"]:
-        conflict = Conflict(board,
-                            Util.getByName(territories, conflictInfo["territoryName"]),
-                            [Util.getByName(units, unit["name"]) for unit in conflictInfo["attackers"]],
-                            [Util.getByName(units, unit["name"]) for unit in conflictInfo["defenders"]],
-                            Util.getByName(countries, conflictInfo["attackingCountry"]),
-                            Util.getByName(countries, conflictInfo["defendingCountry"]))
+        conflict = Conflict.fromDict(conflictInfo, board)
 
-        conflict.reports = [
-            BattleReport(survivors={
-                "attack": report["survivingAttackers"],
-                "defence": report["survivingDefenders"]
-            }, casualties={
-                "attack": report["deadAttackers"],
-                "defence": report["deadDefenders"]
-            })
-            for report in conflictInfo["reports"]
-        ]
+
         board.resolvedConflicts.append(conflict)
     board.currentCountry = Util.getByName(countries, fields["currentCountry"])
     return board
@@ -175,9 +161,9 @@ def loadFromModuleName(moduleName):
             territory = Util.getByName(territories, tName)
             assert territory is not None, "Invalid territory name %r" % tName
             for unitType in unitTypes:
-                units.append(Unit(unitInfoDict[unitType], territory.country, territory))
+                units.append(Unit.Unit(unitInfoDict[unitType], territory.country, territory))
 
-    return Board([], unitInfoDict, territories, units, countries)
+    return Board(unitInfoDict, territories, units, countries)
 
 
 def _getOriginalOwner(countries, terInfo):

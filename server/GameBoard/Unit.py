@@ -1,13 +1,16 @@
 from . import UniqueId
+import uuid
+from GameBoard import Util
 
 
 class Unit:
-    def __init__(self, unitInfo, country, territory):
+    def __init__(self, unitInfo, country, territory, overrideId=None):
         """
         Creates a single unit
         :param unitInfo: UnitInfo
         :param country: Country
         :param territory: Territory
+        :param overrideId: String Use the given id instead of generating a new id
         """
         assert hasattr(territory, "name")
         assert hasattr(country, "name")
@@ -17,7 +20,10 @@ class Unit:
         self.territory = territory
         self.originalTerritory = territory
         self.country = country
-        self.id = UniqueId.getUniqueId()
+        if overrideId:
+            self.id = overrideId
+        else:
+            self.id = UniqueId.getUniqueId()
 
     def reset(self):
         self.originalTerritory = self.territory
@@ -45,6 +51,14 @@ class Unit:
             "country": self.country.name
         }
 
+def fromDict(unitDef, allUnitInfo, countries, territories):
+    unit = Unit(
+        allUnitInfo[unitDef["type"]],
+        Util.getByName(countries, unitDef["country"]),
+        Util.getByName(territories, unitDef["beginningOfPhaseTerritory"]),
+        uuid.UUID(unitDef["id"]))
+    unit.originalTerritory = Util.getByName(territories, unitDef["beginningOfTurnTerritory"])
+    return unit
 
 class BoughtUnit:
     def __init__(self, unitType, territory):

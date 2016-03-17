@@ -5,8 +5,7 @@ from . import Util
 from .Conflict import Conflict
 
 class Board:
-    def __init__(self, players, unitInfoDict, territories, units, countries, phaseName=None):
-        self.players = players
+    def __init__(self, unitInfoDict, territories, units, countries, phaseName=None):
         self.units = units
         self.buyList = []
         self.winningTeam = None
@@ -56,7 +55,7 @@ class Board:
     def addPlayerToCountry(self, userId, countryName):
         for c in self.countries:
             if countryName == c.name:
-                c.player = userId
+                c.setPlayer(userId)
                 return True
 
         print ("Cannot add player to country", countryName)

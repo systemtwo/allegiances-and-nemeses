@@ -16,6 +16,9 @@ class Country:
 
         self.money -= amount
 
+    def setPlayer(self, userId):
+        self.player = userId
+
     def toDict(self):
         return {
             "name": self.name,
@@ -24,6 +27,7 @@ class Country:
             "money": self.money,
             "color": self.color,
             "playable": self.playable,
+            "player": self.player,  # optional field
             "selectableColor": self.selectableColor
         }
 
