@@ -7,7 +7,7 @@ function(buy, attack, resolve, move, place, observe, victory) {
         "MovementPhase": move,
         "PlacementPhase": place,
         "ObservePhase": observe,
-        "Victory": victory,
+        "Victory": victory
     };
     return {
         createPhase: function (phaseName) {

@@ -5,6 +5,9 @@ import errno
 import tornado.ioloop
 import tornado.web
 
+import sockjs.tornado
+from GameConnection import GameConnection, GameSocketRouter
+
 import Sessions
 import utils
 import GamesManager
@@ -96,10 +99,12 @@ class Server:
     def __init__(self, config):
         html_path = os.path.join(config.STATIC_CONTENT_PATH, "html")
         port = 8888
+        gameSocketRouter = GameSocketRouter(GameConnection, '/gameStream')
 
         self.gamesManager = GamesManager.GamesManager()
 
         createSaveFileIfMissing()
+
 
         self.app = tornado.web.Application([
             (r"/", IndexHandler, dict(html_path=html_path)),
@@ -117,7 +122,7 @@ class Server:
             #Consider renaming to /games/
             (r"/boardInfo/(?P<boardId>[A-z0-9\-]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID, gamesManager=self.gamesManager)), #Consider using named regex here
             (r"/getFields/(?P<boardId>[A-z0-9\-]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.GET_FIELDS, gamesManager=self.gamesManager)),
-            (r"/boards/(?P<boardId>[A-z0-9\-]+)/action/?", ActionHandler, dict(config=config, gamesManager=self.gamesManager)),
+            (r"/boards/(?P<boardId>[A-z0-9\-]+)/action/?", ActionHandler, dict(config=config, gamesManager=self.gamesManager, gameSocket=gameSocketRouter)),
 
             #Serve the static game page
             (r"/game/?", GameHandler, dict(config=config)),
@@ -145,7 +150,7 @@ class Server:
             #Static files
             (r"/shared/(.*)", utils.NoCacheStaticFileHandler, {"path": config.SHARED_CONTENT_PATH}),
             (r"/static/(.*)", utils.NoCacheStaticFileHandler, {"path": config.STATIC_CONTENT_PATH}), #This is not a great way of doing this TODO: Change this to be more intuative
-        ],
+        ] + gameSocketRouter.urls,
         cookie_secret=config.COOKIE_SECRET,
         login_url="/login",
         debug=True

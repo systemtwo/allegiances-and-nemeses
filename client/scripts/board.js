@@ -56,7 +56,9 @@ function(_, backbone, ko, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialo
             unitCatalogue: boardInfo.unitCatalogue
         };
 
-        this.isPlayerTurn = boardInfo.isPlayerTurn;
+        if (_.isBoolean(boardInfo.isPlayerTurn)) {
+            this.isPlayerTurn = boardInfo.isPlayerTurn;
+        }
         this.winningTeam = boardInfo.winningTeam;
 
         this.boardData.countries = boardInfo.countries.map(function(countryInfo) {
@@ -75,17 +77,22 @@ function(_, backbone, ko, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialo
 
         this.currentCountry = that.getCountry(boardInfo.currentCountry);
         _helpers.countryName(this.currentCountry.displayName);
-        this.phaseName = boardInfo.currentPhase;
         if (this.winningTeam) {
             this.currentPhase = phaseHelper.createPhase("Victory")
         } else {
+            var phaseName;
             if (this.isCurrentPlayersTurn()) {
-                this.currentPhase = phaseHelper.createPhase(boardInfo.currentPhase);
+                phaseName = boardInfo.currentPhase;
             } else {
-                this.currentPhase = phaseHelper.createPhase("ObservePhase");
+                phaseName = "ObservePhase";
             }
-            _helpers.phaseName(this.phaseName);
+            if (this.currentPhaseName() != phaseName) {
+                console.log("Changing Phase");
+                this.currentPhase = phaseHelper.createPhase(phaseName);
+            }
         }
+        this.phaseName = boardInfo.currentPhase;
+        _helpers.phaseName(this.phaseName);
 
         this.initConnections();
         this.map.update(this.boardData);

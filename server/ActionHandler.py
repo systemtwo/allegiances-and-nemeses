@@ -10,13 +10,15 @@ import Sessions
 
 
 class ActionHandler(BaseAuthHandler):
-    def initialize(self, config, gamesManager):
+    def initialize(self, config, gamesManager, gameSocket):
         super(ActionHandler, self).initialize(config=config)
         self.gamesManager = gamesManager
+        self.gameSocket = gameSocket
 
     @tornado.web.authenticated
     def post(self, **params):
-        board = self.gamesManager.getBoard(str(params["boardId"]))
+        boardId = str(params["boardId"])
+        board = self.gamesManager.getBoard(boardId)
 
         def territoryByName(tName):
             return Util.getByName(board.territories, tName)
@@ -36,7 +38,8 @@ class ActionHandler(BaseAuthHandler):
 
         #See if it is the user's turn
         userSession = Sessions.SessionManager.getSession(self.current_user)
-        if not board.isPlayersTurn(userSession.getValue("userid")):
+        userId = userSession.getValue("userid")
+        if not board.isPlayersTurn(userId):
             self.send_error(403)  # Forbidden
             return
 
@@ -109,6 +112,8 @@ class ActionHandler(BaseAuthHandler):
 
         else:
             self.send_error()
+
+        self.gameSocket.notifyByGameId(boardId, BoardState.exportBoardToClient(board), [self.current_user])
 
     def assertMovePhase(self, board):
         if board.currentPhase.name not in ["AttackPhase", "MovementPhase"]:
