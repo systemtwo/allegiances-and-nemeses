@@ -65,10 +65,15 @@ function(_, backbone, ko, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialo
             return new _c.Country(countryInfo)
         });
 
-        boardInfo.territories.forEach(function(territory) {
-            var country = that.getCountry(territory.country);
-            var previous = !territory.previousCountry || territory.previousCountry == territory.country ? country : that.getCountry(territory.previousCountry);
-            that.boardData.territories.push(new _c.Territory(territory, country, previous))
+        boardInfo.territories.forEach(function(territoryInfo) {
+            var country = that.getCountry(territoryInfo.country);
+            var previous;
+            if (!territoryInfo.previousCountry || territoryInfo.previousCountry == territoryInfo.country) {
+                previous = country; // no need to look up again
+            } else {
+                previous = that.getCountry(territoryInfo.previousCountry);
+            }
+            that.boardData.territories.push(new _c.Territory(territoryInfo, country, previous))
         });
 
         boardInfo.units.forEach(function(unit){
@@ -207,13 +212,13 @@ function(_, backbone, ko, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialo
 
     Game.prototype.territoriesForCountry = function(country) {
         return this.boardData.territories.filter(function(t) {
-            return t.country == country;
+            return t.isLand() && t.country.name == country.name;
         });
     };
 
     Game.prototype.unitsForCountry = function(country) {
         return this.boardData.units.filter(function(u) {
-            return u.country == country;
+            return u.country.name == country.name;
         });
     };
 
@@ -253,7 +258,7 @@ function(_, backbone, ko, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialo
         while(frontier.length) {
             // unqueue the first item
             var current = frontier.shift();
-            if (current.territory === destination) {
+            if (current.territory.name === destination.name) {
                 // Found it!
                 return current.distance;
             }
@@ -369,10 +374,7 @@ function(_, backbone, ko, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialo
 
         if (success && !that.advancingPhase) {
             that.advancingPhase = true;
-            _router.nextPhase().done(function(boardData) {
-                _helpers.helperText(""); // reset the helper text
-                that.parse(JSON.parse(boardData));
-            }).always(function() {
+            _router.nextPhase().always(function() {
                 that.advancingPhase = false;
             })
         }

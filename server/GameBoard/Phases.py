@@ -1,5 +1,5 @@
 from .Conflict import ConflictOutcomes
-from .Unit import Unit, BoughtUnit
+from .Unit import Unit, createBoughtUnitFromDict
 from . import Util
 
 """
@@ -35,8 +35,7 @@ class BuyPhase:
             if hasattr(bought, "unitType"):
                 parsedBuyList.append(bought)
             elif isinstance(bought, dict) and u'unitType' in bought and u'territory' in bought:
-                territory = Util.getByName(self.board.territories, bought[u"territory"])
-                parsedBuyList.append(BoughtUnit(bought[u"unitType"], territory))
+                parsedBuyList.append(createBoughtUnitFromDict(bought, self.board.territories))
             else:
                 raise Exception("Invalid buy list", buyList)
 
@@ -230,8 +229,7 @@ class PlacementPhase:
             if hasattr(bought, "unitType"):
                 boughtUnit = bought
             elif isinstance(bought, dict) and u'unitType' in bought and u'territory' in bought:
-                territory = Util.getByName(self.board.territories, bought[u"territory"])
-                boughtUnit = BoughtUnit(bought[u"unitType"], territory)
+                boughtUnit = createBoughtUnitFromDict(bought, self.board.territories)
             else:
                 raise Exception("Invalid buy list", buyList)
 

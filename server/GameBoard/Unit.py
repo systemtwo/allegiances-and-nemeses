@@ -51,7 +51,7 @@ class Unit:
             "country": self.country.name
         }
 
-def fromDict(unitDef, allUnitInfo, countries, territories):
+def createUnitFromDict(unitDef, allUnitInfo, countries, territories):
     unit = Unit(
         allUnitInfo[unitDef["type"]],
         Util.getByName(countries, unitDef["country"]),
@@ -60,10 +60,28 @@ def fromDict(unitDef, allUnitInfo, countries, territories):
     unit.originalTerritory = Util.getByName(territories, unitDef["beginningOfTurnTerritory"])
     return unit
 
+def createBoughtUnitFromDict(unitDef, territories):
+    if "id" in unitDef:
+        unitId = uuid.UUID(unitDef["id"])
+    else:
+        unitId = None
+
+    unit = BoughtUnit(
+        unitDef["unitType"],
+        Util.getByName(territories, unitDef["territory"]),
+        unitId
+    )
+    return unit
+
 class BoughtUnit:
-    def __init__(self, unitType, territory):
+    def __init__(self, unitType, territory, overrideId=None):
         self.unitType = unitType
         self.territory = territory
+
+        if overrideId:
+            self.id = overrideId
+        else:
+            self.id = UniqueId.getUniqueId()
 
     # For our current purposes, bought units have very loose equality checks
     def __eq__(self, other):
@@ -74,6 +92,7 @@ class BoughtUnit:
         if self.territory is not None:
             tName = self.territory.name
         return {
+            "id": self.id.hex,
             "unitType": self.unitType,
             "territory": tName
         }

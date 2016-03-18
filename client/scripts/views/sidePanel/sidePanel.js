@@ -62,7 +62,14 @@ define(["backbone",
                 ]
             };
             SidePanelVM.canEndPhase = function () {
-                return true;
+                var board;
+                try {
+                    board = _b.getBoard();
+                } catch(e) {
+                    console.error(e);
+                    return false;
+                }
+                return board.isCurrentPlayersTurn();
             };
 
             SidePanelVM.endPhase = function () {

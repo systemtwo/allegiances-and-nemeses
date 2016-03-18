@@ -195,7 +195,7 @@ def fromDict(conflictInfo, board):
 
     def createUnits(unitInfoCollection):
         # Small issue - will create new instance of units that already exist
-        return [Unit.fromDict(unitInfo, board.unitInfoDict, board.countries, board.territories) for unitInfo in unitInfoCollection]
+        return [Unit.createUnitFromDict(unitInfo, board.unitInfoDict, board.countries, board.territories) for unitInfo in unitInfoCollection]
 
     conflict = Conflict(board,
                         Util.getByName(board.territories, conflictInfo["territoryName"]),

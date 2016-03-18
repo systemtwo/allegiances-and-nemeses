@@ -23,7 +23,7 @@ define(["gameAccessor", "helpers"], function(_b, _h) {
     };
 
     Unit.prototype.hasNotMoved = function() {
-        return this.beginningOfPhaseTerritory === this.beginningOfTurnTerritory;
+        return this.beginningOfPhaseTerritory.name === this.beginningOfTurnTerritory.name;
     };
 
     /**
@@ -110,7 +110,7 @@ define(["gameAccessor", "helpers"], function(_b, _h) {
         var board = _b.getBoard();
         var units = board.boardData.units;
         return units.filter(function(u) {
-            return u.territory === that;
+            return u.territory.name === that.name;
         });
     };
     Territory.prototype.enemyUnits = function (country) {
@@ -137,7 +137,7 @@ define(["gameAccessor", "helpers"], function(_b, _h) {
         var that = this;
         var boardUnits = _b.getBoard().unitsForCountry(country);
         return boardUnits.filter(function(u) {
-            return u.territory === that;
+            return u.territory.name === that.name;
         })
     };
 

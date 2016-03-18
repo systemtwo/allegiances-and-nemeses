@@ -109,7 +109,7 @@ def loadFromDict(fields):
 
     units = []
     for unitDef in fields["units"]:
-        newUnit = Unit.fromDict(unitDef, unitInfo, countries, territories)
+        newUnit = Unit.createUnitFromDict(unitDef, unitInfo, countries, territories)
         units.append(newUnit)
 
     board = Board(unitInfo, territories, units, countries, fields["currentPhase"])
