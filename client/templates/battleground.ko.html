@@ -3,7 +3,7 @@
         <div class="casualty-title">
             <h3>Causalties</h3>
         </div>
-        <div class="reports" data-bind="foreach: conflict.reports">
+        <div class="reports" data-bind="foreach: conflict().reports">
             <div class="report collapsed" data-bind="click: $root.toggleCollapse">
                 <div>Attackers: <span data-bind="text: deadAttackers.length"></span></div>
                 <div class="casualty-details" data-bind="foreach: deadAttackers">
@@ -33,7 +33,7 @@
                 <h2>
                     Attackers
                 </h2>
-                <div data-bind="foreach: conflict.attackers">
+                <div data-bind="foreach: conflict().attackers">
                     <img class="unit-image" data-bind="attr: {src: $root.getImageSource(type, country), title: type }">
                 </div>
             </div>
@@ -41,7 +41,7 @@
                 <h2>
                     Defenders
                 </h2>
-                <div data-bind="foreach: conflict.defenders">
+                <div data-bind="foreach: conflict().defenders">
                     <img class="unit-image" data-bind="attr: {src: $root.getImageSource(type, country), title: type }">
                 </div>
             </div>

@@ -28,14 +28,17 @@ import uuid
 from GameBoard import Util
 
 import Unit
+import UniqueId
 
 class Conflict(object):
-    def __init__(self, board, territory, initialAttackers, initialDefenders, attacker, defender):
+    def __init__(self, board, territory, initialAttackers, initialDefenders,
+                 attacker=None, defender=None, overrideId=None):
         """
         :param territory: Territory
         """
         self.territory = territory
         self.board = board
+        self.id = UniqueId.getUniqueIdWithOverride(overrideId)
 
         if defender:
             self.defendingCountry = defender
@@ -171,6 +174,7 @@ class Conflict(object):
 
     def toDict(self):
         return {
+            "id": self.id.hex,
             "territoryName": self.territory.name,
             "attackers": [u.toDict() for u in self.attackers],
             "defenders": [u.toDict() for u in self.defenders],
@@ -202,7 +206,8 @@ def fromDict(conflictInfo, board):
                         getAllUnits(conflictInfo["attackers"]),
                         getAllUnits(conflictInfo["defenders"]),
                         countryByName(conflictInfo["attackingCountry"]),
-                        countryByName(conflictInfo["defendingCountry"]))
+                        countryByName(conflictInfo["defendingCountry"]),
+                        uuid.UUID(conflictInfo["id"]))
     conflict.reports = [
         BattleReport(survivors={
             "attack": createUnits(report["survivingAttackers"]),

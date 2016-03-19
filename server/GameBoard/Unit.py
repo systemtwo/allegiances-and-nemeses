@@ -20,10 +20,7 @@ class Unit:
         self.territory = territory
         self.originalTerritory = territory
         self.country = country
-        if overrideId:
-            self.id = overrideId
-        else:
-            self.id = UniqueId.getUniqueId()
+        self.id = UniqueId.getUniqueIdWithOverride(overrideId)
 
     def reset(self):
         self.originalTerritory = self.territory
@@ -78,10 +75,7 @@ class BoughtUnit:
         self.unitType = unitType
         self.territory = territory
 
-        if overrideId:
-            self.id = overrideId
-        else:
-            self.id = UniqueId.getUniqueId()
+        self.id = UniqueId.getUniqueIdWithOverride(overrideId)
 
     # For our current purposes, bought units have very loose equality checks
     def __eq__(self, other):

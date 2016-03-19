@@ -10,6 +10,7 @@ class Board:
         self.buyList = []
         self.winningTeam = None
         self.resolvedConflicts = []
+        self._cachedComputedConflicts = []
 
         self.countries = countries
         self.playableCountries = [c for c in countries if c.playable]
@@ -150,17 +151,17 @@ class Board:
 
     def computeConflicts(self):
         # conflict territories are land territories with enemy units, or a sea territory containing unallied untis
-        def filterForConflicts(t):
-            units = [u for u in self.units if u.movedToTerritory == t]
-            if t.isLand():
-                return len([u for u in units if not Util.allied(u, t, units)]) > 0
+        def filterForConflicts(territory):
+            units = [u for u in self.units if u.movedToTerritory == territory]
+            if territory.isLand():
+                return len([u for u in units if not Util.allied(u, territory, units)]) > 0
             else:
-                containsUnallied = False  # whether there a units from two different teams in a single territory
+                containsUnAllied = False  # whether there a units from two different teams in a single territory
                 for i, j in itertools.combinations(units, 2):
                     if not Util.alliedCountries(i.country, j.country):
-                        containsUnallied = True
+                        containsUnAllied = True
                         break
-                return containsUnallied
+                return containsUnAllied
 
         def getAttackers(territory):
             return [u for u in self.units
@@ -170,6 +171,23 @@ class Board:
             return [u for u in self.units if
                     u.movedToTerritory == territory and not Util.alliedCountries(u.country, self.currentCountry)]
 
-        allConflicts = [Conflict(self, t, getAttackers(t), getDefenders(t), None, None) for t in self.territories if
+        def createConflict(territory):
+            previousConflicts = [c for c in self._cachedComputedConflicts if c.territory.name == territory.name]
+            count = len(previousConflicts)
+
+            if count == 0:
+                conflictId = None
+            elif count == 1:
+                conflictId = previousConflicts[0].id  # maintain consistent id, if possible
+            else:
+                raise Exception("Computed conflicts must have unique territories")
+
+            return Conflict(self, territory, getAttackers(territory), getDefenders(territory), overrideId=conflictId)
+
+        allConflicts = [createConflict(t) for t in self.territories if
                         filterForConflicts(t)]
-        return filter(lambda conflict: not conflict.isStalemate(), allConflicts)
+        nonStalemateConflicts = filter(lambda conflict: not conflict.isStalemate(), allConflicts)
+
+        self._cachedComputedConflicts = nonStalemateConflicts
+
+        return nonStalemateConflicts

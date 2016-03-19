@@ -156,7 +156,6 @@ function(_, backbone, ko, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialo
         } else {
             return this.boardData.buyList;
         }
-        this.trigger("change:buyList change");
     };
 
     Game.prototype.unitInfo = function(unitType) {
@@ -177,6 +176,10 @@ function(_, backbone, ko, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialo
 
     Game.prototype.addUnit = function(unit) {
         this.boardData.units.push(unit);
+    };
+
+    Game.prototype.getConflict = function (id) {
+        return _.findWhere(this.boardData.conflicts, {id: id});
     };
 
     Game.prototype.getCountries = function () {

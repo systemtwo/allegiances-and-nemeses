@@ -32,7 +32,7 @@ define(["backbone", "underscore", "knockout", "text!views/sidePanel/conflicts.ko
                             })
                         },
                         openBattle: function () {
-                            _dialogs.showBattle(conflict)
+                            _dialogs.showBattle(conflict.id)
                         }
                     }
                 });
@@ -46,9 +46,7 @@ define(["backbone", "underscore", "knockout", "text!views/sidePanel/conflicts.ko
                 vm.actionsEnabled = ko.observable(view.actionsEnabled());
 
                 this.resolveAll = function () {
-                    _router.autoResolveAll().done(function(){
-                        board.updateConflicts();
-                    })
+                    _router.autoResolveAll();
                 };
 
                 board.on("change", function () {

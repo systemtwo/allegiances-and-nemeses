@@ -39,6 +39,5 @@ function ( game, _dialogs, _router, SockJS, sidePanel) {
         sock.onclose = function() {
             console.log('close');
         };
-        sock.send("test")
     });
 });

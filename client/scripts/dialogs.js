@@ -21,25 +21,50 @@ define([
         )
     }
 
-    function showBattle(conflict) {
+    // map of conflict id to dialog view model
+    var openConflictDialogs = {};
+    function showBattle(conflictId) {
         // get the conflict
         var board = _b.getBoard();
+        if (openConflictDialogs[conflictId]) {
+            console.log("Conflict already open");
+            openConflictDialogs[conflictId].dialog("open");
+            return;
+        }
+
+        var conflict = board.getConflict(conflictId);
 
         // render a dialog for it
         var dialog = $("<div>").appendTo(document.body).append(battlefieldTemplate);
-        ko.applyBindings({
-            conflict: conflict,
+        var viewModel = {
+            conflict: ko.observable(conflict),
             getImageSource: function (unitType, country) {
                 return _helpers.getImageSource(board.unitInfo(unitType), country); // MEMO: this retains a copy of the board, may cause issues
             },
             toggleCollapse: function (data, event) {
                 $(event.currentTarget).toggleClass('collapsed')
             }
-        }, dialog[0]);
+        };
+        ko.applyBindings(viewModel, dialog[0]);
+
+        var subscription = function() {
+            var conflict = board.getConflict(conflictId);
+            if (conflict) {
+                viewModel.conflict(conflict);
+            } else {
+                console.warn("Conflict no longer exists")
+            }
+        };
+        board.on("change", subscription);
+        openConflictDialogs[conflictId] = dialog;
 
         dialog.dialog({
             title: "Battle for " + board.getTerritoryDisplayName(conflict.territoryName),
             create: replaceCloseButton,
+            close: function () {
+                delete openConflictDialogs[conflictId];
+                board.off("change", subscription());
+            },
             width: 600,
             height: 400
         });
