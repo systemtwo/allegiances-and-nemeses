@@ -26,6 +26,9 @@ class Board:
             self.collectIncome(c)
         self.currentCountry = self.playableCountries[0]
 
+        # Phases
+        self.isSettingPhase = False
+        self.nextPhaseName = None
         if phaseName:
             self.setPhase(phaseName)
         else:
@@ -188,13 +191,23 @@ class Board:
         return nonStalemateConflicts
 
     def setPhase(self, phaseName):
-        if phaseName == "BuyPhase":
-            self.currentPhase = BuyPhase(self)
-        elif phaseName == "AttackPhase":
-            self.currentPhase = AttackPhase(self)
-        elif phaseName == "ResolvePhase":
-            self.currentPhase = ResolvePhase(self)
-        elif phaseName == "MovementPhase":
-            self.currentPhase = MovementPhase(self)
-        elif phaseName == "PlacementPhase":
-            self.currentPhase = PlacementPhase(self)
+        if not self.isSettingPhase:
+            self.isSettingPhase = True
+            if phaseName == "BuyPhase":
+                self.currentPhase = BuyPhase(self)
+            elif phaseName == "AttackPhase":
+                self.currentPhase = AttackPhase(self)
+            elif phaseName == "ResolvePhase":
+                self.currentPhase = ResolvePhase(self)
+            elif phaseName == "MovementPhase":
+                self.currentPhase = MovementPhase(self)
+            elif phaseName == "PlacementPhase":
+                self.currentPhase = PlacementPhase(self)
+
+            self.isSettingPhase = False
+            if self.nextPhaseName:
+                name = self.nextPhaseName
+                self.nextPhaseName = None
+                self.setPhase(name)
+        else:
+            self.nextPhaseName = phaseName  # queue the name

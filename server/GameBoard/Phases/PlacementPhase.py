@@ -8,6 +8,9 @@ class PlacementPhase(Phase):
         self.board = board
         self.name = "PlacementPhase"
 
+        if len(self.board.buyList) == 0:
+            self.nextPhase()
+
     def setBuyList(self, buyList):
         """
         Updates the buyList with where units should be place

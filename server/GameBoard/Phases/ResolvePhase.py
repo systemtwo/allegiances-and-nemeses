@@ -11,6 +11,8 @@ class ResolvePhase(Phase):
         """
         self.board = board
         self.name = "ResolvePhase"
+        if len(self.board.computeConflicts()) == 0:
+            self.nextPhase()
 
     def autoResolve(self, territory):
         """
