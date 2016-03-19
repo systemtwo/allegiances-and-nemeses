@@ -1,24 +1,21 @@
-import os.path
-import json
 import errno
+import json
+import os.path
 
 import tornado.ioloop
 import tornado.web
 
-import sockjs.tornado
-from GameConnection import GameConnection, GameSocketRouter
-
+import GamesManager
 import Sessions
 import utils
-import GamesManager
-from MapEditorHandler import MapEditorHandler
 from ActionHandler import ActionHandler
 from AuthHandlers import LoginHandler, LogoutHandler, BaseAuthHandler
-from LobbyHandlers import LobbyHandler, LobbyCreateHandler, LobbyGameHandler, LobbyGameJoinHandler, LobbyGameBeginHandler, LobbyGameUpdateHandler, LobbyGameDeleteHandler, \
-    LobbySaveGameHandler, LobbyLoadGameHandler
-from GameHandler import GameHandler
-
 from GameBoard import BoardState
+from GameConnection import GameConnection, GameSocketRouter
+from GameHandler import GameHandler
+from LobbyHandlers import LobbyHandler, LobbyCreateHandler, LobbyGameHandler, LobbyGameJoinHandler, LobbyGameBeginHandler, LobbyGameUpdateHandler, LobbyGameDeleteHandler
+from MapEditorHandler import MapEditorHandler
+from SaveHandler import SaveHandler
 
 
 class IndexHandler(tornado.web.RequestHandler):
@@ -106,6 +103,10 @@ class Server:
         createSaveFileIfMissing()
 
 
+        def saveHandlerOptions(action):
+            baseOptions = dict(config=config, gamesManager=self.gamesManager, html_path=html_path)
+            baseOptions["action"] = action
+            return baseOptions
         self.app = tornado.web.Application([
             (r"/", IndexHandler, dict(html_path=html_path)),
 
@@ -144,8 +145,10 @@ class Server:
             (r"/lobby/(?P<gameId>[A-z0-9\-]+)/delete/?", LobbyGameDeleteHandler, dict(config=config, gamesManager=self.gamesManager)),
 
             #Load/Save games
-            (r"/save/(?P<gameId>[A-z0-9\-]+)/?", LobbySaveGameHandler, dict(config=config, gamesManager=self.gamesManager)),
-            (r"/load/(?P<saveGameId>[A-z0-9\-]+)/?", LobbyLoadGameHandler, dict(config=config, gamesManager=self.gamesManager)),
+            (r"/save/?", SaveHandler, saveHandlerOptions(SaveHandler.actions.SAVE)),
+            (r"/load/(?P<saveGameId>[A-z0-9\-]+)/?", SaveHandler, saveHandlerOptions(SaveHandler.actions.LOAD)),
+            (r"/saves/?", SaveHandler, saveHandlerOptions(SaveHandler.actions.LIST_SAVES)),
+            (r"/saves/(?P<saveGameId>[A-z0-9\-]+)/delete/?", SaveHandler, saveHandlerOptions(SaveHandler.actions.DELETE)),
 
             #Static files
             (r"/shared/(.*)", utils.NoCacheStaticFileHandler, {"path": config.SHARED_CONTENT_PATH}),

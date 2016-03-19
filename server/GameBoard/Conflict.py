@@ -188,14 +188,22 @@ class Conflict(object):
 # create a Conflict instance from a dictionary of info
 def fromDict(conflictInfo, board):
     def countryByName(name):
-        Util.getByName(board.countries, name)
+        return Util.getByName(board.countries, name)
 
     def getUnit(unitId):
-        unitUUID = uuid.UUID(unitId)
-        return board.unitById(unitUUID)
+        return board.unitById(unitId)
 
     def getAllUnits(unitCollection):
-        return [getUnit(unit["id"]) for unit in unitCollection]
+        units = []
+        for unit in unitCollection:
+            unitId = uuid.UUID(unit["id"])
+            unit = getUnit(unitId)
+            if unit:
+                units.append(unit)
+            else:
+                print("Could not load unit " + unitId.hex)
+
+        return units
 
     def createUnits(unitInfoCollection):
         # Small issue - will create new instance of units that already exist

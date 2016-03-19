@@ -1,5 +1,16 @@
-define(["underscore", "backbone", "knockout", "svgMap", "components", "helpers", "router", "gameAccessor", "phases/phaseHelper", "dialogs"],
-function(_, backbone, ko, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) {
+define([
+    "underscore",
+    "backbone",
+    "knockout",
+    "svgMap",
+    "components",
+    "helpers",
+    "router",
+    "gameAccessor",
+    "phases/phaseHelper",
+    "dialogs",
+    "lib/mousetrap"],
+function(_, backbone, ko, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs, Mousetrap) {
     var Game = function(id, boardInfo, bindTo) {
         var that = this;
         _b.setBoard(this);
@@ -34,6 +45,11 @@ function(_, backbone, ko, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialo
         this.map.drawMap();
         this.on("change", function () {
             that.map.drawMap();
+        });
+        Mousetrap.bind("esc", function () {
+            if (that.currentPhase.cancel) {
+                that.currentPhase.cancel();
+            }
         });
         return this;
     };

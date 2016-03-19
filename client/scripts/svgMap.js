@@ -49,7 +49,13 @@ function (d3, _, backbone) {
     };
 
     proto.setSelectableTerritories = function (territories) {
-        this.selectableTerritories = territories;
+        this.selectableTerritories = _.map(territories, function (t) {
+            if (_.isString(t)) {
+                return t;
+            } else {
+                return t.name;
+            }
+        });
         this.drawMap();
     };
 
@@ -108,7 +114,8 @@ function (d3, _, backbone) {
     };
 
     proto.isSelectable = function (t) {
-        return _.contains(this.selectableTerritories, t);
+        var name = _.isString(t) ? t : t.name;
+        return _.contains(this.selectableTerritories, name);
     };
 
     proto.drawTerritories = function () {
@@ -130,7 +137,7 @@ function (d3, _, backbone) {
 
         territoryGroups
             .classed("selectable", function (data){
-                return _.contains(map.selectableTerritories, data)
+                return map.isSelectable(data);
             });
 
         territoryGroups.select(".territory")
@@ -167,7 +174,7 @@ function (d3, _, backbone) {
     proto.onTerritoryClick =  function (data){
         if (d3.event.defaultPrevented) return; // click suppressed
         var events = ["click:territory"];
-        if (_.contains(this.selectableTerritories, data)) {
+        if (this.isSelectable(data)) {
             events.push("select:territory")
         }
         this.trigger(events.join(" "), data);

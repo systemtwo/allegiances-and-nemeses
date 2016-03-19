@@ -3,11 +3,12 @@ define(["backbone",
         "knockout",
         "text!views/sidePanel/sidePanel.ko.html",
         "gameAccessor",
+        "dialogs",
         "views/sidePanel/boughtUnits",
         "views/sidePanel/conflicts",
         "views/sidePanel/countries",
         "views/sidePanel/territoryInfo"],
-    function(backbone, _, ko, template, _b, BoughtUnitView, ConflictView, CountriesView, TerritoryInfoView) {
+    function(backbone, _, ko, template, _b, _dialogs, BoughtUnitView, ConflictView, CountriesView, TerritoryInfoView) {
     var exports = {};
 
     exports.SidePanel = backbone.View.extend({
@@ -82,6 +83,10 @@ define(["backbone",
             SidePanelVM.infoModeActive = ko.computed(function () {
                 return _b.getBoard().inTerritoryInfoMode();
             });
+
+            SidePanelVM.saveGame = function () {
+                _dialogs.createSaveGameDialog();
+            };
             return SidePanelVM;
         }
     });

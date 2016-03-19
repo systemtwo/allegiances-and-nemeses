@@ -3,13 +3,14 @@
 import os.path
 
 import tornado.web
+import tornado.template
 from voluptuous import Schema, Required, All, Range, Length, MultipleInvalid
 
 from AuthHandlers import BaseAuthHandler
 import Sessions
 
 
-## Lobby Route Handlers **
+# Lobby Route Handlers **
 class BaseLobbyHandler(BaseAuthHandler):
     def initialize(self, config, gamesManager):
         super(BaseLobbyHandler, self).initialize(config=config)
@@ -214,16 +215,3 @@ class LobbyGameDeleteHandler(BaseLobbyHandler):
     @tornado.web.authenticated
     def get(self, **params):
         pass
-
-class LobbySaveGameHandler(BaseLobbyHandler):
-    @tornado.web.authenticated
-    def get(self, **params):
-        saveGameId = self.gamesManager.saveGame(params['gameId'])
-        self.write(saveGameId)
-
-
-class LobbyLoadGameHandler(BaseLobbyHandler):
-    @tornado.web.authenticated
-    def get(self, **params):
-        gameId = self.gamesManager.loadGame(params['saveGameId'])
-        self.redirect("/game/" + gameId)
