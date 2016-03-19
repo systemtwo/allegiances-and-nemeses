@@ -2,6 +2,7 @@
     <div class="actions">
         <button id="next-phase" class="btn" data-bind="show: canEndPhase, click: endPhase">Next Phase</button>
         <button class="btn" data-bind="css: {'btn-warning': infoModeActive}, click: toggleTerritoryInfoMode">Territory Info</button>
+        <button class="btn" data-bind="click: saveGame">Save</button>
     </div>
     <div class="panels" data-bind="foreach: panels">
         <div class="panel-section" data-bind="css: {collapsed: collapsed}">

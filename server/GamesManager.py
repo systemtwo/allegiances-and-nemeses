@@ -2,6 +2,7 @@ import json
 import uuid
 
 import Game
+import utils
 from GameBoard import BoardState
 
 """A class to manage games"""
@@ -37,15 +38,17 @@ class GamesManager:
         # title and ids
         return [{"id": gameId, "game": self.games[gameId]} for gameId in self.games]
 
-    def saveGame(self, gameId):
+    def saveGame(self, gameId, name):
         saveGameId = str(uuid.uuid4())
         game = self.getGame(gameId)
         with open("saveGames.json") as saveFile:
             saveGames = json.load(saveFile)
 
         saveGames[saveGameId] = {
+            "id": saveGameId,
             "gameInfo": BoardState.exportBoardState(game.board),
-            "name": game.name,
+            "name": name,
+            "gameName": game.name,
             "maxPlayers": game.maxPlayers,
             "moduleName": game.moduleName,
             "creatorId": game.creatorId
@@ -57,9 +60,8 @@ class GamesManager:
         return saveGameId
 
     def loadGame(self, saveGameId):
-        with open("saveGames.json") as saveFile:
-            saveGames = json.load(saveFile)
-            saveGameInfo = saveGames[saveGameId]
+        saveGames = utils.getSaveGames()
+        saveGameInfo = saveGames[saveGameId]
 
         board = BoardState.loadFromDict(saveGameInfo["gameInfo"])
         game = Game.Game(saveGameInfo["name"], saveGameInfo["maxPlayers"], saveGameInfo["moduleName"], saveGameInfo["creatorId"])

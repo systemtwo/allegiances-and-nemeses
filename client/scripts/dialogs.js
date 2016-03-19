@@ -4,9 +4,10 @@ define([
         "gameAccessor",
         "text!../templates/battleground.ko.html",
         "text!../templates/units.ko.html",
+        "text!../templates/saveGameForm.ko.html",
         "helpers"
     ],
-    function(ko, _, _b, battlefieldTemplate, unitsTemplate, _helpers) {
+    function(ko, _, _b, battlefieldTemplate, unitsTemplate, saveGameTemplate, _helpers) {
 
     function replaceCloseButton(event, ui) {
         var element = $(this);
@@ -103,9 +104,35 @@ define([
         });
     }
 
+    var saveGameDialog = null;
+    function createSaveGameDialog() {
+        if (saveGameDialog) {
+            saveGameDialog.dialog("open");
+        } else {
+            var dialog = $("<div>").appendTo(document.body).append(saveGameTemplate);
+            saveGameDialog = dialog;
+
+            ko.applyBindings({
+                gameId: _b.getBoard().id
+            }, dialog[0]);
+            
+            dialog.find(".saveGameBtn").click(function () {
+                dialog.dialog("destroy");
+            });
+            dialog.dialog({
+                title: "Save Game",
+                create: replaceCloseButton,
+                close: function () {
+                    saveGameDialog = null;
+                }
+            });
+        }
+    }
+
     return {
         showBattle: showBattle,
         showTerritoryUnits: showTerritoryUnits,
+        createSaveGameDialog: createSaveGameDialog,
         replaceCloseButton: replaceCloseButton
     }
 });
