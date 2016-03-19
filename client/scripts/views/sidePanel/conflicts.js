@@ -27,7 +27,7 @@ define(["backbone", "underscore", "knockout", "text!views/sidePanel/conflicts.ko
                         attackingCountry: board.getCountryDisplayName(conflict.attackingCountry),
                         defendingCountry: board.getCountryDisplayName(conflict.defendingCountry),
                         resolve: function () {
-                            _router.autoResolve(conflict.territoryName).done(function(){
+                            _router.autoResolve(conflict.id).done(function(){
                                 board.updateConflicts();
                             })
                         },

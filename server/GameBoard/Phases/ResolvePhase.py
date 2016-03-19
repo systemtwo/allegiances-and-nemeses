@@ -11,18 +11,21 @@ class ResolvePhase(Phase):
         """
         self.board = board
         self.name = "ResolvePhase"
+        self.advanceIfFinished()
+
+    def advanceIfFinished(self):
         if len(self.board.computeConflicts()) == 0:
             self.nextPhase()
 
-    def autoResolve(self, territory):
+    def autoResolve(self, conflictId):
         """
         attacks until either defenders or attackers are all dead
-        :param territory: Territory
+        :param conflictId: UUID
         :return: bool
         """
 
         conflict = next((conflict for conflict in self.board.computeConflicts()
-                         if conflict.territory == territory), None)
+                         if conflict.id == conflictId), None)
         if not conflict:
             return False  # or throw error
 
@@ -39,20 +42,20 @@ class ResolvePhase(Phase):
             conflict.battle()
 
         self.board.resolvedConflicts.append(conflict)
+        self.advanceIfFinished()
 
     def autoResolveAll(self):
         for conflict in self.board.computeConflicts():
-            self.autoResolve(conflict.territory)
+            self.autoResolve(conflict.id)
 
-    def retreat(self, conflictTerritory, destination):
+    def retreat(self, conflictTerritory, destination, unitIds):
         """
         send all attacking units to the destination territory
         dest must be a friendly territory adjacent to the conflict territory
-        some units may end up moving beyond their move limit
-        This is alright. It's a valid exploit.
-        Can only retreat from the current conflict. This means one battle tick must have happened
+        And in move range of the units ORIGINAL territory
         :param conflictTerritory: Territory territory to retreat from
         :param destination: Territory territory to retreat to
+        :param unitIds: Ids of the units to move
         """
         pass
 

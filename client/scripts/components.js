@@ -168,6 +168,7 @@ define(["gameAccessor", "helpers"], function(_b, _h) {
         this.attackingCountry = "";
         this.defendingCountry = "";
         this.territoryName = null;
+        this.id = "";
     };
 
     var Country = function(options) {
