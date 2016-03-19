@@ -11,7 +11,7 @@ class Game:
         self.password = password
         self.started = False
 
-        self.board = GameBoard.Board(moduleName)
+        self.board = GameBoard.BoardState.loadFromModuleName(moduleName)
 
         #This could be a array of tuples if we need it to be
         self.players = {} #Contains (userId, [country, country, ...]) pairs

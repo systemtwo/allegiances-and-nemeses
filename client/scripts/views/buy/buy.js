@@ -24,13 +24,8 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buy.ko.html", "hel
                         function onAmountChange(value) {
                             view.buyUnits(unitType, value);
                         }
-                        var subscription = amount.subscribe(onAmountChange);
+                        amount.subscribe(onAmountChange);
 
-                        board.on("change", function () {
-                            subscription.dispose();
-                            amount(view.amount(unitType));
-                            subscription = amount.subscribe(onAmountChange);
-                        });
                         return {
                             unitType: unitType,
                             imageSrc: _h.getImageSource(info, board.currentCountry),
@@ -90,10 +85,7 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buy.ko.html", "hel
                     territory: ""
                 });
             }
-            board.buyList(newArray); // set buy list
-            _router.setBuyList(newArray).fail(function() {
-                board.buyList(originalBuyList); // replace caching with a call to fetch the server's buy list
-            });
+            _router.setBuyList(newArray);
         },
 
         capForUnitType: function (unitType) {
@@ -122,7 +114,6 @@ define(["backbone", "knockout", "underscore", "text!views/buy/buy.ko.html", "hel
         },
 
         render: function() {
-            var that = this;
             var initialHeight = Math.min(500, window.innerHeight);
             ko.applyBindings(this.viewModel, this.$el.append(template)[0]);
             this.$el.dialog({

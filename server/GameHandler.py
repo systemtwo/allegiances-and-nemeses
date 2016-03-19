@@ -13,7 +13,7 @@ class GameHandler(ErrorRenderMixin, BaseAuthHandler):
 
     @tornado.web.authenticated
     def get(self, **params):
-        game_id = int(params['boardId'])
+        game_id = str(params['boardId'])
         if self.gamesManager.getGame(game_id):
             self.render(os.path.join("..", self.config.STATIC_CONTENT_PATH, "html", "game.html"))
         else:

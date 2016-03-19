@@ -2,8 +2,6 @@ define(["backbone", "underscore", "knockout", "text!views/sidePanel/territoryInf
     function(backbone, _, ko, template, _b) {
         var TerritoryPaneView = backbone.View.extend({
             initialize: function(){
-                var view = this;
-
                 var ViewModel = function() {
                     var vm = this;
                     var board = _b.getBoard();

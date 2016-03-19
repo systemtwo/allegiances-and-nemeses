@@ -3,7 +3,7 @@ server/game/__pycache__/*
 client/.idea/*
 .idea/*
 ENV/*
-
+saveGames.json
 *~
 *.swp
 

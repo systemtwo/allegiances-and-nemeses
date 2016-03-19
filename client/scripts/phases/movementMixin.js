@@ -7,7 +7,6 @@ function(_, _b, _helpers, _dialogs, MoveUnitView) {
             moveUnits: "Click units to move them"
         },
         initialize: function () {
-            var that = this;
             _helpers.phaseName(this.phaseName());
             this.states = {
                 START: "selectMoveStart",
@@ -26,7 +25,7 @@ function(_, _b, _helpers, _dialogs, MoveUnitView) {
          * @returns {boolean}
          */
         movableUnit: function(unit) {
-            var belongsToCurrentCountry = _b.getBoard().currentCountry == unit.country;
+            var belongsToCurrentCountry = _b.getBoard().currentCountry.name == unit.country.name;
 
             if (unit.isFlying()) {
                 return unit.unitInfo.move > 0 && belongsToCurrentCountry;

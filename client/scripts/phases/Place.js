@@ -57,7 +57,7 @@ function(_b, ko, _, _helpers, _dialogs, _router, moveUnitTemplate) {
             }
         } else if ((isSea(boughtUnit) && board.unitInfo(boughtUnit.unitType).landMove>0) || isFlying(boughtUnit)) {
             _helpers.helperText("Place your " + boughtUnit.unitType +
-                " in territory with a factory or in a sea zone adjacent to a factory.");
+                " in a territory with a factory or in a sea zone adjacent to a factory.");
         } else {
             _helpers.helperText("Place your " + boughtUnit.unitType +
                 " in a sea zone adjacent to a territory with a factory.");
@@ -199,13 +199,13 @@ function(_b, ko, _, _helpers, _dialogs, _router, moveUnitTemplate) {
     };
 
     PlacementPhase.prototype._placeAndSync = function (unit, territoryName) {
+        var board = _b.getBoard();
+        var boughtUnit = _.findWhere(board.buyList(), {id: unit.id});
          // We rely here on the placing object to be a member of the boards buylist
-        if (!_.contains(_b.getBoard().buyList(), unit)) {
+        if (!boughtUnit) {
             throw Error("Trying to place a unit not in the buy list")
         }
-        unit.territory = territoryName;
-        var board = _b.getBoard();
-        board.trigger("change");
+        boughtUnit.territory = territoryName;  // mutates the element in the list
         return _router.setBuyList(_b.getBoard().buyList());
     };
 
@@ -226,17 +226,17 @@ function(_b, ko, _, _helpers, _dialogs, _router, moveUnitTemplate) {
     function getCandidateTerritories() {
         var board = _b.getBoard();
         return _b.getBoard().boardData.territories.filter(function (t) {
-            return t.isSea() || t.country == board.currentCountry;
+            return t.isSea() || t.country.name == board.currentCountry.name;
         })
     }
 
     function ownedAllTurn(t) {
         var board = _b.getBoard();
-        return t.previousCountry == board.currentCountry;
+        return t.isLand() && t.previousCountry.name == board.currentCountry.name;
     }
 
     function filterForFactory(t) {
-        return !t.hasFactory() && ownedAllTurn(t) && t.income > 0;
+        return t.isLand() && !t.hasFactory() && ownedAllTurn(t) && t.income > 0;
     }
 
     function filterForLandUnit(t) {

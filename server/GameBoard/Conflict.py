@@ -24,16 +24,21 @@ Sea, All attackers and all defenders are dead:
     "Draw"
     Do nothing
 """
+import uuid
 from GameBoard import Util
 
+import Unit
+import UniqueId
 
 class Conflict(object):
-    def __init__(self, board, territory, initialAttackers, initialDefenders, attacker, defender):
+    def __init__(self, board, territory, initialAttackers, initialDefenders,
+                 attacker=None, defender=None, overrideId=None):
         """
         :param territory: Territory
         """
         self.territory = territory
         self.board = board
+        self.id = UniqueId.getUniqueIdWithOverride(overrideId)
 
         if defender:
             self.defendingCountry = defender
@@ -54,7 +59,7 @@ class Conflict(object):
         self.nonCombatants = {
             'attackers': [u for u in initialAttackers if self.isNonCombatant(u)],
             'defenders': [u for u in initialDefenders if self.isNonCombatant(u)],
-            'neutral': [u for u in initialAttackers+initialDefenders if self.isNeutral(u)]
+            'neutral': [u for u in initialAttackers + initialDefenders if self.isNeutral(u)]
         }
         self.reports = []
         self.outcome = ConflictOutcomes.inProgress
@@ -120,7 +125,7 @@ class Conflict(object):
             self._convertNeutralUnits(self.defendingCountry)
 
         elif self.outcome == ConflictOutcomes.draw or self.outcome == ConflictOutcomes.inProgress:
-            pass # do nothing
+            pass  # do nothing
         else:
             raise Exception("Unknown conflict outcome", self.outcome)
 
@@ -147,8 +152,8 @@ class Conflict(object):
             combatSum += u.unitInfo.defence
 
         # an air or sea unit is not able to capture a land territory on their own, leading to a stalemate
-        cannotCapture = len(self.defenders) == 0 and self.territory.isLand and not self.hasLandAttackers() and\
-            len(self.nonCombatants["defenders"]) == 0
+        cannotCapture = len(self.defenders) == 0 and self.territory.isLand and not self.hasLandAttackers() and \
+                        len(self.nonCombatants["defenders"]) == 0
 
         return combatSum == 0 or cannotCapture
 
@@ -169,6 +174,7 @@ class Conflict(object):
 
     def toDict(self):
         return {
+            "id": self.id.hex,
             "territoryName": self.territory.name,
             "attackers": [u.toDict() for u in self.attackers],
             "defenders": [u.toDict() for u in self.defenders],
@@ -177,6 +183,44 @@ class Conflict(object):
             "reports": [r.toDict() for r in self.reports],
             "outcome": self.outcome
         }
+
+
+# create a Conflict instance from a dictionary of info
+def fromDict(conflictInfo, board):
+    def countryByName(name):
+        Util.getByName(board.countries, name)
+
+    def getUnit(unitId):
+        unitUUID = uuid.UUID(unitId)
+        return board.unitById(unitUUID)
+
+    def getAllUnits(unitCollection):
+        return [getUnit(unit["id"]) for unit in unitCollection]
+
+    def createUnits(unitInfoCollection):
+        # Small issue - will create new instance of units that already exist
+        return [Unit.createUnitFromDict(unitInfo, board.unitInfoDict, board.countries, board.territories) for unitInfo in unitInfoCollection]
+
+    conflict = Conflict(board,
+                        Util.getByName(board.territories, conflictInfo["territoryName"]),
+                        getAllUnits(conflictInfo["attackers"]),
+                        getAllUnits(conflictInfo["defenders"]),
+                        countryByName(conflictInfo["attackingCountry"]),
+                        countryByName(conflictInfo["defendingCountry"]),
+                        uuid.UUID(conflictInfo["id"]))
+    conflict.reports = [
+        BattleReport(survivors={
+            "attack": createUnits(report["survivingAttackers"]),
+            "defence": createUnits(report["survivingDefenders"])
+        }, casualties={
+            "attack": createUnits(report["deadAttackers"]),
+            "defence": createUnits(report["deadDefenders"])
+        })
+        for report in conflictInfo["reports"]
+    ]
+    conflict.outcome = conflictInfo["outcome"]
+    return conflict
+
 
 class ConflictOutcomes:
     inProgress = "inProgress"

@@ -53,23 +53,27 @@ function(_, backbone, ko, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialo
         // Info about the game that will remain constant
         this.info = {
             players: boardInfo.players,
-            connections: [],
             unitCatalogue: boardInfo.unitCatalogue
         };
 
-        this.isPlayerTurn = boardInfo.isPlayerTurn;
-        this.wrapsHorizontally = boardInfo.wrapsHorizontally;
+        if (_.isBoolean(boardInfo.isPlayerTurn)) {
+            this.isPlayerTurn = boardInfo.isPlayerTurn;
+        }
         this.winningTeam = boardInfo.winningTeam;
 
         this.boardData.countries = boardInfo.countries.map(function(countryInfo) {
             return new _c.Country(countryInfo)
         });
 
-        boardInfo.territoryInfo.forEach(function(tInfo) {
-            var ownerInfo = boardInfo.territoryOwners[tInfo.name] || {};
-            var country = that.getCountry(ownerInfo.current);
-            var previous = !ownerInfo.previous || ownerInfo.previous == ownerInfo.current ? country : that.getCountry(ownerInfo.previous);
-            that.boardData.territories.push(new _c.Territory(tInfo, country, previous))
+        boardInfo.territories.forEach(function(territoryInfo) {
+            var country = that.getCountry(territoryInfo.country);
+            var previous;
+            if (!territoryInfo.previousCountry || territoryInfo.previousCountry == territoryInfo.country) {
+                previous = country; // no need to look up again
+            } else {
+                previous = that.getCountry(territoryInfo.previousCountry);
+            }
+            that.boardData.territories.push(new _c.Territory(territoryInfo, country, previous))
         });
 
         boardInfo.units.forEach(function(unit){
@@ -78,19 +82,24 @@ function(_, backbone, ko, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialo
 
         this.currentCountry = that.getCountry(boardInfo.currentCountry);
         _helpers.countryName(this.currentCountry.displayName);
-        this.phaseName = boardInfo.currentPhase;
         if (this.winningTeam) {
             this.currentPhase = phaseHelper.createPhase("Victory")
         } else {
+            var phaseName;
             if (this.isCurrentPlayersTurn()) {
-                this.currentPhase = phaseHelper.createPhase(boardInfo.currentPhase);
+                phaseName = boardInfo.currentPhase;
             } else {
-                this.currentPhase = phaseHelper.createPhase("ObservePhase");
+                phaseName = "ObservePhase";
             }
-            _helpers.phaseName(this.phaseName);
+            if (this.currentPhaseName() != phaseName) {
+                console.log("Changing Phase");
+                this.currentPhase = phaseHelper.createPhase(phaseName);
+            }
         }
+        this.phaseName = boardInfo.currentPhase;
+        _helpers.phaseName(this.phaseName);
 
-        this.initConnections(boardInfo);
+        this.initConnections();
         this.map.update(this.boardData);
         this.trigger("change");
     };
@@ -108,33 +117,26 @@ function(_, backbone, ko, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialo
 
     Game.prototype.updateConflicts = function () {
         var that = this;
-        _router.getFields(this.id, ["conflicts", "territoryOwners"]).done(function(response) {
+        _router.getFields(this.id, ["conflicts", "territories"]).done(function(response) {
             that.boardData.conflicts = response.conflicts;
-            _.each(response.territoryOwners, function (info, territoryName) {
-                var territory = that.getTerritory(territoryName);
-                if (territory.country.name != info.current) {
-                    territory.country = that.getCountry(info.current);
-                    territory.previousCountry = that.getCountry(info.previous);
-                }
+            _.each(response.territories, function (info) {
+                var territory = that.getTerritory(info.name);
+                territory.update(info);
             });
             that.trigger("change");
         })
     };
 
-    Game.prototype.initConnections = function(connectionJson) {
+    Game.prototype.initConnections = function() {
         var that = this;
-        connectionJson.connections.map(function(c) {
-            var first = null,
-                second = null;
-            that.boardData.territories.forEach(function(t) {
-                if (t.name == c[0]){
-                    first = t;
-                } else if (t.name == c[1]) {
-                    second = t;
+        that.boardData.territories.map(function(origin) {
+            origin.connections = origin.connections.map(function (neighbourName) {
+                var foundTerritory = _.findWhere(that.boardData.territories, {name: neighbourName});
+                if (!foundTerritory) {
+                    throw new Error("Could not find territory " + neighbourName);
                 }
+                return foundTerritory;
             });
-            first.connections.push(second);
-            second.connections.push(first);
         });
 
     };
@@ -154,7 +156,6 @@ function(_, backbone, ko, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialo
         } else {
             return this.boardData.buyList;
         }
-        this.trigger("change:buyList change");
     };
 
     Game.prototype.unitInfo = function(unitType) {
@@ -177,12 +178,8 @@ function(_, backbone, ko, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialo
         this.boardData.units.push(unit);
     };
 
-    Game.prototype.getMapWidth = function() {
-        if (this.wrapsHorizontally) {
-            return this.mapImage.width/2;
-        } else {
-            return this.mapImage.width
-        }
+    Game.prototype.getConflict = function (id) {
+        return _.findWhere(this.boardData.conflicts, {id: id});
     };
 
     Game.prototype.getCountries = function () {
@@ -218,13 +215,13 @@ function(_, backbone, ko, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialo
 
     Game.prototype.territoriesForCountry = function(country) {
         return this.boardData.territories.filter(function(t) {
-            return t.country == country;
+            return t.isLand() && t.country.name == country.name;
         });
     };
 
     Game.prototype.unitsForCountry = function(country) {
         return this.boardData.units.filter(function(u) {
-            return u.country == country;
+            return u.country.name == country.name;
         });
     };
 
@@ -264,7 +261,7 @@ function(_, backbone, ko, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialo
         while(frontier.length) {
             // unqueue the first item
             var current = frontier.shift();
-            if (current.territory === destination) {
+            if (current.territory.name === destination.name) {
                 // Found it!
                 return current.distance;
             }
@@ -380,10 +377,7 @@ function(_, backbone, ko, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialo
 
         if (success && !that.advancingPhase) {
             that.advancingPhase = true;
-            _router.nextPhase().done(function(boardData) {
-                _helpers.helperText(""); // reset the helper text
-                that.parse(JSON.parse(boardData));
-            }).always(function() {
+            _router.nextPhase().always(function() {
                 that.advancingPhase = false;
             })
         }
