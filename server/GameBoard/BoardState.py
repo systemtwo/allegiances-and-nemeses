@@ -112,12 +112,16 @@ def loadFromDict(fields):
         newUnit = Unit.createUnitFromDict(unitDef, unitInfo, countries, territories)
         units.append(newUnit)
 
-    board = Board(unitInfo, territories, units, countries, fields["currentPhase"])
+    boughtUnits = []
+    for unitDef in fields["buyList"]:
+        newUnit = Unit.createBoughtUnitFromDict(unitDef, territories)
+        boughtUnits.append(newUnit)
+
+    board = Board(unitInfo, territories, units, countries, fields["currentPhase"], boughtUnits)
     for conflictInfo in fields["pastConflicts"]:
         conflict = Conflict.fromDict(conflictInfo, board)
-
-
         board.resolvedConflicts.append(conflict)
+
     board.currentCountry = Util.getByName(countries, fields["currentCountry"])
     return board
 

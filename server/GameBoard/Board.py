@@ -9,9 +9,11 @@ from . import Util
 from .Conflict import Conflict
 
 class Board:
-    def __init__(self, unitInfoDict, territories, units, countries, phaseName=None):
+    def __init__(self, unitInfoDict, territories, units, countries, phaseName=None, boughtUnits=None):
+        if boughtUnits is None:
+            boughtUnits = []
         self.units = units
-        self.buyList = []
+        self.buyList = boughtUnits
         self.winningTeam = None
         self.resolvedConflicts = []
         self._cachedComputedConflicts = []
