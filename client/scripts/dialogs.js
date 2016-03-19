@@ -63,7 +63,8 @@ define([
             create: replaceCloseButton,
             close: function () {
                 delete openConflictDialogs[conflictId];
-                board.off("change", subscription());
+                board.off("change", subscription);
+                subscription = null;
             },
             width: 600,
             height: 400

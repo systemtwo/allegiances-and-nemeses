@@ -1,6 +1,10 @@
 import itertools
 
-from .Phases import BuyPhase, AttackPhase, ResolvePhase, MovementPhase, PlacementPhase
+from GameBoard.Phases.AttackPhase import AttackPhase
+from GameBoard.Phases.BuyPhase import BuyPhase
+from GameBoard.Phases.MovementPhase import MovementPhase
+from GameBoard.Phases.PlacementPhase import PlacementPhase
+from GameBoard.Phases.ResolvePhase import ResolvePhase
 from . import Util
 from .Conflict import Conflict
 
@@ -23,16 +27,7 @@ class Board:
         self.currentCountry = self.playableCountries[0]
 
         if phaseName:
-            if phaseName == "BuyPhase":
-                self.currentPhase = BuyPhase(self)
-            elif phaseName == "AttackPhase":
-                self.currentPhase = AttackPhase(self)
-            elif phaseName == "ResolvePhase":
-                self.currentPhase = ResolvePhase(self)
-            elif phaseName == "MovementPhase":
-                self.currentPhase = MovementPhase(self)
-            elif phaseName == "PlacementPhase":
-                self.currentPhase = PlacementPhase(self)
+            self.setPhase(phaseName)
         else:
             self.currentPhase = BuyPhase(self)
 
@@ -191,3 +186,15 @@ class Board:
         self._cachedComputedConflicts = nonStalemateConflicts
 
         return nonStalemateConflicts
+
+    def setPhase(self, phaseName):
+        if phaseName == "BuyPhase":
+            self.currentPhase = BuyPhase(self)
+        elif phaseName == "AttackPhase":
+            self.currentPhase = AttackPhase(self)
+        elif phaseName == "ResolvePhase":
+            self.currentPhase = ResolvePhase(self)
+        elif phaseName == "MovementPhase":
+            self.currentPhase = MovementPhase(self)
+        elif phaseName == "PlacementPhase":
+            self.currentPhase = PlacementPhase(self)
