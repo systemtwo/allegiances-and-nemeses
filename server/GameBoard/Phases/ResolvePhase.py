@@ -63,12 +63,4 @@ class ResolvePhase(Phase):
         self.autoResolveAll()  # autoresolve any remaining conflicts
 
         self.board.checkEliminations()
-        # TODO this early return should not be necessary
-        # if all phases resolve automatically
-        if self.board.currentCountry.eliminated:
-            # will only happen if you attack and lose your last units, and have no territories
-            # in that case, player's turn should end immediately
-            self.board.nextTurn()
-            self.board.setPhase("BuyPhase")
-        else:
-            self.board.setPhase("MovementPhase")
+        self.board.setPhase("MovementPhase")
