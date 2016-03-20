@@ -1,5 +1,7 @@
 import json
 
+import time
+
 import Util
 import Conflict
 from .Country import Country
@@ -26,6 +28,7 @@ _sharedFields = [
 def exportBoardToClient(board):
     clientFields = _sharedFields[:]
     clientFields.append("conflicts")
+    clientFields.append("timestamp")
     return getFields(board, clientFields)
 
 
@@ -73,7 +76,8 @@ def _getField(board, fieldName):
     elif fieldName == "pastConflicts":
         # current and past conflicts in reverse chronological order
         return [c.toDict() for c in board.resolvedConflicts]
-
+    elif fieldName == "timestamp":
+        return time.clock()
     else:
         raise Exception("Unsupported field: " + fieldName)
 

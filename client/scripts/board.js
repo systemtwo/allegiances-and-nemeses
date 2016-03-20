@@ -57,67 +57,78 @@ function(_, backbone, ko, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialo
 
     Game.prototype.parse = function(boardInfo) {
         var that = this;
-        // lists of game objects whose properties will change as the game progresses
-        this.boardData = {
-            countries: [],
-            territories: [],
-            units: [],
-            buyList: [],
-            conflicts: boardInfo.conflicts
-        };
-        this.buyList(boardInfo.buyList); // set the buy list
-        // Info about the game that will remain constant
-        this.info = {
-            players: boardInfo.players,
-            unitCatalogue: boardInfo.unitCatalogue
-        };
 
-        if (_.isBoolean(boardInfo.isPlayerTurn)) {
-            this.isPlayerTurn = boardInfo.isPlayerTurn;
+        if (_.isUndefined(boardInfo.timestamp)) {
+            throw new Error("Board info is missing timestamp");
         }
-        this.winningTeam = boardInfo.winningTeam;
-
-        this.boardData.countries = boardInfo.countries.map(function(countryInfo) {
-            return new _c.Country(countryInfo)
-        });
-
-        boardInfo.territories.forEach(function(territoryInfo) {
-            var country = that.getCountry(territoryInfo.country);
-            var previous;
-            if (!territoryInfo.previousCountry || territoryInfo.previousCountry == territoryInfo.country) {
-                previous = country; // no need to look up again
-            } else {
-                previous = that.getCountry(territoryInfo.previousCountry);
-            }
-            that.boardData.territories.push(new _c.Territory(territoryInfo, country, previous))
-        });
-
-        boardInfo.units.forEach(function(unit){
-            that.createUnit(unit)
-        });
-
-        this.currentCountry = that.getCountry(boardInfo.currentCountry);
-        _helpers.countryName(this.currentCountry.displayName);
-        if (this.winningTeam) {
-            this.currentPhase = phaseHelper.createPhase("Victory")
+        // note: if the client timestamp is undefined, this will return false
+        // this is intended behavior, as it will force the client to update
+        if (that.lastTimestamp >= boardInfo.timestamp) {
+            console.warn("Received stale data");
         } else {
-            var phaseName;
-            if (this.isCurrentPlayersTurn()) {
-                phaseName = boardInfo.currentPhase;
-            } else {
-                phaseName = "ObservePhase";
-            }
-            if (this.currentPhaseName() != phaseName) {
-                console.log("Changing Phase");
-                this.currentPhase = phaseHelper.createPhase(phaseName);
-            }
-        }
-        this.phaseName = boardInfo.currentPhase;
-        _helpers.phaseName(this.phaseName);
+            that.lastTimestamp = boardInfo.timestamp;
+            // lists of game objects whose properties will change as the game progresses
+            this.boardData = {
+                countries: [],
+                territories: [],
+                units: [],
+                buyList: [],
+                conflicts: boardInfo.conflicts
+            };
+            this.buyList(boardInfo.buyList); // set the buy list
+            // Info about the game that will remain constant
+            this.info = {
+                players: boardInfo.players,
+                unitCatalogue: boardInfo.unitCatalogue
+            };
 
-        this.initConnections();
-        this.map.update(this.boardData);
-        this.trigger("change");
+            if (_.isBoolean(boardInfo.isPlayerTurn)) {
+                this.isPlayerTurn = boardInfo.isPlayerTurn;
+            }
+            this.winningTeam = boardInfo.winningTeam;
+
+            this.boardData.countries = boardInfo.countries.map(function(countryInfo) {
+                return new _c.Country(countryInfo)
+            });
+
+            boardInfo.territories.forEach(function(territoryInfo) {
+                var country = that.getCountry(territoryInfo.country);
+                var previous;
+                if (!territoryInfo.previousCountry || territoryInfo.previousCountry == territoryInfo.country) {
+                    previous = country; // no need to look up again
+                } else {
+                    previous = that.getCountry(territoryInfo.previousCountry);
+                }
+                that.boardData.territories.push(new _c.Territory(territoryInfo, country, previous))
+            });
+
+            boardInfo.units.forEach(function(unit){
+                that.createUnit(unit)
+            });
+
+            this.currentCountry = that.getCountry(boardInfo.currentCountry);
+            _helpers.countryName(this.currentCountry.displayName);
+            if (this.winningTeam) {
+                this.currentPhase = phaseHelper.createPhase("Victory")
+            } else {
+                var phaseName;
+                if (this.isCurrentPlayersTurn()) {
+                    phaseName = boardInfo.currentPhase;
+                } else {
+                    phaseName = "ObservePhase";
+                }
+                if (this.currentPhaseName() != phaseName) {
+                    console.log("Changing Phase");
+                    this.currentPhase = phaseHelper.createPhase(phaseName);
+                }
+            }
+            this.phaseName = boardInfo.currentPhase;
+            _helpers.phaseName(this.phaseName);
+
+            this.initConnections();
+            this.map.update(this.boardData);
+            this.trigger("change");
+        }
     };
 
     Game.prototype.fetch = function () {
