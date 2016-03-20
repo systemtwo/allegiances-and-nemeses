@@ -14,7 +14,7 @@ class GameConnection(sockjs.tornado.SockJSConnection):
         })
 
         # self.userId = info.get_cookie("playerId").value
-        self.gameId = info.get_argument('gameId')
+        self.gameId = int(info.get_argument('gameId'))
 
         # Add client to the clients list
         self.participants.add(self)

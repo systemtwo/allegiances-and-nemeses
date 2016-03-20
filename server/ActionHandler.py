@@ -17,7 +17,7 @@ class ActionHandler(BaseAuthHandler):
 
     @tornado.web.authenticated
     def post(self, **params):
-        boardId = str(params["boardId"])
+        boardId = int(params["boardId"])
         board = self.gamesManager.getBoard(boardId)
 
         def territoryByName(tName):

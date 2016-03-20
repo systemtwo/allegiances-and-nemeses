@@ -44,7 +44,7 @@ class BoardsHandler(BaseAuthHandler):
     def get(self, **params):
         if self.action == self.actions.ID:
             #Return info about board with id boardId
-            game = self.gamesManager.getGame(str(params["boardId"]))
+            game = self.gamesManager.getGame(int(params["boardId"]))
             if not game:
                 self.set_status(404)
                 self.write("Board not found")
@@ -63,7 +63,7 @@ class BoardsHandler(BaseAuthHandler):
 
         elif self.action == self.actions.GET_FIELDS:
             requestedFields = [f.decode("utf-8") for f in self.request.arguments.get("fieldNames[]")]
-            board = self.gamesManager.getBoard(str(params["boardId"]))
+            board = self.gamesManager.getBoard(int(params["boardId"]))
             response = BoardState.getFields(board, requestedFields)
             self.write(json.dumps(response))
 
@@ -121,13 +121,13 @@ class Server:
 
             #Board control
             #Consider renaming to /games/
-            (r"/boardInfo/(?P<boardId>[A-z0-9\-]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID, gamesManager=self.gamesManager)), #Consider using named regex here
-            (r"/getFields/(?P<boardId>[A-z0-9\-]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.GET_FIELDS, gamesManager=self.gamesManager)),
-            (r"/boards/(?P<boardId>[A-z0-9\-]+)/action/?", ActionHandler, dict(config=config, gamesManager=self.gamesManager, gameSocket=gameSocketRouter)),
+            (r"/boardInfo/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.ID, gamesManager=self.gamesManager)), #Consider using named regex here
+            (r"/getFields/(?P<boardId>[0-9]+)/?", BoardsHandler, dict(config=config, action=BoardsHandler.actions.GET_FIELDS, gamesManager=self.gamesManager)),
+            (r"/boards/(?P<boardId>[0-9]+)/action/?", ActionHandler, dict(config=config, gamesManager=self.gamesManager, gameSocket=gameSocketRouter)),
 
             #Serve the static game page
             (r"/game/?", GameHandler, dict(config=config)),
-            (r"/game/(?P<boardId>[A-z0-9\-]+)/?", GameHandler, dict(config=config, gamesManager=self.gamesManager)),
+            (r"/game/(?P<boardId>[0-9]+)/?", GameHandler, dict(config=config, gamesManager=self.gamesManager)),
 
             #User auth
             (r"/login/?", LoginHandler),
@@ -136,13 +136,13 @@ class Server:
             #Lobby web routes
             (r"/lobby/?", LobbyHandler, dict(config=config, gamesManager=self.gamesManager)),
             (r"/lobby/create/?", LobbyCreateHandler, dict(config=config, gamesManager=self.gamesManager)),
-            (r"/lobby/(?P<gameId>[A-z0-9\-]+)/?", LobbyGameHandler, dict(config=config, gamesManager=self.gamesManager)),
+            (r"/lobby/(?P<gameId>[0-9]+)/?", LobbyGameHandler, dict(config=config, gamesManager=self.gamesManager)),
 
             #Lobby API routes
-            (r"/lobby/(?P<gameId>[A-z0-9\-]+)/join/?", LobbyGameJoinHandler, dict(config=config, gamesManager=self.gamesManager)),
-            (r"/lobby/(?P<gameId>[A-z0-9\-]+)/begin/?", LobbyGameBeginHandler, dict(config=config, gamesManager=self.gamesManager)),
-            (r"/lobby/(?P<gameId>[A-z0-9\-]+)/update/?", LobbyGameUpdateHandler, dict(config=config, gamesManager=self.gamesManager)),
-            (r"/lobby/(?P<gameId>[A-z0-9\-]+)/delete/?", LobbyGameDeleteHandler, dict(config=config, gamesManager=self.gamesManager)),
+            (r"/lobby/(?P<gameId>[0-9]+)/join/?", LobbyGameJoinHandler, dict(config=config, gamesManager=self.gamesManager)),
+            (r"/lobby/(?P<gameId>[0-9]+)/begin/?", LobbyGameBeginHandler, dict(config=config, gamesManager=self.gamesManager)),
+            (r"/lobby/(?P<gameId>[0-9]+)/update/?", LobbyGameUpdateHandler, dict(config=config, gamesManager=self.gamesManager)),
+            (r"/lobby/(?P<gameId>[0-9]+)/delete/?", LobbyGameDeleteHandler, dict(config=config, gamesManager=self.gamesManager)),
 
             #Load/Save games
             (r"/save/?", SaveHandler, saveHandlerOptions(SaveHandler.actions.SAVE)),

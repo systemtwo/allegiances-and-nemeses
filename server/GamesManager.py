@@ -11,6 +11,7 @@ from GameBoard import BoardState
 class GamesManager:
     def __init__(self):
         self.games = {}
+        self.lastId = 0
 
     def getGame(self, gameId):
         if gameId in self.games:
@@ -26,9 +27,9 @@ class GamesManager:
             return game.board
 
     def addGame(self, game):
-        gameId = str(uuid.uuid4())
-        self.games[gameId] = game
-        return gameId
+        self.lastId += 1
+        self.games[self.lastId] = game
+        return self.lastId
 
     def newGame(self, gameName, numPlayers, moduleName, creatorId):
         return self.addGame(Game.Game(gameName, numPlayers, moduleName, creatorId))

@@ -89,11 +89,11 @@ class LobbyGameHandler(BaseLobbyHandler):
 
         #TODO: Validate the game id
         #FIXME? We hackishly cast here...
-        userInput['gameId'] = str(params["gameId"])
+        userInput['gameId'] = int(params["gameId"])
         #userInput['countryId'] = self.get_argument("countryId")
 
         schema = Schema({
-            Required("gameId"): All(str),
+            Required("gameId"): All(int),
         #    Required("countryId"): All(unicode, Length(min=1))
         })
 
@@ -119,11 +119,11 @@ class LobbyGameHandler(BaseLobbyHandler):
 
         #TODO: Validate the game id
         #FIXME? We hackishly cast here...
-        userInput['gameId'] = str(params["gameId"])
+        userInput['gameId'] = int(params["gameId"])
         #userInput['countryId'] = self.get_argument("countryId")
 
         schema = Schema({
-            Required("gameId"): All(str),
+            Required("gameId"): All(int),
         #    Required("countryId"): All(unicode, Length(min=1))
         })
 
@@ -173,7 +173,7 @@ class LobbyGameJoinHandler(BaseLobbyHandler):
     @tornado.web.authenticated
     def get(self, **params):
         userInput = {}
-        userInput['gameId'] = str(params["gameId"])
+        userInput['gameId'] = int(params["gameId"])
         schema = Schema({
             Required("gameId"): All(int),
         })
