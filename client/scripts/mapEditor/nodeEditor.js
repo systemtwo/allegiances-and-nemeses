@@ -1,4 +1,4 @@
-define(["lib/d3", "underscore", "backbone", "knockout", "text!/static/templates/nodeEditorActions.ko.html"],
+define(["lib/d3", "underscore", "backbone", "knockout", "text!/static/html/knockoutTemplates/nodeEditorActions.ko.html"],
 function (d3, _, backbone, ko, buttonTemplate) {
 
     // Helper functions

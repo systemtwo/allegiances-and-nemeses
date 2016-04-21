@@ -1,4 +1,11 @@
-define(["backbone", "knockout", "underscore", "text!/static/templates/editUnitCatalogue.ko.html", "dialogs", 'mapEditor/imageSelector'],
+define([
+    "backbone",
+    "knockout",
+    "underscore",
+    "text!/static/html/knockoutTemplates/editUnitCatalogue.ko.html",
+    "dialogs",
+    'mapEditor/imageSelector'
+],
 function(backbone, ko, _, template, _dialogs, ImageSelectorView) {
 
     return backbone.View.extend({

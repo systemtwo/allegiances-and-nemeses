@@ -1,4 +1,4 @@
-define(["backbone", "knockout", "underscore", "text!/static/templates/imageSelector.ko.html"],
+define(["backbone", "knockout", "underscore", "text!/static/html/knockoutTemplates/imageSelector.ko.html"],
 function(backbone, ko, _, template) {
 
     return backbone.View.extend({

@@ -25,7 +25,7 @@ class LobbyHandler(BaseLobbyHandler):
     def get(self, **params):
         renderArguments = {}
         renderArguments["listings"] = self.gamesManager.listGames()
-        
+
         self.render(os.path.join("..", self.LOBBY_HTML_PATH, "lobby.html"), **renderArguments)
 
 

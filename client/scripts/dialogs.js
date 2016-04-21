@@ -2,9 +2,9 @@ define([
         "knockout",
         "underscore",
         "gameAccessor",
-        "text!../templates/battleground.ko.html",
-        "text!../templates/units.ko.html",
-        "text!../templates/saveGameForm.ko.html",
+        "text!/static/html/knockoutTemplates/battleground.ko.html",
+        "text!/static/html/knockoutTemplates/units.ko.html",
+        "text!/static/html/knockoutTemplates/saveGameForm.ko.html",
         "helpers"
     ],
     function(ko, _, _b, battlefieldTemplate, unitsTemplate, saveGameTemplate, _helpers) {

@@ -1,4 +1,4 @@
-define(["backbone", "underscore", "knockout", "text!../templates/editTerritory.ko.html"],
+define(["backbone", "underscore", "knockout", "text!/static/html/knockoutTemplates/editTerritory.ko.html"],
 function(backbone, _, ko, template) {
     var boundTerritoryValues = ["displayName", "income", "country"];
 
