@@ -5,7 +5,7 @@ from GameBoard.Phases.BuyPhase import BuyPhase
 from GameBoard.Phases.MovementPhase import MovementPhase
 from GameBoard.Phases.PlacementPhase import PlacementPhase
 from GameBoard.Phases.ResolvePhase import ResolvePhase
-from . import Util
+from . import GameHelpers
 from .Conflict import Conflict
 
 class Board:
@@ -154,22 +154,22 @@ class Board:
         def filterForConflicts(territory):
             units = [u for u in self.units if u.movedToTerritory == territory]
             if territory.isLand():
-                return len([u for u in units if not Util.allied(u, territory, units)]) > 0
+                return len([u for u in units if not GameHelpers.allied(u, territory, units)]) > 0
             else:
                 containsUnAllied = False  # whether there a units from two different teams in a single territory
                 for i, j in itertools.combinations(units, 2):
-                    if not Util.alliedCountries(i.country, j.country):
+                    if not GameHelpers.alliedCountries(i.country, j.country):
                         containsUnAllied = True
                         break
                 return containsUnAllied
 
         def getAttackers(territory):
             return [u for u in self.units
-                    if u.movedToTerritory == territory and Util.alliedCountries(u.country, self.currentCountry)]
+                    if u.movedToTerritory == territory and GameHelpers.alliedCountries(u.country, self.currentCountry)]
 
         def getDefenders(territory):
             return [u for u in self.units if
-                    u.movedToTerritory == territory and not Util.alliedCountries(u.country, self.currentCountry)]
+                    u.movedToTerritory == territory and not GameHelpers.alliedCountries(u.country, self.currentCountry)]
 
         def createConflict(territory):
             previousConflicts = [c for c in self._cachedComputedConflicts if c.territory.name == territory.name]

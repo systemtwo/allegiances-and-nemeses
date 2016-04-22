@@ -25,7 +25,7 @@ Sea, All attackers and all defenders are dead:
     Do nothing
 """
 import uuid
-from GameBoard import Util
+from GameBoard import GameHelpers
 
 import Unit
 import UniqueId
@@ -83,7 +83,7 @@ class Conflict(object):
         # counts number of each side that must die
         scoredHits = {}
         for key in keys:
-            scoredHits[key] = Util.calculateHits(combatants[key], key)
+            scoredHits[key] = GameHelpers.calculateHits(combatants[key], key)
 
         casualties = {}
         for key in keys:
@@ -91,7 +91,7 @@ class Conflict(object):
                 otherKey = "defence"
             else:
                 otherKey = "attack"
-            casualties[key] = Util.calculateCasualties(combatants[key], scoredHits[otherKey], key)
+            casualties[key] = GameHelpers.calculateCasualties(combatants[key], scoredHits[otherKey], key)
 
         self.outcome = self.getOutcome()
         self.handleOutcome()
@@ -188,7 +188,7 @@ class Conflict(object):
 # create a Conflict instance from a dictionary of info
 def fromDict(conflictInfo, board):
     def countryByName(name):
-        return Util.getByName(board.countries, name)
+        return GameHelpers.getByName(board.countries, name)
 
     def getUnit(unitId):
         return board.unitById(unitId)
@@ -210,7 +210,7 @@ def fromDict(conflictInfo, board):
         return [Unit.createUnitFromDict(unitInfo, board.unitInfoDict, board.countries, board.territories) for unitInfo in unitInfoCollection]
 
     conflict = Conflict(board,
-                        Util.getByName(board.territories, conflictInfo["territoryName"]),
+                        GameHelpers.getByName(board.territories, conflictInfo["territoryName"]),
                         getAllUnits(conflictInfo["attackers"]),
                         getAllUnits(conflictInfo["defenders"]),
                         countryByName(conflictInfo["attackingCountry"]),

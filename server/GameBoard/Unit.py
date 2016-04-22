@@ -1,6 +1,6 @@
 from . import UniqueId
 import uuid
-from GameBoard import Util
+from GameBoard import GameHelpers
 
 
 class Unit:
@@ -51,10 +51,10 @@ class Unit:
 def createUnitFromDict(unitDef, allUnitInfo, countries, territories):
     unit = Unit(
         allUnitInfo[unitDef["type"]],
-        Util.getByName(countries, unitDef["country"]),
-        Util.getByName(territories, unitDef["beginningOfPhaseTerritory"]),
+        GameHelpers.getByName(countries, unitDef["country"]),
+        GameHelpers.getByName(territories, unitDef["beginningOfPhaseTerritory"]),
         uuid.UUID(unitDef["id"]))
-    unit.originalTerritory = Util.getByName(territories, unitDef["beginningOfTurnTerritory"])
+    unit.originalTerritory = GameHelpers.getByName(territories, unitDef["beginningOfTurnTerritory"])
     return unit
 
 def createBoughtUnitFromDict(unitDef, territories):
@@ -65,7 +65,7 @@ def createBoughtUnitFromDict(unitDef, territories):
 
     unit = BoughtUnit(
         unitDef["unitType"],
-        Util.getByName(territories, unitDef["territory"]),
+        GameHelpers.getByName(territories, unitDef["territory"]),
         unitId
     )
     return unit

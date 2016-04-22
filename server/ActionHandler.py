@@ -5,7 +5,7 @@ import tornado.web
 from voluptuous import Schema, Required, MultipleInvalid
 
 from AuthHandlers import BaseAuthHandler
-from GameBoard import Util, BoardState
+from GameBoard import GameHelpers, BoardState
 import Sessions
 
 
@@ -21,7 +21,7 @@ class ActionHandler(BaseAuthHandler):
         board = self.gamesManager.getBoard(boardId)
 
         def territoryByName(tName):
-            return Util.getByName(board.territories, tName)
+            return GameHelpers.getByName(board.territories, tName)
 
         if not board:
             self.send_error(404)

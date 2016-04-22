@@ -34,24 +34,24 @@ class MapEditorHandler(tornado.web.RequestHandler):
             moduleInfo = {
                 "moduleName": moduleName
             }
-            with open(GameBoard.Util.filePath(moduleName, "info.json")) as file:
+            with open(GameBoard.GameHelpers.filePath(moduleName, "info.json")) as file:
                 moduleInfo["metadata"] = json.load(file)
 
             if "stencilImage" in moduleInfo["metadata"]:
                 stencilData = moduleInfo["metadata"]["stencilImage"]
-                filePath = GameBoard.Util.filePath(moduleName, stencilData.pop("fileName"))
+                filePath = GameBoard.GameHelpers.filePath(moduleName, stencilData.pop("fileName"))
                 with open(filePath, "rb") as imageFile:
                     stencilData["encoded"] = base64.b64encode(imageFile.read()).decode("utf-8")
 
-            with open(GameBoard.Util.countryFileName(moduleName)) as countryInfo:
+            with open(GameBoard.GameHelpers.countryFileName(moduleName)) as countryInfo:
                 moduleInfo["countries"] = countryInfo.read()
-            with open(GameBoard.Util.unitFileName(moduleName)) as unitInfo:
+            with open(GameBoard.GameHelpers.unitFileName(moduleName)) as unitInfo:
                 moduleInfo["unitCatalogue"] = unitInfo.read()
-            with open(GameBoard.Util.territoryFileName(moduleName)) as territoryInfo:
+            with open(GameBoard.GameHelpers.territoryFileName(moduleName)) as territoryInfo:
                 moduleInfo["territories"] = territoryInfo.read()
-            with open(GameBoard.Util.connectionFileName(moduleName)) as connections:
+            with open(GameBoard.GameHelpers.connectionFileName(moduleName)) as connections:
                 moduleInfo["connections"] = connections.read()
-            with open(GameBoard.Util.filePath(moduleName, "unitSetup.json")) as connections:
+            with open(GameBoard.GameHelpers.filePath(moduleName, "unitSetup.json")) as connections:
                 moduleInfo["unitSetup"] = connections.read()
 
             self.write(json.dumps(moduleInfo))
@@ -94,23 +94,23 @@ class MapEditorHandler(tornado.web.RequestHandler):
                         with open(fileName, "w") as f:
                             f.write(json.dumps(moduleInfo[key], indent=4, sort_keys=True))
 
-                writeFile("countries", GameBoard.Util.countryFileName(moduleName))
-                writeFile("units", GameBoard.Util.unitFileName(moduleName))
-                writeFile("territories", GameBoard.Util.territoryFileName(moduleName))
-                writeFile("connections", GameBoard.Util.connectionFileName(moduleName))
-                writeFile("unitSetup", GameBoard.Util.filePath(moduleName, "unitSetup.json"))
+                writeFile("countries", GameBoard.GameHelpers.countryFileName(moduleName))
+                writeFile("units", GameBoard.GameHelpers.unitFileName(moduleName))
+                writeFile("territories", GameBoard.GameHelpers.territoryFileName(moduleName))
+                writeFile("connections", GameBoard.GameHelpers.connectionFileName(moduleName))
+                writeFile("unitSetup", GameBoard.GameHelpers.filePath(moduleName, "unitSetup.json"))
 
         elif self.action == self.actions.CREATE:
             moduleName = self.get_argument("moduleName")
             if not os.path.exists(os.path.join(self.config.ABS_MODS_PATH, moduleName)):
                 os.makedirs(os.path.join(self.config.ABS_MODS_PATH, moduleName))
-                with open(GameBoard.Util.countryFileName(moduleName), 'w') as f:
+                with open(GameBoard.GameHelpers.countryFileName(moduleName), 'w') as f:
                     f.write("[]")
-                with open(GameBoard.Util.unitFileName(moduleName), 'w') as f:
+                with open(GameBoard.GameHelpers.unitFileName(moduleName), 'w') as f:
                     f.write("{}")
-                with open(GameBoard.Util.territoryFileName(moduleName), 'w') as f:
+                with open(GameBoard.GameHelpers.territoryFileName(moduleName), 'w') as f:
                     f.write("[]")
-                with open(GameBoard.Util.connectionFileName(moduleName), 'w') as f:
+                with open(GameBoard.GameHelpers.connectionFileName(moduleName), 'w') as f:
                     f.write("[]")
-                with open(GameBoard.Util.filePath(moduleName, "unitSetup.json"), 'w') as f:
+                with open(GameBoard.GameHelpers.filePath(moduleName, "unitSetup.json"), 'w') as f:
                     f.write("{}")

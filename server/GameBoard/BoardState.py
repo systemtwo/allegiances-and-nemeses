@@ -2,7 +2,7 @@ import json
 
 import time
 
-import Util
+import GameHelpers
 import Conflict
 from .Country import Country
 from .Territory import LandTerritory, SeaTerritory
@@ -106,8 +106,8 @@ def loadFromDict(fields):
     territories = [createTerritory(tInfo, countries) for tInfo in fields["territories"]]
 
     for info in fields["territories"]:
-        territory = Util.getByName(territories, info["name"])
-        territory.connections = [Util.getByName(territories, neighbour) for neighbour in info["connections"]]
+        territory = GameHelpers.getByName(territories, info["name"])
+        territory.connections = [GameHelpers.getByName(territories, neighbour) for neighbour in info["connections"]]
 
     unitInfo = {unitType: UnitInfo(unitType, unitInfo) for unitType, unitInfo in fields["unitCatalogue"].items()}
 
@@ -126,26 +126,26 @@ def loadFromDict(fields):
         conflict = Conflict.fromDict(conflictInfo, board)
         board.resolvedConflicts.append(conflict)
 
-    board.currentCountry = Util.getByName(countries, fields["currentCountry"])
+    board.currentCountry = GameHelpers.getByName(countries, fields["currentCountry"])
     return board
 
 
 def loadFromModuleName(moduleName):
     # load json from module
-    with open(Util.countryFileName(moduleName)) as countryInfo:
+    with open(GameHelpers.countryFileName(moduleName)) as countryInfo:
         countries = [createCountry(cInfo) for cInfo in json.load(countryInfo)]
 
-    with open(Util.unitFileName(moduleName)) as unitInfo:
+    with open(GameHelpers.unitFileName(moduleName)) as unitInfo:
         unitCatalogue = json.load(unitInfo)
         unitInfoDict = {unitType: UnitInfo(unitType, jsonInfo) for unitType, jsonInfo in
                         unitCatalogue.items()}
 
-    with open(Util.territoryFileName(moduleName)) as territoryInfo:
+    with open(GameHelpers.territoryFileName(moduleName)) as territoryInfo:
         territoryInfo = json.load(territoryInfo)
 
     territories = [createTerritory(info, countries) for info in territoryInfo]
 
-    with open(Util.connectionFileName(moduleName)) as connections:
+    with open(GameHelpers.connectionFileName(moduleName)) as connections:
         connections = json.load(connections)
         for c in connections:
             first = None
@@ -163,10 +163,10 @@ def loadFromModuleName(moduleName):
 
     units = []
     # add units
-    with open(Util.filePath(moduleName, "unitSetup.json")) as unitFile:
+    with open(GameHelpers.filePath(moduleName, "unitSetup.json")) as unitFile:
         unitSetup = json.load(unitFile)
         for tName, unitTypes in unitSetup.items():
-            territory = Util.getByName(territories, tName)
+            territory = GameHelpers.getByName(territories, tName)
             assert territory is not None, "Invalid territory name %r" % tName
             for unitType in unitTypes:
                 units.append(Unit.Unit(unitInfoDict[unitType], territory.country, territory))
