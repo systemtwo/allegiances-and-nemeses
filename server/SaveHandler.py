@@ -18,7 +18,7 @@ class SaveHandler(BaseAuthHandler):
     def get(self, **params):
         if self.action == self.actions.LOAD:
             gameId = self.gamesManager.loadGame(params['saveGameId'])
-            self.redirect("/game/" + gameId)
+            self.redirect("/game/" + str(gameId))
         elif self.action == self.actions.LIST_SAVES:
             loader = tornado.template.Loader(self.HTML_PATH)
             savedGames = getSaveGames().values()
@@ -29,7 +29,7 @@ class SaveHandler(BaseAuthHandler):
     @tornado.web.authenticated
     def post(self, **params):
         if self.action == self.actions.SAVE:
-            self.gamesManager.saveGame(self.get_argument("gameId"), self.get_argument("name"))
+            self.gamesManager.saveGame(int(self.get_argument("gameId")), self.get_argument("name"))
             self.redirect("/saves")
         elif self.action == self.actions.DELETE:
             deleteSaveGame(params['saveGameId'])
