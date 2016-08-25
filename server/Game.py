@@ -4,7 +4,6 @@ class Game:
     def __init__(self, gameName, numPlayers, moduleName, creatorId, password=""):
         #We are okay to have the password as a default arg, as strings are immutable
         self.name = gameName
-        self.currPlayers = 0
         self.maxPlayers = numPlayers
         self.creatorId = creatorId
         self.moduleName = moduleName
@@ -18,18 +17,23 @@ class Game:
 
     """Attempts to add a player to the Game. Returns True on success"""
     def addPlayer(self, userId):
-        if self.currPlayers >= self.maxPlayers:
-            return False
-        
-        if userId not in self.players:
+        # add the player if they haven't been added yet
+        if not self.containsPlayer(userId):
+            if self._currentPlayers() >= self.maxPlayers:
+                # if player hasn't been added yet, but the room is full, addPlayer fails
+                return False
             self.players[userId] = []
-            self.currPlayers += 1
 
         return True
 
-    def removePlayer(self, country):
-        self.currPlayers -= 1
-        self.players[country] = None
+    def containsPlayer(self, userId):
+        return userId in self.players
+
+    def _currentPlayers(self):
+        return len(self.players)
+
+    def removePlayer(self, userId):
+        self.players[userId] = None
 
     def listPlayers(self):
         return [{"id": userId, "name": str(userId)} for userId in self.players]

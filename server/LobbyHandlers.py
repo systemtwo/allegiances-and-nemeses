@@ -200,10 +200,8 @@ class LobbyGameJoinHandler(BaseLobbyHandler):
         userSession = Sessions.SessionManager.getSession(self.current_user)
         if self.gamesManager.getGame(validUserInput['gameId']).addPlayer(userSession.getValue("userid")):
             self.redirect("/lobby/" + str(validUserInput['gameId']))
-            #self.write("Joining game :D")
         else:
             self.send_error(500)
-            self.write("Something went wrong :(")
 
 
 """Initiates a game from a game listing"""
