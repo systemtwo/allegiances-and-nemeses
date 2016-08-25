@@ -107,7 +107,7 @@ class LobbyGameHandler(BaseLobbyHandler):
 
             modules.append(moduleInfo)
 
-        self.write(loader.load("lobbygameinfo.html").generate(gameId=gameId, modules=json.dumps(modules)))
+        self.write(loader.load("lobbygameinfo.html").generate(gameId=gameId, userId=userid, modules=json.dumps(modules)))
 
     # Change the game settings, eg. Player <-> Country mapping
     #TODO: Remove this

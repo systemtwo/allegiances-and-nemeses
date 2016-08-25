@@ -3,7 +3,7 @@
         <form>
             <div class="form-group">
                 <label for="roomNameText">Room Name</label>
-                <input type="text" class="form-control" id="roomNameText" placeholder="Room Name" data-bind="value: roomName, disabled: !canEdit()">
+                <input type="text" class="form-control" id="roomNameText" placeholder="Room Name" data-bind="value: roomName, disable: !canEdit()">
             </div>
             <div class="form-group">
                 <label for="moduleName">Map</label>
@@ -13,14 +13,14 @@
 
             <div class="form-group">
                 <label for="numPlayers">Number of players</label>
-                <select id="numPlayers" data-bind="options: maxPlayersOptions(), value: selectedMaxPlayersOption, disabled: !canEdit()">
+                <select id="numPlayers" data-bind="options: maxPlayersOptions(), value: selectedMaxPlayersOption, disable: !canEdit()">
                 </select>
             </div>
 
             <div class="form-group">
                 <!--Manual save is a temp feature-->
-                <button class="btn space-out" data-bind="click: save, disabled: !canEdit()">Save</button>
-                <button class="btn btn-primary pull-right space-out" data-bind="click: beginGame, disabled: !canEdit()">Begin Game</button>
+                <button class="btn space-out" data-bind="click: save, disable: !canEdit()">Save</button>
+                <button class="btn btn-primary pull-right space-out" data-bind="click: beginGame, disable: !canEdit()">Begin Game</button>
             </div>
         </form>
         <div class="clearfix"></div>

@@ -61,7 +61,8 @@ class Game:
             return False
 
     def clearAllPlayerCountries(self):
-        self.players.clear()
+        for playerId in self.players:
+            self.players[playerId] = []  # empty all country arrays
         return True
 
     def getPlayerCountries(self, userId):

@@ -11,7 +11,8 @@
         <script>
             requirejs(["lobbyInfo"], function (lobbyInfo) {
                 var gameId = "{{ gameId }}";
-                lobbyInfo.initialize(gameId);
+                var userId = "{{ userId }}";
+                lobbyInfo.initialize(gameId, userId);
             });
         </script>
     </head>
