@@ -41,10 +41,10 @@
                         {{item['id']}}
                     </td>
                     <td class="vert-align">
-                        {{item['game'].name}}
+                        {{item['name']}}
                     </td>
                     <td class="vert-align">
-                        {{item['game'].currPlayers}}/{{item['game'].maxPlayers}}
+                        {{item['currentPlayerCount']}}/{{item['maxPlayers']}}
                     </td>
                     <td class="vert-align">
                         <a class="btn btn-primary" href="/lobby/{{item['id']}}/join">Join</a>

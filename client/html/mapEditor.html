@@ -8,21 +8,9 @@
         <link href="/static/css/map.css" rel="stylesheet" type="text/css" media="all">
         <link href="/static/css/mapEditor.css" rel="stylesheet" type="text/css" media="all">
         <script src="/static/scripts/lib/jquery-1.11.1.js"></script>
-        <!-- data-main attribute tells require.js to load
-             scripts/mapEditor.js after require.js loads. -->
         <script src="/static/scripts/lib/require.js"></script>
+        <script src="/static/scripts/require-config.js"></script>
         <script>
-            requirejs.config({
-                baseUrl: '/static/scripts',
-                paths: {
-                    "nunjucks": "lib/nunjucks",
-                    "backbone": "lib/backbone",
-                    "knockout": "lib/knockout-3.3.0.debug",
-                    "underscore": "lib/underscore",
-                    "jquery": "lib/jquery-1.11.1",
-                    "jquery-ui": "lib/jquery-ui-1.11.3/jquery-ui"
-                }
-            });
             requirejs(["mapEditor"], function (editor) {
                 $.get("modules/info/{{ moduleName }}").done(function (result) {
                     editor.initialize(JSON.parse(result));

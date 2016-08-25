@@ -4,6 +4,16 @@
         <title>New Game</title>
         <link href="/static/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all">
         <link href="/static/css/lobby.css" rel="stylesheet" type="text/css" media="all">
+        <script src="/static/scripts/lib/jquery-1.11.1.js"></script>
+        <script src="/static/scripts/lib/require.js"></script>
+        <script src="/static/scripts/require-config.js"></script>
+
+        <script>
+            requirejs(["lobbyInfo"], function (lobbyInfo) {
+                var gameId = "{{ gameId }}";
+                lobbyInfo.initialize(gameId);
+            });
+        </script>
     </head>
 
     <body>
@@ -11,115 +21,7 @@
             <div class="row">
                 <h1>Create Game</h1>
             </div>
-
-            <div class="row">
-                <div class="col-md-3">
-                    <form>
-                        <div class="form-group">
-                            <label for="roomNameText">Room Name</label>
-                            <input type="text" class="form-control" id="roomNameText" placeholder="Room Name">
-                        </div>
-                        <div class="form-group">
-                            <label for="moduleName">Map</label>
-                            <select id="moduleName">
-                                <option>Classic</option>
-                                <option>Modern</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="numPlayers">Number of players</label>
-                            <select id="numPlayers">
-                                <option>1</option>
-                                <option>2</option>
-                                <option>3</option>
-                                <option>4</option>
-                                <option>5</option>
-                            </select>
-                        </div>
-
-                        <label for="mapPreview">Map Preview</label>
-                        <img id="mapPreview" class="center-block img-responsive" src="https://placehold.it/250x200" />
-                        
-                        <div class="form-group">
-                            <button class="btn btn-primary pull-right space-out">Create Game</button>
-                        </div>
-                    </form>
-                    <div class="clearfix"></div>
-                </div>
-                <div class="col-md-9">
-                    <h2>Faction 1</h2>
-                    <div class="columnize">
-                        <div class="item">
-                            <div class="panel panel-primary panel-hoverable">
-                                <div class="panel-heading">
-                                    Country Name
-                                    <div class="pull-right">
-                                        <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                    </div>
-                                </div>
-                                <div class="panel-body">
-                                    <strong>John Smith</strong>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="item">
-                            <div class="panel panel-default panel-hoverable">
-                                <div class="panel-heading">
-                                    Country Name
-                                    <div class="pull-right">
-                                        <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                    </div>
-                                </div>
-                                <div class="panel-body">
-                                    <span class="text-placeholder">Click to claim country</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="item">
-                            <div class="panel panel-default panel-hoverable">
-                                <div class="panel-heading">
-                                    Country Name
-                                    <div class="pull-right">
-                                        <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                    </div>
-                                </div>
-                                <div class="panel-body">
-                                    <span class="text-placeholder">Click to claim country</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <h2>Faction 2</h2>
-                    <div class="columnize">
-                        <div class="item">
-                            <div class="panel panel-default panel-hoverable">
-                                <div class="panel-heading">
-                                    Country Name
-                                    <div class="pull-right">
-                                        <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                    </div>
-                                </div>
-                                <div class="panel-body">
-                                    <span class="text-placeholder">Click to claim country</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="item">
-                            <div class="panel panel-default panel-hoverable">
-                                <div class="panel-heading">
-                                    Country Name
-                                    <div class="pull-right">
-                                        <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                    </div>
-                                </div>
-                                <div class="panel-body">
-                                    <span class="text-placeholder">Click to claim country</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div id="lobby-info-container">
             </div>
         </div>
     </body>

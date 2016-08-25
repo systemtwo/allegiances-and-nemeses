@@ -7,6 +7,7 @@ import tornado.web
 import tornado.template
 from voluptuous import Schema, Required, All, Range, Length, MultipleInvalid, Optional
 
+import GameBoard
 from AuthHandlers import BaseAuthHandler
 import Sessions
 
@@ -83,6 +84,7 @@ Also implicitly causes player to join the game
 class LobbyGameHandler(BaseLobbyHandler):
     @tornado.web.authenticated
     def get(self, gameId):
+        loader = tornado.template.Loader(self.LOBBY_HTML_PATH)
         gameId = int(gameId)
         if not self._game_id_valid(gameId):
             self.send_error(404)
@@ -95,7 +97,17 @@ class LobbyGameHandler(BaseLobbyHandler):
         game = self.gamesManager.getGame(gameId)
         game.addPlayer(userid)
 
-        self.render(os.path.join("..", self.LOBBY_HTML_PATH, "lobbygameinfo.html"))
+        moduleNames = ["napoleon"]
+        modules = []
+        for moduleName in moduleNames:
+            moduleInfo = {}
+
+            with open(GameBoard.Util.countryFileName(moduleName)) as countryInfo:
+                moduleInfo["countries"] = countryInfo.read()
+
+            modules.append(moduleInfo)
+
+        self.write(loader.load("lobbygameinfo.html").generate(gameId=gameId, modules=json.dumps(modules)))
 
     # Change the game settings, eg. Player <-> Country mapping
     #TODO: Remove this
@@ -236,20 +248,21 @@ class LobbyGameUpdateHandler(BaseLobbyHandler):
             Optional("maxPlayers"): All(int),
             Optional("moduleName"): All(unicode),
         })
-        userInput = {"gameId": int(game_id)}
+        game = self.gamesManager.getGame(int(gameId))
 
         try:
-            validUserInput = schema(userInput)
+            validUserInput = schema(userData)
             if "countryPlayer" in validUserInput:
                 self._set_country_players(game, validUserInput['countryPlayer'])
             if "gameName" in validUserInput:
                 self._set_game_name(game, validUserInput['gameName'])
             if "maxPlayers" in validUserInput:
                 self._set_num_players(game, validUserInput['maxPlayers'])
-            if "module_name" in validUserInput:
+            if "moduleName" in validUserInput:
                 self._set_module_name(game, validUserInput['moduleName'])
 
         except MultipleInvalid as e:
+            print(e.error_message)
             self.send_error(403)
             return
 
@@ -264,7 +277,7 @@ class LobbyGameUpdateHandler(BaseLobbyHandler):
 
     def _set_country_players(self, game, country_player_map):
         # Reset and set player country map
-        game.clearPlayerCountries()
+        game.clearAllPlayerCountries()
         for entry in country_player_map:
             game.addPlayerCountry(entry['userId'], entry['country'])
 

@@ -19,7 +19,7 @@ class Game:
     def addPlayer(self, userId):
         # add the player if they haven't been added yet
         if not self.containsPlayer(userId):
-            if self._currentPlayers() >= self.maxPlayers:
+            if self.currentPlayerCount() >= self.maxPlayers:
                 # if player hasn't been added yet, but the room is full, addPlayer fails
                 return False
             self.players[userId] = []
@@ -29,14 +29,17 @@ class Game:
     def containsPlayer(self, userId):
         return userId in self.players
 
-    def _currentPlayers(self):
-        return len(self.players)
-
     def removePlayer(self, userId):
         self.players[userId] = None
 
     def listPlayers(self):
-        return [{"id": userId, "name": str(userId)} for userId in self.players]
+        return [
+            {
+                "id": userId,
+                "name": str(userId),
+                "assignedCountries": countries
+            } for userId, countries in self.players.iteritems()
+        ]
 
     def addPlayerCountry(self, userId, newCountry):
         if userId not in self.players or type(self.players[userId]) != list:
@@ -57,12 +60,8 @@ class Game:
         else:
             return False
 
-    def clearPlayerCountries(self, userId):
-        if userId not in self.players or type(self.players[userId]) == list:
-            return False
-
-        #This clears the entire list
-        del self.players[userId][:]
+    def clearAllPlayerCountries(self):
+        self.players.clear()
         return True
 
     def getPlayerCountries(self, userId):
@@ -88,12 +87,15 @@ class Game:
 
         return True
 
-    def newBoard(self, module_name):
+    def newBoard(self, moduleName):
         #TODO: Validate here or in the Board that the module exists
-        self.board = GameBoard.Board(module_name)
+        self.board = GameBoard.BoardState.loadFromModuleName(moduleName)
 
     def toDict(self):
         return {
             "players": self.players,
             "board": self.board
         }
+
+    def currentPlayerCount(self):
+        return len(self.players)

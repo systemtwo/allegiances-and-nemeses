@@ -1,0 +1,56 @@
+<div class="row">
+    <div class="col-md-3">
+        <form>
+            <div class="form-group">
+                <label for="roomNameText">Room Name</label>
+                <input type="text" class="form-control" id="roomNameText" placeholder="Room Name" data-bind="value: roomName, disabled: !canEdit()">
+            </div>
+            <div class="form-group">
+                <label for="moduleName">Map</label>
+                <select id="moduleName" data-bind="options: modules, optionsText: 'name', value: selectedModule">
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="numPlayers">Number of players</label>
+                <select id="numPlayers" data-bind="options: maxPlayersOptions(), value: selectedMaxPlayersOption, disabled: !canEdit()">
+                </select>
+            </div>
+
+            <div class="form-group">
+                <!--Manual save is a temp feature-->
+                <button class="btn space-out" data-bind="click: save, disabled: !canEdit()">Save</button>
+                <button class="btn btn-primary pull-right space-out" data-bind="click: beginGame, disabled: !canEdit()">Begin Game</button>
+            </div>
+        </form>
+        <div class="clearfix"></div>
+    </div>
+    <div class="col-md-6">
+        <h3>Players</h3>
+        <!-- Drag and drop into player areas -->
+        <div class="columnize" data-bind="foreach: players()">
+            <div class="item player-info" data-bind="attr: {'data-playerId': id}">
+                <div class="panel panel-default panel-hoverable">
+                    <div class="panel-heading" data-bind="text: name">
+                        <!-- TODO dschwarz find user name property -->
+                    </div>
+                    <div class="panel-body">
+                        <label>Drag countries to the area below</label>
+                        <div class="countries-area" data-bind="template: { name: 'country-template', foreach: assignedCountries }">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <h3>Unclaimed Countries</h3>
+        <div class="unclaimed-countries" data-bind="template: { name: 'country-template', foreach: unassignedCountries() }">
+        </div>
+    </div>
+
+    <script type="text/html" id="country-template">
+        <h3 data-bind="text: name"></h3>
+        <p>Team: <span data-bind="text: team"></span></p>
+    </script>
+</div>

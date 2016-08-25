@@ -37,7 +37,15 @@ class GamesManager:
     def listGames(self):
         # Have this return a more lightweight representation instead, like board
         # title and ids
-        return [{"id": gameId, "game": self.games[gameId]} for gameId in self.games]
+        listings = []
+        for gameId, game in self.games.iteritems():
+            listings.append({
+                "id": gameId,
+                "name": game.name,
+                "currentPlayerCount": game.currentPlayerCount(),
+                "maxPlayers": game.maxPlayers
+            })
+        return listings
 
     def saveGame(self, gameId, name):
         saveGameId = str(uuid.uuid4())
