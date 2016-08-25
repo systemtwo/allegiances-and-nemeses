@@ -1,21 +1,31 @@
-define(["underscore", "backbone", "svgMap", "components", "helpers", "router", "gameAccessor", "phases/phaseHelper", "dialogs"],
-function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) {
+define([
+    "underscore",
+    "backbone",
+    "knockout",
+    "svgMap",
+    "components",
+    "helpers",
+    "router",
+    "gameAccessor",
+    "phases/phaseHelper",
+    "dialogs",
+    "lib/mousetrap"],
+function(_, backbone, ko, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs, Mousetrap) {
     var Game = function(id, boardInfo, bindTo) {
         var that = this;
         _b.setBoard(this);
         this.id = id;
-        // lists of game objects whose properties will change as the game progresses
-        this.boardData = {
-            countries: [],
-            territories: [],
-            units: [],
-            buyList: boardInfo.buyList,
-            conflicts: boardInfo.conflicts
-        };
-        this.map = new svgMap.Map(this.boardData, bindTo);
+        this.inTerritoryInfoMode = ko.observable(false);
+        this.selectedTerritory = ko.observable(null);
+
+        this.map = new svgMap.Map({}, bindTo);
         this.map.on("select:territory", function (territory) {
-            if (that.currentPhase && that.currentPhase.onTerritorySelect) {
-                that.currentPhase.onTerritorySelect(territory);
+            if (that.inTerritoryInfoMode()) {
+                that.selectedTerritory(territory);
+            } else {
+                if (that.currentPhase && that.currentPhase.onTerritorySelect) {
+                    that.currentPhase.onTerritorySelect(territory);
+                }
             }
         });
         this.map.on("click:circle", function (territory, event) {
@@ -23,6 +33,9 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
         });
         this.map.getCircleContent = function (territory) {
             return territory.units().length;
+        };
+        this.map.isCircleVisible = function (territory) {
+            return territory.units().length > 0;
         };
         this.isPlayerTurn = false;
         this.currentCountry = null;
@@ -32,6 +45,11 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
         this.map.drawMap();
         this.on("change", function () {
             that.map.drawMap();
+        });
+        Mousetrap.bind("esc", function () {
+            if (that.currentPhase.cancel) {
+                that.currentPhase.cancel();
+            }
         });
         return this;
     };
@@ -47,26 +65,31 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
             buyList: [],
             conflicts: boardInfo.conflicts
         };
+        this.buyList(boardInfo.buyList); // set the buy list
         // Info about the game that will remain constant
         this.info = {
             players: boardInfo.players,
-            connections: [],
             unitCatalogue: boardInfo.unitCatalogue
         };
 
-        this.isPlayerTurn = boardInfo.isPlayerTurn;
-        this.wrapsHorizontally = boardInfo.wrapsHorizontally;
+        if (_.isBoolean(boardInfo.isPlayerTurn)) {
+            this.isPlayerTurn = boardInfo.isPlayerTurn;
+        }
         this.winningTeam = boardInfo.winningTeam;
 
         this.boardData.countries = boardInfo.countries.map(function(countryInfo) {
             return new _c.Country(countryInfo)
         });
 
-        boardInfo.territoryInfo.forEach(function(tInfo) {
-            var ownerInfo = boardInfo.territoryOwners[tInfo.name] || {};
-            var country = that.getCountry(ownerInfo.current);
-            var previous = !ownerInfo.previous || ownerInfo.previous == ownerInfo.current ? country : that.getCountry(ownerInfo.previous);
-            that.boardData.territories.push(new _c.Territory(tInfo, country, previous))
+        boardInfo.territories.forEach(function(territoryInfo) {
+            var country = that.getCountry(territoryInfo.country);
+            var previous;
+            if (!territoryInfo.previousCountry || territoryInfo.previousCountry == territoryInfo.country) {
+                previous = country; // no need to look up again
+            } else {
+                previous = that.getCountry(territoryInfo.previousCountry);
+            }
+            that.boardData.territories.push(new _c.Territory(territoryInfo, country, previous))
         });
 
         boardInfo.units.forEach(function(unit){
@@ -75,20 +98,24 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
 
         this.currentCountry = that.getCountry(boardInfo.currentCountry);
         _helpers.countryName(this.currentCountry.displayName);
-        this.phaseName = boardInfo.currentPhase;
         if (this.winningTeam) {
             this.currentPhase = phaseHelper.createPhase("Victory")
         } else {
+            var phaseName;
             if (this.isCurrentPlayersTurn()) {
-                this.currentPhase = phaseHelper.createPhase(boardInfo.currentPhase);
+                phaseName = boardInfo.currentPhase;
             } else {
-                this.currentPhase = phaseHelper.createPhase("ObservePhase");
+                phaseName = "ObservePhase";
             }
-            _helpers.phaseName(this.phaseName);
+            if (this.currentPhaseName() != phaseName) {
+                console.log("Changing Phase");
+                this.currentPhase = phaseHelper.createPhase(phaseName);
+            }
         }
-        this.buyList(boardInfo.buyList); // set the buy list
+        this.phaseName = boardInfo.currentPhase;
+        _helpers.phaseName(this.phaseName);
 
-        this.initConnections(boardInfo);
+        this.initConnections();
         this.map.update(this.boardData);
         this.trigger("change");
     };
@@ -106,33 +133,26 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
 
     Game.prototype.updateConflicts = function () {
         var that = this;
-        _router.getFields(this.id, ["conflicts", "territoryOwners"]).done(function(response) {
+        _router.getFields(this.id, ["conflicts", "territories"]).done(function(response) {
             that.boardData.conflicts = response.conflicts;
-            _.each(response.territoryOwners, function (info, territoryName) {
-                var territory = that.getTerritory(territoryName);
-                if (territory.country.name != info.current) {
-                    territory.country = that.getCountry(info.current);
-                    territory.previousCountry = that.getCountry(info.previous);
-                }
+            _.each(response.territories, function (info) {
+                var territory = that.getTerritory(info.name);
+                territory.update(info);
             });
             that.trigger("change");
         })
     };
 
-    Game.prototype.initConnections = function(connectionJson) {
+    Game.prototype.initConnections = function() {
         var that = this;
-        connectionJson.connections.map(function(c) {
-            var first = null,
-                second = null;
-            that.boardData.territories.forEach(function(t) {
-                if (t.name == c[0]){
-                    first = t;
-                } else if (t.name == c[1]) {
-                    second = t;
+        that.boardData.territories.map(function(origin) {
+            origin.connections = origin.connections.map(function (neighbourName) {
+                var foundTerritory = _.findWhere(that.boardData.territories, {name: neighbourName});
+                if (!foundTerritory) {
+                    throw new Error("Could not find territory " + neighbourName);
                 }
+                return foundTerritory;
             });
-            first.connections.push(second);
-            second.connections.push(first);
         });
 
     };
@@ -152,7 +172,6 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
         } else {
             return this.boardData.buyList;
         }
-        this.trigger("change:buyList change");
     };
 
     Game.prototype.unitInfo = function(unitType) {
@@ -175,12 +194,8 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
         this.boardData.units.push(unit);
     };
 
-    Game.prototype.getMapWidth = function() {
-        if (this.wrapsHorizontally) {
-            return this.mapImage.width/2;
-        } else {
-            return this.mapImage.width
-        }
+    Game.prototype.getConflict = function (id) {
+        return _.findWhere(this.boardData.conflicts, {id: id});
     };
 
     Game.prototype.getCountries = function () {
@@ -204,15 +219,25 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
         }
     };
 
+    Game.prototype.getTerritoryDisplayName = function(territoryName) {
+        var territory = this.getTerritory(territoryName);
+        return territory && territory.displayName ? territory.displayName : territoryName;
+    };
+
+    Game.prototype.getCountryDisplayName = function(countryName) {
+        var country = this.getCountry(countryName);
+        return country && country.displayName ? country.displayName : countryName;
+    };
+
     Game.prototype.territoriesForCountry = function(country) {
         return this.boardData.territories.filter(function(t) {
-            return t.country == country;
+            return t.isLand() && t.country.name == country.name;
         });
     };
 
     Game.prototype.unitsForCountry = function(country) {
         return this.boardData.units.filter(function(u) {
-            return u.country == country;
+            return u.country.name == country.name;
         });
     };
 
@@ -252,7 +277,7 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
         while(frontier.length) {
             // unqueue the first item
             var current = frontier.shift();
-            if (current.territory === destination) {
+            if (current.territory.name === destination.name) {
                 // Found it!
                 return current.distance;
             }
@@ -299,7 +324,7 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
                 sea: dA.sea + dB.sea
             }
         }
-    }
+    };
 
     /**
      * finds all territories in range of a set of units
@@ -333,14 +358,32 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
 
         return territoryObjects;
     };
-    Game.prototype.getConflictByTerritoryName = function(tName) {
-        var conflicts = this.boardData.conflicts;
-        for (var i = 0; i < conflicts.length; i++) {
-            if (conflicts[i].territoryName == tName) {
-                return conflicts[i];
-            }
+
+    Game.prototype.toggleTerritoryInfoMode = function () {
+        if (this.inTerritoryInfoMode()) {
+            this.exitTerritoryInfoMode();
+        } else {
+            this.enterTerritoryInfoMode()
         }
-        return null;
+        this.inTerritoryInfoMode(!this.inTerritoryInfoMode());
+    };
+
+    Game.prototype.enterTerritoryInfoMode = function () {
+        this.backupTerritories = this.map.selectableTerritories;
+        this.map.setSelectableTerritories(this.boardData.territories);
+    };
+
+    Game.prototype.exitTerritoryInfoMode = function () {
+        this.map.setSelectableTerritories(this.backupTerritories);
+        this.backupTerritories = [];
+    };
+
+    Game.prototype.setSelectableTerritories = function (territories) {
+        if (this.inTerritoryInfoMode()) {
+            this.backupTerritories = territories;
+        } else {
+            this.map.setSelectableTerritories(territories);
+        }
     };
 
     Game.prototype.nextPhase = function() {
@@ -350,10 +393,7 @@ function(_, backbone, svgMap, _c, _helpers, _router, _b, phaseHelper, _dialogs) 
 
         if (success && !that.advancingPhase) {
             that.advancingPhase = true;
-            _router.nextPhase().done(function(boardData) {
-                _helpers.helperText(""); // reset the helper text
-                that.parse(JSON.parse(boardData));
-            }).always(function() {
+            _router.nextPhase().always(function() {
                 that.advancingPhase = false;
             })
         }

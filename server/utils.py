@@ -1,4 +1,5 @@
-import tornado.ioloop
+import json
+
 import tornado.web
 
 
@@ -25,3 +26,12 @@ class Enum(set):
     def __setattr__(self, name, **kwargs):
         pass
 
+def getSaveGames():
+    with open("saveGames.json") as saveFile:
+        return json.load(saveFile)
+
+def deleteSaveGame(id):
+    saves = getSaveGames()
+    saves.pop(id, None)
+    with open("saveGames.json", "w") as saveFile:
+        saveFile.write(json.dumps(saves))

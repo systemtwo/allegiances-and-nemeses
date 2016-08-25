@@ -1,19 +1,14 @@
 class Country:
-    def __init__(self, name, displayName, teamName, color, playable, board=None):
+    def __init__(self, name, displayName, teamName, color, selectableColor, playable):
         self.eliminated = False
         self.name = name
         self.displayName = displayName
         self.team = teamName
         self.color = color
+        self.selectableColor = selectableColor
         self.playable = playable
-        self.board = board
         self.money = 0
         self.player = None
-
-    def collectIncome(self):
-        for t in self.board.territories:
-            if hasattr(t, "country") and t.country == self:
-                self.money += t.income
 
     def pay(self, amount):
         if amount > self.money:
@@ -21,13 +16,19 @@ class Country:
 
         self.money -= amount
 
+    def setPlayer(self, userId):
+        self.player = userId
+
     def toDict(self):
         return {
             "name": self.name,
             "displayName": self.displayName,
             "team": self.team,
             "money": self.money,
-            "color": self.color
+            "color": self.color,
+            "playable": self.playable,
+            "player": self.player,  # optional field
+            "selectableColor": self.selectableColor
         }
 
     def eliminate(self):

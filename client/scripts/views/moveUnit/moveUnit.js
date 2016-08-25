@@ -27,7 +27,7 @@ define(["backbone", "knockout", "text!views/moveUnit/moveUnit.ko.html", "helpers
                 }
                 function canMove(unit) {
                     var currentPhase = _b.getBoard().currentPhase;
-                    if (unit.territory == view.fromTerritory)
+                    if (unit.territory.name == view.fromTerritory.name)
                         return currentPhase.canMove(unit, view.destinationTerritory);
                     else
                         return currentPhase.canMove(unit, view.fromTerritory);
@@ -50,7 +50,7 @@ define(["backbone", "knockout", "text!views/moveUnit/moveUnit.ko.html", "helpers
                         onClick: function(unitData) {
                             var origin,destination, undo;
                             if (unitIsMovable) {
-                                if (unit.territory == view.fromTerritory) {
+                                if (unit.territory.name == view.fromTerritory.name) {
                                     viewModel.moveUnitToDestination(unitData);
                                     undo = viewModel.moveUnitToOrigin.bind(viewModel);
                                     origin = view.fromTerritory;
@@ -106,6 +106,6 @@ define(["backbone", "knockout", "text!views/moveUnit/moveUnit.ko.html", "helpers
             });
             ko.applyBindings(this.viewModel, this.$el.append(template)[0]);
         }
-    })
+    });
     return MoveUnitView;
 });

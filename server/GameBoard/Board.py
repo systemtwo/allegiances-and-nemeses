@@ -1,83 +1,41 @@
-import json
 import itertools
-from .Country import Country
-from .Phases import BuyPhase
-from .Territory import LandTerritory, SeaTerritory
-from .Unit import UnitInfo, Unit
-from . import Util
-from .Components import Conflict
 
+from GameBoard.Phases.AttackPhase import AttackPhase
+from GameBoard.Phases.BuyPhase import BuyPhase
+from GameBoard.Phases.MovementPhase import MovementPhase
+from GameBoard.Phases.PlacementPhase import PlacementPhase
+from GameBoard.Phases.ResolvePhase import ResolvePhase
+from . import Util
+from .Conflict import Conflict
 
 class Board:
-    def __init__(self, moduleName):
-        self.players = []
-        self.units = []
-        self.buyList = []
-        self.moduleName = moduleName
+    def __init__(self, unitInfoDict, territories, units, countries, phaseName=None, boughtUnits=None):
+        if boughtUnits is None:
+            boughtUnits = []
+        self.units = units
+        self.buyList = boughtUnits
         self.winningTeam = None
         self.resolvedConflicts = []
+        self._cachedComputedConflicts = []
 
-        # load json from module
-        with open(Util.filePath(moduleName, "info.json")) as file:
-            self.moduleInfo = json.load(file)
-
-        with open(Util.countryFileName(moduleName)) as countryInfo:
-            self.countries = [Country(c["name"], c["displayName"], c["team"], c["color"], c["playable"], self) for c in
-                              json.load(countryInfo)]
-
-        self.playableCountries = [c for c in self.countries if c.playable]
-
-        with open(Util.unitFileName(moduleName)) as unitInfo:
-            self.unitCatalogue = json.load(unitInfo)
-            self.unitInfoDict = {unitType: UnitInfo(unitType, jsonInfo) for unitType, jsonInfo in
-                                 self.unitCatalogue.items()}
-
-        with open(Util.territoryFileName(moduleName)) as territoryInfo:
-            self.territoryInfo = json.load(territoryInfo)
-
-        self.territories = []
-        for info in self.territoryInfo:
-            if info["type"] == "land":
-                startingCountry = self.getStartingCountry(info)
-                self.territories.append(
-                    LandTerritory(self, info["name"], info["displayName"], info["income"], startingCountry))
-            elif info["type"] == "sea":
-                self.territories.append(SeaTerritory(self, info["name"], info["displayName"]))
-            else:
-                print("Territory info does not have valid type")
-                print(info)
-
-        with open(Util.connectionFileName(moduleName)) as connections:
-            self.connections = json.load(connections)
-            for c in self.connections:
-                first = None
-                second = None
-                for t in self.territories:
-                    if t.name == c[0]:
-                        first = t
-                    elif t.name == c[1]:
-                        second = t
-                if first and second:
-                    first.connections.append(second)
-                    second.connections.append(first)
-                else:
-                    raise Exception("Could not find territories for connection: " + json.dumps(c))
-
-        # add units
-        with open(Util.filePath(moduleName, "unitSetup.json")) as unitFile:
-            unitSetup = json.load(unitFile)
-            for tName, unitTypes in unitSetup.items():
-                territory = self.territoryByName(tName)
-                assert territory is not None, "Invalid territory name %r" % tName
-                for unitType in unitTypes:
-                    self.units.append(Unit(self.unitInfo(unitType), territory.country, territory))
+        self.countries = countries
+        self.playableCountries = [c for c in countries if c.playable]
+        self.territories = territories
+        self.unitInfoDict = unitInfoDict
 
         # begin
         for c in self.playableCountries:
-            c.collectIncome()
+            self.collectIncome(c)
         self.currentCountry = self.playableCountries[0]
 
-        self.currentPhase = BuyPhase(self.currentCountry.money, self)
+        # Phases
+        self.isSettingPhase = False
+        self.nextPhaseName = None
+        if phaseName:
+            self.setPhase(phaseName)
+        else:
+            self.currentPhase = BuyPhase(self)
+
         self.validateInfo()
 
     def validateInfo(self):
@@ -88,23 +46,21 @@ class Board:
             if len(t.connections) == 0:
                 raise ("No connections for " + t.displayName)
 
-    def getStartingCountry(self, terInfo):
-        if "country" not in terInfo:
-            print("No country set for territory\n")
-            print(terInfo)
-            return
-        for c in self.countries:
-            if c.name == terInfo["country"]:
-                return c
-
     def addPlayer(self, userId, countries):
-        print(countries)
+        success = True
         for country in countries:
-            for c in self.countries:
-                print(c.name)
-                if country == c.name:
-                    c.player = userId
-                    break
+            success = self.addPlayerToCountry(userId, country) and success
+
+        return success
+
+    def addPlayerToCountry(self, userId, countryName):
+        for c in self.countries:
+            if countryName == c.name:
+                c.setPlayer(userId)
+                return True
+
+        print ("Cannot add player to country", countryName)
+        return False
 
     def isPlayersTurn(self, userId):
         return self.currentCountry.player == userId
@@ -146,6 +102,11 @@ class Board:
             if eliminated:
                 c.eliminate()
 
+    def collectIncome(self, country):
+        for t in self.territories:
+            if t.isLand() and t.country == country:
+                country.money += t.income
+
     # Proceed to the next country's turn. This is different than advancing a phase (1/6th of a turn)
     def nextTurn(self):
         self.buyList = []
@@ -169,36 +130,17 @@ class Board:
         else:
             self.currentCountry = self.playableCountries[nextIndex]
 
-    def territoryUnits(self, t):
-        unitList = []
-        for u in self.units:
-            if u.territory == t:
-                unitList.append(u)
-        return unitList
-
-    def territoryByName(self, name):
-        name = str(name)
-        for t in self.territories:
-            if t.name == name:
-                return t
-        return None
-
-    def getCountryByName(self, name):
-        for c in self.countries:
-            if c.name == name:
-                return c
-        return None
-
     def removeUnit(self, u):
         try:
             self.units.remove(u)
         except ValueError:
+            print ("Error removing unit")
             print u.toDict()
             raise
 
-    def unitById(self, id):
+    def unitById(self, unitId):
         for unit in self.units:
-            if unit.id == id:
+            if unit.id == unitId:
                 return unit
         return None
 
@@ -209,84 +151,65 @@ class Board:
 
     def computeConflicts(self):
         # conflict territories are land territories with enemy units, or a sea territory containing unallied untis
-        def filterForConflicts(t):
-            units = [u for u in self.units if u.movedToTerritory == t]
-            if t.isLand():
-                return len([u for u in units if not Util.allied(u, t)]) > 0
+        def filterForConflicts(territory):
+            units = [u for u in self.units if u.movedToTerritory == territory]
+            if territory.isLand():
+                return len([u for u in units if not Util.allied(u, territory, units)]) > 0
             else:
-                containsUnallied = False
+                containsUnAllied = False  # whether there a units from two different teams in a single territory
                 for i, j in itertools.combinations(units, 2):
-                    if not Util.allied(i, j):
-                        containsUnallied = True
+                    if not Util.alliedCountries(i.country, j.country):
+                        containsUnAllied = True
                         break
-                return containsUnallied
+                return containsUnAllied
 
         def getAttackers(territory):
-            return [u for u in self.units if u.movedToTerritory == t and Util.allied(u, self.currentCountry)]
+            return [u for u in self.units
+                    if u.movedToTerritory == territory and Util.alliedCountries(u.country, self.currentCountry)]
 
         def getDefenders(territory):
-            return [u for u in self.units if u.movedToTerritory == t and not Util.allied(u, self.currentCountry)]
-        allConflicts = [Conflict(t, getAttackers(t), getDefenders(t)) for t in self.territories if filterForConflicts(t)]
-        return filter(lambda conflict: not conflict.isStalemate(), allConflicts)
+            return [u for u in self.units if
+                    u.movedToTerritory == territory and not Util.alliedCountries(u.country, self.currentCountry)]
 
-    def getFields(self, fieldNames):
-        fieldValues = {}
-        for field in fieldNames:
-            fieldValues[field] = self.getField(field)
-        return fieldValues
+        def createConflict(territory):
+            previousConflicts = [c for c in self._cachedComputedConflicts if c.territory.name == territory.name]
+            count = len(previousConflicts)
 
-    def getField(self, fieldName):
-        if fieldName == "countries":
-            return [c.toDict() for c in self.countries]
-        elif fieldName == "territoryInfo":
-            return self.territoryInfo
-        elif fieldName == "territoryOwners":
-            return {t.name: {
-                "current": t.country.name,
-                "previous": t.previousCountry.name
-            } for t in self.territories if hasattr(t, "country") and t.country is not None}
-        elif fieldName == "connections":
-            return self.connections
-        elif fieldName == "units":
-            return [u.toDict() for u in self.units]
-        elif fieldName == "buyList":
-            return [bought.toDict() for bought in self.buyList]
-        elif fieldName == "conflicts":
-            return [c.toDict() for c in self.computeConflicts() + self.resolvedConflicts]
+            if count == 0:
+                conflictId = None
+            elif count == 1:
+                conflictId = previousConflicts[0].id  # maintain consistent id, if possible
+            else:
+                raise Exception("Computed conflicts must have unique territories")
 
-        elif fieldName == "currentPhase":
-            return self.currentPhase.name
-        elif fieldName == "currentCountry":
-            return self.currentCountry.name
+            return Conflict(self, territory, getAttackers(territory), getDefenders(territory), overrideId=conflictId)
 
-        elif fieldName == "unitCatalogue":
-            return self.unitCatalogue
-        elif fieldName == "wrapsHorizontally":
-            return self.moduleInfo["wrapsHorizontally"]
-        elif fieldName == "moduleName":
-            return self.moduleName
-        elif fieldName == "winningTeam":
-            return self.winningTeam
+        allConflicts = [createConflict(t) for t in self.territories if
+                        filterForConflicts(t)]
+        nonStalemateConflicts = filter(lambda conflict: not conflict.isStalemate(), allConflicts)
 
+        self._cachedComputedConflicts = nonStalemateConflicts
+
+        return nonStalemateConflicts
+
+    def setPhase(self, phaseName):
+        if not self.isSettingPhase:
+            self.isSettingPhase = True
+            if phaseName == "BuyPhase":
+                self.currentPhase = BuyPhase(self)
+            elif phaseName == "AttackPhase":
+                self.currentPhase = AttackPhase(self)
+            elif phaseName == "ResolvePhase":
+                self.currentPhase = ResolvePhase(self)
+            elif phaseName == "MovementPhase":
+                self.currentPhase = MovementPhase(self)
+            elif phaseName == "PlacementPhase":
+                self.currentPhase = PlacementPhase(self)
+
+            self.isSettingPhase = False
+            if self.nextPhaseName:
+                name = self.nextPhaseName
+                self.nextPhaseName = None
+                self.setPhase(name)
         else:
-            raise Exception("Unsupported field: " + fieldName)
-
-    def toDict(self):
-        allFields = [
-            "countries",
-            "territoryInfo",
-            "territoryOwners",
-            "connections",
-            "units",
-            "buyList",
-            "conflicts",
-            "currentPhase",
-            "currentCountry",
-
-            # Module info
-            "unitCatalogue",
-            "wrapsHorizontally",
-            "moduleName",
-            "winningTeam"
-        ]
-        return self.getFields(allFields)
+            self.nextPhaseName = phaseName  # queue the name

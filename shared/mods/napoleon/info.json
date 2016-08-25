@@ -1,6 +1,5 @@
 {
     "title": "Napoleonic Wars",
-    "wrapsHorizontally": false,
     "stencilImage": {
         "fileName": "test.jpg",
         "height": 1000,

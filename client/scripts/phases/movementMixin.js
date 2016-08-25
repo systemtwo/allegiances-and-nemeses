@@ -7,7 +7,6 @@ function(_, _b, _helpers, _dialogs, MoveUnitView) {
             moveUnits: "Click units to move them"
         },
         initialize: function () {
-            var that = this;
             _helpers.phaseName(this.phaseName());
             this.states = {
                 START: "selectMoveStart",
@@ -26,7 +25,7 @@ function(_, _b, _helpers, _dialogs, MoveUnitView) {
          * @returns {boolean}
          */
         movableUnit: function(unit) {
-            var belongsToCurrentCountry = _b.getBoard().currentCountry == unit.country;
+            var belongsToCurrentCountry = _b.getBoard().currentCountry.name == unit.country.name;
 
             if (unit.isFlying()) {
                 return unit.unitInfo.move > 0 && belongsToCurrentCountry;
@@ -50,7 +49,7 @@ function(_, _b, _helpers, _dialogs, MoveUnitView) {
                     territories.push(u.territory)
                 }
             });
-            board.map.setSelectableTerritories(territories);
+            board.setSelectableTerritories(territories);
             _helpers.helperText(this.strings.selectStart);
         },
 
@@ -59,7 +58,7 @@ function(_, _b, _helpers, _dialogs, MoveUnitView) {
             var controlledUnits = originTerritory.unitsForCountry(board.currentCountry).filter(this.movableUnit);
             // Make selectable any territory that a unit currently in the clicked territory can move to
             var territoriesInRange = board.territoriesInRange(controlledUnits);
-            board.map.setSelectableTerritories(_.filter(territoriesInRange, function (t) { return t != originTerritory }));
+            board.setSelectableTerritories(_.filter(territoriesInRange, function (t) { return t != originTerritory }));
             _helpers.helperText(this.strings.selectDest);
         },
 

@@ -23,7 +23,7 @@ define(["gameAccessor", "helpers"], function(_b, _h) {
     };
 
     Unit.prototype.hasNotMoved = function() {
-        return this.beginningOfPhaseTerritory === this.beginningOfTurnTerritory;
+        return this.beginningOfPhaseTerritory.name === this.beginningOfTurnTerritory.name;
     };
 
     /**
@@ -48,26 +48,38 @@ define(["gameAccessor", "helpers"], function(_b, _h) {
         } else if (territory.type == "land") {
             if (_h.allied(territory, this)) {
                 return true;
-            } else if (this.unitType == "tank") {
-                if (territory.units().length == 0) {
-                    return true;
-                }
             }
         }
 
         return false;
     };
 
+    // IMPORTANT: call initConnections after creating all territories
     var Territory = function(territoryInfo, countryObject, previousCountry) {
-        this.name = territoryInfo.name;
-        this.displayName = territoryInfo.displayName;
-        this.connections = [];
-        this.displayInfo = territoryInfo.displayInfo;
-        this.type = territoryInfo.type;
+        this.connections = territoryInfo.connections;
+        this.setBasicFields(territoryInfo);
         if (this.type === "land") {
             this.income = territoryInfo.income;
             this.country = countryObject;
             this.previousCountry = previousCountry;
+        }
+    };
+
+    // Does not update connections
+    Territory.prototype.setBasicFields = function (territoryInfo) {
+        this.name = territoryInfo.name;
+        this.displayName = territoryInfo.displayName;
+        this.displayInfo = territoryInfo.displayInfo;
+        this.type = territoryInfo.type;
+    };
+
+    Territory.prototype.update = function (territoryInfo) {
+        var board = _b.getBoard();
+
+        this.setBasicFields(territoryInfo);
+        if (this.isLand() && this.country.name != territoryInfo.country) {
+            this.country = board.getCountry(territoryInfo.country);
+            this.previousCountry = board.getCountry(territoryInfo.previousCountry);
         }
     };
 
@@ -98,13 +110,13 @@ define(["gameAccessor", "helpers"], function(_b, _h) {
         var board = _b.getBoard();
         var units = board.boardData.units;
         return units.filter(function(u) {
-            return u.territory === that;
+            return u.territory.name === that.name;
         });
     };
     Territory.prototype.enemyUnits = function (country) {
         var that = this;
         return _b.getBoard().boardData.units.filter(function(u) {
-            return country.team == u.country.team && u.territory === that;
+            return country.team != u.country.team && u.territory === that;
         })
     };
 
@@ -125,7 +137,7 @@ define(["gameAccessor", "helpers"], function(_b, _h) {
         var that = this;
         var boardUnits = _b.getBoard().unitsForCountry(country);
         return boardUnits.filter(function(u) {
-            return u.territory === that;
+            return u.territory.name === that.name;
         })
     };
 
@@ -135,7 +147,7 @@ define(["gameAccessor", "helpers"], function(_b, _h) {
 
     Territory.prototype.isSea = function () {
         return this.type == "sea";
-    }
+    };
 
     var conflictOutcomes = {
             DRAW: "draw",
@@ -153,7 +165,10 @@ define(["gameAccessor", "helpers"], function(_b, _h) {
         this.defenders = [];
         this.reports = [];
         this.outcome = "";
+        this.attackingCountry = "";
+        this.defendingCountry = "";
         this.territoryName = null;
+        this.id = "";
     };
 
     var Country = function(options) {
@@ -162,6 +177,7 @@ define(["gameAccessor", "helpers"], function(_b, _h) {
         this.money = options.money;
         this.team = options.team;
         this.color = options.color;
+        this.selectableColor = options.selectableColor;
         return this;
     };
 

@@ -1,14 +1,16 @@
 from . import UniqueId
-from . import Util
+import uuid
+from GameBoard import Util
 
 
 class Unit:
-    def __init__(self, unitInfo, country, territory):
+    def __init__(self, unitInfo, country, territory, overrideId=None):
         """
         Creates a single unit
         :param unitInfo: UnitInfo
         :param country: Country
         :param territory: Territory
+        :param overrideId: String Use the given id instead of generating a new id
         """
         assert hasattr(territory, "name")
         assert hasattr(country, "name")
@@ -18,7 +20,7 @@ class Unit:
         self.territory = territory
         self.originalTerritory = territory
         self.country = country
-        self.id = UniqueId.getUniqueId()
+        self.id = UniqueId.getUniqueIdWithOverride(overrideId)
 
     def reset(self):
         self.originalTerritory = self.territory
@@ -33,33 +35,6 @@ class Unit:
     def isSea(self):
         return self.unitInfo.terrainType == "sea"
 
-    # Checks if a unit can move through a territory to another
-    def canMoveThrough(self, territory):
-        """
-        Checks if type of unit can move through a territory
-        :param territory: Territory
-        :return: Boolean True if unit can move through, False if it cannot
-        """
-
-        if self.isFlying():
-            return True
-
-        if territory.type == "sea":
-            if self.type == "sub":
-                # can move if no destroyers present
-                if not territory.containsUnitType("destroyer"):
-                    return True
-            if len(territory.enemyUnits(self.country)) == 0:
-                return True
-
-        elif territory.type is "land":
-            if Util.allied(territory, self.country):
-                return True
-            if self.type == "tank":
-                if len(territory.units()) == 0:
-                    return True  # tanks can blitz through empty territories
-        return False
-
     def hasMoved(self):
         return self.originalTerritory is not self.territory
 
@@ -73,11 +48,34 @@ class Unit:
             "country": self.country.name
         }
 
+def createUnitFromDict(unitDef, allUnitInfo, countries, territories):
+    unit = Unit(
+        allUnitInfo[unitDef["type"]],
+        Util.getByName(countries, unitDef["country"]),
+        Util.getByName(territories, unitDef["beginningOfPhaseTerritory"]),
+        uuid.UUID(unitDef["id"]))
+    unit.originalTerritory = Util.getByName(territories, unitDef["beginningOfTurnTerritory"])
+    return unit
+
+def createBoughtUnitFromDict(unitDef, territories):
+    if "id" in unitDef:
+        unitId = uuid.UUID(unitDef["id"])
+    else:
+        unitId = None
+
+    unit = BoughtUnit(
+        unitDef["unitType"],
+        Util.getByName(territories, unitDef["territory"]),
+        unitId
+    )
+    return unit
 
 class BoughtUnit:
-    def __init__(self, unitType, territory):
+    def __init__(self, unitType, territory, overrideId=None):
         self.unitType = unitType
         self.territory = territory
+
+        self.id = UniqueId.getUniqueIdWithOverride(overrideId)
 
     # For our current purposes, bought units have very loose equality checks
     def __eq__(self, other):
@@ -88,6 +86,7 @@ class BoughtUnit:
         if self.territory is not None:
             tName = self.territory.name
         return {
+            "id": self.id.hex,
             "unitType": self.unitType,
             "territory": tName
         }
@@ -96,8 +95,6 @@ class BoughtUnit:
 
 class UnitInfo:
     def __init__(self, unitType, dictionary):
-        print dictionary
-        print unitType
         self.unitType = unitType
         self.cost = dictionary["cost"]
         self.terrainType = dictionary["terrainType"]
@@ -111,8 +108,13 @@ class UnitInfo:
         self.attack = dictionary["attack"]
         self.defence = dictionary["defence"]
 
+        self._dictionary = dictionary  # store for exporting
+
         if "description" in dictionary:
             self.description = dictionary["description"]
+
+    def toDict(self):
+        return self._dictionary
 
     def __getitem__(self, item):
         return getattr(self, item)

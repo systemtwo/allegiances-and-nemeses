@@ -23,14 +23,16 @@ define(["backbone", "underscore", "knockout", "text!views/sidePanel/conflicts.ko
                     return {
                         templateName: "conflict-outcome-"+conflict.outcome,
                         territoryName: conflict.territoryName,
-                        territoryDisplayName: board.getTerritory(conflict.territoryName).displayName,
-                        resolve: function (conflict) {
-                            _router.autoResolve(conflict.territoryName).done(function(){
+                        territoryDisplayName: board.getTerritoryDisplayName(conflict.territoryName),
+                        attackingCountry: board.getCountryDisplayName(conflict.attackingCountry),
+                        defendingCountry: board.getCountryDisplayName(conflict.defendingCountry),
+                        resolve: function () {
+                            _router.autoResolve(conflict.id).done(function(){
                                 board.updateConflicts();
                             })
                         },
-                        openBattle: function (conflict) {
-                            _dialogs.showBattle(conflict.territoryName)
+                        openBattle: function () {
+                            _dialogs.showBattle(conflict.id)
                         }
                     }
                 });
@@ -44,9 +46,7 @@ define(["backbone", "underscore", "knockout", "text!views/sidePanel/conflicts.ko
                 vm.actionsEnabled = ko.observable(view.actionsEnabled());
 
                 this.resolveAll = function () {
-                    _router.autoResolveAll().done(function(){
-                        board.updateConflicts();
-                    })
+                    _router.autoResolveAll();
                 };
 
                 board.on("change", function () {

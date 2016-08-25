@@ -68,12 +68,12 @@ define(["gameAccessor"], function(_b) {
             to: destination
         });
     }
-    function autoResolve(territoryName) {
+    function autoResolve(conflictId) {
         // NO RETREAT. TO THE DEATH, BROTHERS!
         // Success will return a BattleReport
         return sendAction({
             action: "autoResolve",
-            territory: territoryName
+            conflictId: conflictId
         });
     }
     function autoResolveAll() {

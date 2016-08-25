@@ -4,7 +4,7 @@ define(["gameAccessor", "helpers", "router", "components"],
     // Resolve all attacks made during the movement phase
     function ResolvePhase() {
         _helpers.phaseName("Resolve Conflicts");
-        _b.getBoard().map.setSelectableTerritories([]);
+        _b.getBoard().setSelectableTerritories([]);
         this.updateConflictText();
         this.onChange = this.updateConflictText.bind(this);
         _b.getBoard().on("change", this.onChange);

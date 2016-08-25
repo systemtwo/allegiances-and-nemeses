@@ -160,8 +160,9 @@ function (d3, _svgMapEditor, UnitSetupView, UnitCatalogueView, _, msg, Territory
 
         // NOTE - territories and countries are stored as plain objects for the map editor,
         // and do NOT use the Territory and Country class
-        mapData.wrapsHorizontally = moduleInfo.wrapsHorizontally;
-        mapData.territories = JSON.parse(moduleInfo.territories);
+        mapData.territories = JSON.parse(moduleInfo.territories).map(function (tInfo) {
+            return new _c.Territory(tInfo, tInfo.country);
+        });
         mapData.countries = JSON.parse(moduleInfo.countries);
         mapData.moduleName = moduleInfo.moduleName;
         mapData.unitSetup = JSON.parse(moduleInfo.unitSetup);

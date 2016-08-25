@@ -1,22 +1,11 @@
-from . import Util
-
-
 class BaseTerritory:
-    def __init__(self, board, name, displayName):
+    def __init__(self, name, displayName, territoryType, displayInfo):
         self.name = name
         self.displayName = displayName
         self.connections = []
-        self.board = board
+        self.displayInfo = displayInfo
+        self.type = territoryType
         # id tag
-
-    def units(self):
-        return self.board.territoryUnits(self)
-
-    def hasFactory(self):
-        for u in self.units():
-            if u.type == "factory":
-                return True
-        return False
 
     def isLand(self):
         return False
@@ -38,35 +27,23 @@ class BaseTerritory:
 
     def toDict(self):
         return {
-            "name": self.name
+            "name": self.name,
+            "displayName": self.displayName,
+            "displayInfo": self.displayInfo,
+            "type": self.type,
+            "connections": [t.name for t in self.connections]
         }
-
-    def containsUnitType(self, unitType):
-        for u in self.units():
-            if u.type is unitType:
-                return True
-
-        return False
-
-    def enemyUnits(self, country):
-        return [u for u in self.units() if not Util.allied(u.country, country)]
 
     def reset(self):
         pass
 
 
 class LandTerritory(BaseTerritory):
-    def __init__(self, board, name, displayName, income, country):
-        # insert py2 hate here
-        # super().__init__(name)
-        self.name = name
-        self.displayName = displayName  # useful for debugging, don't use for anything else on the server
-        self.connections = []
-        self.board = board
+    def __init__(self, name, displayName, income, country, displayInfo):
+        BaseTerritory.__init__(self, name, displayName, "land", displayInfo)
         self.income = income
         self.country = country
         self.previousCountry = country
-        self.type = "land"
 
     def reset(self):
         self.previousCountry = self.country
@@ -75,20 +52,18 @@ class LandTerritory(BaseTerritory):
         return True
 
     def toDict(self):
-        return {
-            "name": self.name,
+        fields = BaseTerritory.toDict(self)
+        fields.update({
             "country": self.country.name,
+            "previousCountry": self.previousCountry.name,
             "income": self.income
-        }
+        })
+        return fields
 
 
 class SeaTerritory(BaseTerritory):
-    def __init__(self, board, name, displayName):
-        BaseTerritory.__init__(self, board, name, displayName)
-        self.type = "sea"
+    def __init__(self, name, displayName, displayInfo):
+        BaseTerritory.__init__(self, name, displayName, "sea", displayInfo)
 
     def isSea(self):
         return True
-
-    def hasFactory(self):
-        return False

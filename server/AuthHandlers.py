@@ -17,7 +17,7 @@ class BaseAuthHandler(tornado.web.RequestHandler):
             #FIXME: I feel that there is a better way to do this
             #We check to see if the user has a session active, if not, we will cause 
             #a new session to be created
-            if (not Sessions.SessionManager.getSessionExists(sessionCookie)):
+            if not Sessions.SessionManager.getSessionExists(sessionCookie):
                 print("Forcing session recreation")
                 return None
             return sessionCookie
@@ -53,9 +53,4 @@ class LogoutHandler(tornado.web.RequestHandler):
         self.clear_cookie("session")
         self.redirect(u"/")
         pass
-
-
-
-
-
 

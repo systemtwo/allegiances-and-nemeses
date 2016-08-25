@@ -1,0 +1,16 @@
+<div data-bind="if: selectedTerritory">
+    <!-- ko with: selectedTerritory() -->
+    <div>
+        <span>Name: </span>
+        <span data-bind="text: displayName"></span>
+    </div>
+    <div data-bind="if: $data.country">
+        <span>Controlled By: </span>
+        <span data-bind="text: country.displayName"></span>
+    </div>
+    <div>
+        <span>Income: </span>
+        <span data-bind="text: $data.income || 0"></span>
+    </div>
+    <!-- /ko -->
+</div>

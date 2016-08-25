@@ -27,11 +27,13 @@ def isFlying(unitType):
         return True
 
 
-def allied(a, b):
+def allied(a, b, relevantUnits):
     """
     Returns true if a is allied to b
     :param a: Accepts a land or sea territory instance, a unit instance, or a country instance
     :param b:
+    :param relevantUnits: When determining if a sea territory is allied to a country, it is necessary to check if any
+    unallied units are in that territory
     :return:
     """
     if hasattr(a, "country"):
@@ -41,22 +43,32 @@ def allied(a, b):
 
     # doesn't have attr country, and doesn't have a team
     if not hasattr(a, "team"):
-        return friendlySeaTerritory(a, b)
+        return friendlySeaTerritory(a, b, relevantUnits)
     elif not hasattr(b, "team"):
-        return friendlySeaTerritory(b, a)
+        return friendlySeaTerritory(b, a, relevantUnits)
+    else:
+        return alliedCountries(a, b)
 
+def alliedCountries(a, b):
     return a.team == b.team
 
 
-def friendlySeaTerritory(sea, country):
-    return len(sea.enemyUnits(country)) == 0
+def friendlySeaTerritory(sea, country, relevantUnits):
+    return len(enemyUnits(relevantUnits, country, sea)) == 0
 
 
-# Finds the distance from the start to the goal, based on the unit's type and country
-# Number of territories for a flying unit
-# Dictionary of number of land and sea moves for any other unit
-# -1 if movement not possible
-def calculateDistance(start, goal, unit):
+def calculateDistance(start, goal, unit, allUnits):
+    """
+    Finds the distance from the start to the goal, based on the unit's type and country
+    :param start: Territory to start from
+    :param goal: Terriotry to get to
+    :param unit: The unit to calculate the distance for. Different unit types will move differently
+    :param allUnits: All units on the board. Needed for determining if a territory contains enemy units
+    :return:
+        Number of territories for a flying unit
+        Dictionary of number of land and sea moves for any other unit
+        -1 if movement not possible
+    """
     frontier = [(start, _initialDistance(unit))]
     checked = []
 
@@ -65,7 +77,7 @@ def calculateDistance(start, goal, unit):
         if currentTerritory is goal:
             return steps
 
-        if unit.canMoveThrough(currentTerritory):
+        if canMoveThrough(unit, currentTerritory, allUnits):
             for t in currentTerritory.connections:
                 newSteps = _incrementDistance(unit, currentTerritory, t, steps)
                 if t not in checked:
@@ -105,35 +117,12 @@ def _distanceInRange(unit, distance):
         return distance.sea <= unit.unitInfo.seaMove and distance.land <= unit.unitInfo.landMove
 
 
-# Performs a single step in a territory conflict
-# Takes in a list of attackers and defenders. Removes casualties from list
-def battle(attackers, defenders):
-    keys = ["attack", "defence"]
-    combatants = {
-        "attack": attackers,
-        "defence": defenders
-    }
-    # counts number of each side that must die
-    scoredHits = {}
-    for key in keys:
-        scoredHits[key] = _calculateHits(combatants[key], key)
-
-    casualties = {}
-    for key in keys:
-        if key == "attack":
-            otherKey = "defence"
-        else:
-            otherKey = "attack"
-        casualties[key] = _calculateCasualties(combatants[key], scoredHits[otherKey], key)
-
-    return BattleReport(combatants, casualties)
-
-
-def _calculateHits(units, combatValueKey):
+def calculateHits(units, combatValueKey):
     # Calculate hits. Chance for a hit is attack/6 for attackers, defence/6 for defenders
     scoredHits = 0
     for u in units:
-        if random.randint(1, 6) <= u.unitInfo[combatValueKey]:
+        randomRoll = random.randint(1, 6)
+        if randomRoll <= u.unitInfo[combatValueKey]:
             scoredHits += 1
     return scoredHits
 
@@ -141,18 +130,26 @@ def _calculateHits(units, combatValueKey):
 def totalDeathProbability(units, combatValueKey):
     total = 0
     for u in units:
-        info = u.unitInfo
-        if info[combatValueKey] > 0:
-            total += 1.0 / info[combatValueKey]
+        total += getDeathProbability(u, combatValueKey)
     return total
 
+def getDeathProbability(unit, combatValueKey):
+    return 1.0 / (unit.unitInfo[combatValueKey] + 0.1)  # adding 0.1 fixes 0 combat value case
 
-def _calculateCasualties(units, hits, combatValueKey):
+
+def calculateCasualties(units, hits, combatValueKey):
     # there's a weighted chance of each unit dying. We sum the weights for all the units
+    """
+    Calculates which units will die and removes them from the list of units
+    :param units: The units that must suffer casualties
+    :param hits: The number of units to kill. If greater than the number of units,
+    :param combatValueKey: Use the attack or defence combat values
+    :return: Array of the units killed
+    """
     casualties = []
     summedHitChance = totalDeathProbability(units, combatValueKey)
 
-    # kill random peeps. chance of dying is 1/attack or 1/defence
+    # kill random peeps. chance of dying is 1/(attack+0.1) or 1/(defence+0.1)
     # using the sum of the weights, we take a random number that's less than the sum
     # Then we add up the weights of each unit until the total exceeds our random number
     # That unlucky unit is now dead
@@ -164,15 +161,13 @@ def _calculateCasualties(units, hits, combatValueKey):
         rand = random.random() * summedHitChance
         runningTotal = 0
         for unit in units:
-            combatValue = unit.unitInfo[combatValueKey]
-            if combatValue > 0:  # units with a combat value of 0 are immortal.
-                runningTotal += 1.0 / combatValue
-                if runningTotal >= rand:
-                    # this dude dies
-                    casualties.append(unit)
-                    units.remove(unit)
-                    hits -= 1
-                    break
+            runningTotal += getDeathProbability(unit,combatValueKey)
+            if runningTotal >= rand:
+                # this dude dies
+                casualties.append(unit)
+                units.remove(unit)
+                hits -= 1
+                break
         # recalculate hit chance
         summedHitChance = totalDeathProbability(units, combatValueKey)
 
@@ -183,18 +178,51 @@ def _calculateCasualties(units, hits, combatValueKey):
             casualties.append(units.pop())
     return casualties
 
+def unitsInTerritory(allUnits, territory):
+    unitList = []
+    for u in allUnits:
+        if u.territory == territory:
+            unitList.append(u)
+    return unitList
 
-class BattleReport:
-    def __init__(self, survivors, casualties):
-        self.survivingAttackers = survivors["attack"][:]
-        self.survivingDefenders = survivors["defence"][:]
-        self.deadAttackers = casualties["attack"][:]
-        self.deadDefenders = casualties["defence"][:]
+def enemyUnits(units, country, territory):
+    return [u for u in units if u.territory == territory and not alliedCountries(u.country, country)]
 
-    def toDict(self):
-        return {
-            "survivingAttackers": [u.toDict() for u in self.survivingAttackers],
-            "survivingDefenders": [u.toDict() for u in self.survivingDefenders],
-            "deadAttackers": [u.toDict() for u in self.deadAttackers],
-            "deadDefenders": [u.toDict() for u in self.deadDefenders]
-        }
+def getByName(items, name):
+    name = str(name)
+    for item in items:
+        if item.name == name:
+            return item
+    return None
+
+def containsUnitType(units, unitType):
+    for u in units:
+        if u.type is unitType:
+            return True
+
+    return False
+
+
+# Checks if a unit can move through a territory to another
+def canMoveThrough(unit, territory, allUnits):
+    """
+    Checks if type of unit can move through a territory
+    :param territory: Territory
+    :return: Boolean True if unit can move through, False if it cannot
+    """
+
+    if unit.isFlying():
+        return True
+
+    if territory.type == "sea":
+        if unit.type == "sub":
+            # can move if no destroyers present
+            if not containsUnitType(territory, "destroyer"):
+                return True
+        if friendlySeaTerritory(territory, unit.country, allUnits):
+            return True
+
+    elif territory.type is "land":
+        if alliedCountries(territory.country, unit.country):
+            return True
+    return False

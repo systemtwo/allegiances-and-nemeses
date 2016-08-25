@@ -7,7 +7,7 @@ import json
 
 import GameBoard
 import utils
-import config
+from config import STATIC_CONTENT_PATH
 
 
 class MapEditorHandler(tornado.web.RequestHandler):
@@ -67,7 +67,7 @@ class MapEditorHandler(tornado.web.RequestHandler):
             if requestedDirectory.__contains__(".."):
                 self.send_error(500)
                 return
-            directory = os.path.join(config.STATIC_CONTENT_PATH, "images", requestedDirectory)
+            directory = os.path.join(STATIC_CONTENT_PATH, "images", requestedDirectory)
             images = []
             directories = []
             if os.path.isdir(directory):

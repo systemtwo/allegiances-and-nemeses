@@ -21,14 +21,20 @@
         <button data-bind="click: resolve" class="autoresolve-conflict btn btn-default">Resolve</button>
     </div>
 </script>
+<script id="conflict-outcome-occupation" type="text/html">
+    <div class="conflict-outcome label label-danger" data-bind="text: attackingCountry">
+    </div>
+</script>
+<script id="conflict-outcome-attackerWinWithCapture" type="text/html">
+    <div class="conflict-outcome label label-warning" data-bind="text: attackingCountry">
+    </div>
+</script>
 <script id="conflict-outcome-attackerWin" type="text/html">
-    <div class="conflict-outcome label label-warning">
-        Occupied
+    <div class="conflict-outcome label label-warning" data-bind="text: attackingCountry">
     </div>
 </script>
 <script id="conflict-outcome-defenderWin" type="text/html">
-    <div class="conflict-outcome label label-info">
-        Defended
+    <div class="conflict-outcome label label-info" data-bind="text: defendingCountry">
     </div>
 </script>
 <script id="conflict-outcome-draw" type="text/html">

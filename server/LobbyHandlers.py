@@ -4,13 +4,14 @@ import os.path
 import json
 
 import tornado.web
+import tornado.template
 from voluptuous import Schema, Required, All, Range, Length, MultipleInvalid, Optional
 
 from AuthHandlers import BaseAuthHandler
 import Sessions
 
 
-## Lobby Route Handlers **
+# Lobby Route Handlers **
 class BaseLobbyHandler(BaseAuthHandler):
     def initialize(self, config, gamesManager):
         super(BaseLobbyHandler, self).initialize(config=config)

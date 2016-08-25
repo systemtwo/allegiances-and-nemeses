@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Saved Games</title>
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all">
+</head>
+<body class="container">
+<h1>Saved Games</h1>
+{% for savedGame in savedGames %}
+    <div class="row">
+        <div class="col-xs-6">
+            {{ savedGame["name"] }}
+        </div>
+        <div class="col-xs-3">
+            <a href="/load/{{ savedGame["id"] }}">
+                Load
+            </a>
+        </div>
+        <div class="col-xs-3">
+            <form class="form form-inline" method="post" action="/saves/{{ savedGame["id"] }}/delete">
+                <input type="submit" value="Delete">
+            </form>
+        </div>
+    </div>
+{% end %}
+</body>
+</html>
