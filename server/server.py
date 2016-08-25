@@ -24,6 +24,7 @@ from LobbyHandlers import (
     LobbyGameDeleteHandler,
 )
 from MapEditorHandler import MapEditorHandler
+from ModuleListHandler import ModuleListHandler
 from SaveHandler import SaveHandler
 
 
@@ -117,6 +118,9 @@ class Server:
             return baseOptions
         self.app = tornado.web.Application([
             (r"/", IndexHandler, dict(html_path=html_path)),
+
+           # module handler
+           (r"/modules/list", ModuleListHandler, dict(config=config)),
 
             #Map editor (Consider moving into a sub-list in MapEditorHandler)
             (r"/mapEditor", MapEditorHandler, dict(config=config, action=MapEditorHandler.actions.MODULE_SELECTOR, html_path=html_path)),

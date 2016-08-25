@@ -30,9 +30,8 @@
         <!-- Drag and drop into player areas -->
         <div class="columnize" data-bind="foreach: players()">
             <div class="item player-info" data-bind="attr: {'data-playerId': id}">
-                <div class="panel panel-default panel-hoverable">
+                <div class="panel panel-default">
                     <div class="panel-heading" data-bind="text: name">
-                        <!-- TODO dschwarz find user name property -->
                     </div>
                     <div class="panel-body">
                         <label>Drag countries to the area below</label>
@@ -50,7 +49,12 @@
     </div>
 
     <script type="text/html" id="country-template">
-        <h3 data-bind="text: name"></h3>
-        <p>Team: <span data-bind="text: team"></span></p>
+        <div class="panel panel-info panel-hoverable">
+            <div class="panel-heading" data-bind="text: displayName">
+            </div>
+            <div class="panel-body">
+                <p>Team: <span data-bind="text: team"></span></p>
+            </div>
+        </div>
     </script>
 </div>

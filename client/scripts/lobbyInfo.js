@@ -7,9 +7,8 @@ define(['underscore', 'knockout', "text!../templates/lobbyInfo.ko.html"], functi
         gameId = gameIdParam;
         userId = userIdParam;
 
-        fetchLobbyInfo().done(function (response) {
-            console.log(response);
-            viewModel = initViewModel([{name: "napoleon"}], response);
+        $.when(fetchLobbyInfo(), fetchModulesInfo()).done(function (response, modules) {
+            viewModel = initViewModel(JSON.parse(modules[0]), response[0]);
 
             ko.applyBindings(viewModel, $("#lobby-info-container").append(template)[0]);
         });
@@ -21,7 +20,6 @@ define(['underscore', 'knockout', "text!../templates/lobbyInfo.ko.html"], functi
             vm.modules = modules;
             // array of player id and name
             vm._players = ko.observableArray(initialLobbyInfo.players);
-            vm._countries = ko.observableArray();
             vm._countryAssignmentsNotifier = ko.observable();
 
             vm.canEdit = ko.computed(function () {
@@ -30,17 +28,22 @@ define(['underscore', 'knockout', "text!../templates/lobbyInfo.ko.html"], functi
             vm.roomName = ko.observable(initialLobbyInfo.name);
             vm.selectedModule = ko.observable(initialLobbyInfo.module);
             vm.selectedMaxPlayersOption = ko.observable(initialLobbyInfo.maxPlayers);
+
+            vm._countries = ko.computed(function () {
+                var selectedModule = vm.selectedModule();
+                if (selectedModule) {
+                    return selectedModule.countries.filter(function (c) {return c.playable});
+                } else {
+                    return [];
+                }
+            });
             vm.maxPlayersOptions = function () {
-                // var selectedModule = vm.selectedModule();
-                var selectedModule = {
-                    countries: {
-                        length: 3
-                    }
-                };
+                var selectedModule = vm.selectedModule();
                 var maxPlayerOptions = [];
 
                 if (selectedModule) {
-                    for (var i = 1; i <= selectedModule.countries.length; i++) {
+                    var playableCountries = selectedModule.countries.filter(function (c) {return c.playable}).length;
+                    for (var i = 1; i <= playableCountries; i++) {
                         maxPlayerOptions.push(i);
                     }
                 }
@@ -106,6 +109,10 @@ define(['underscore', 'knockout', "text!../templates/lobbyInfo.ko.html"], functi
 
     function fetchLobbyInfo() {
         return $.get("/lobby/" + gameId + "/info");
+    }
+
+    function fetchModulesInfo() {
+        return $.get("/modules/list");
     }
 
     function saveLobbyInfo(lobbyInfo) {
