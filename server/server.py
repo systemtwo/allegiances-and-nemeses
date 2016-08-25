@@ -32,8 +32,7 @@ class IndexHandler(tornado.web.RequestHandler):
         self.HTML_PATH = html_path
 
     def get(self):
-        with open(os.path.join(self.HTML_PATH, "index.html")) as f:
-            self.write(f.read())
+        self.redirect("/lobby")
 
 
 class BoardsHandler(BaseAuthHandler):
