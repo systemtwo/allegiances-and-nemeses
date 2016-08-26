@@ -112,7 +112,7 @@ class ActionHandler(BaseAuthHandler):
         else:
             self.send_error()
 
-        self.gameSocket.notifyByGameId(boardId, BoardState.exportBoardToClient(board), [self.current_user])
+        self.gameSocket.notifyByGameId(boardId, board, [self.current_user])
 
     def assertMovePhase(self, board):
         if board.currentPhase.name not in ["AttackPhase", "MovementPhase"]:

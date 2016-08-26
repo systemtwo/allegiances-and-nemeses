@@ -1,5 +1,7 @@
 import os.path
 import tornado.web
+
+import Sessions
 from AuthHandlers import BaseAuthHandler
 from ErrorRenderMixin import ErrorRenderMixin
 
@@ -14,7 +16,9 @@ class GameHandler(ErrorRenderMixin, BaseAuthHandler):
     @tornado.web.authenticated
     def get(self, **params):
         game_id = int(params['boardId'])
+        userSession = Sessions.SessionManager.getSession(self.current_user)
+        userId = userSession.getValue("userid")
         if self.gamesManager.getGame(game_id):
-            self.render(os.path.join("..", self.config.STATIC_CONTENT_PATH, "html", "game.html"))
+            self.render(os.path.join("..", self.config.STATIC_CONTENT_PATH, "html", "game.html"), gameId=game_id, userId=userId)
         else:
             self.send_error(404)

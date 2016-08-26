@@ -9,8 +9,15 @@
         <link href="/static/css/map.css" rel="stylesheet" type="text/css" media="all">
         <!-- data-main attribute tells require.js to load
              scripts/start.js after require.js loads. -->
-        <script data-main="/static/scripts/start" src="/static/scripts/lib/require.js"></script>
+        <script src="/static/scripts/lib/require.js"></script>
         <script src="/static/scripts/require-config.js"></script>
+        <script>
+            requirejs(["start"], function (start) {
+                var gameId = "{{gameId}}";
+                var userId = "{{userId}}";
+                start.initialize(gameId, userId);
+            })
+        </script>
     </head>
     <body>
         <div class="flex-row flex-spaced full-height">
