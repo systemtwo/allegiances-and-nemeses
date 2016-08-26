@@ -276,8 +276,12 @@ class LobbyGameUpdateHandler(BaseLobbyHandler):
         game.newBoard(module_name)
 
     def _set_country_players(self, game, country_player_map):
+        countries = [entry['country'] for entry in country_player_map]
+        assert len(countries) == len(set(countries)), "A country can only be assigned to one player"
+
         # Reset and set player country map
         game.clearAllPlayerCountries()
+
         for entry in country_player_map:
             game.addPlayerCountry(entry['userId'], entry['country'])
 

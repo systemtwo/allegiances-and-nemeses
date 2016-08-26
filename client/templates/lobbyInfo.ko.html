@@ -1,4 +1,4 @@
-<div class="row">
+<div class="flex-row">
     <div class="col-md-3">
         <form>
             <div class="form-group">
@@ -29,7 +29,7 @@
         <h3>Players</h3>
         <!-- Drag and drop into player areas -->
         <div class="columnize" data-bind="foreach: players()">
-            <div class="item player-info" data-bind="attr: {'data-playerId': id}">
+            <div class="item player-info" data-bind="attr: {'data-player-id': id}">
                 <div class="panel panel-default">
                     <div class="panel-heading" data-bind="text: name">
                     </div>
@@ -49,12 +49,9 @@
     </div>
 
     <script type="text/html" id="country-template">
-        <div class="panel panel-info panel-hoverable">
-            <div class="panel-heading" data-bind="text: displayName">
-            </div>
-            <div class="panel-body">
-                <p>Team: <span data-bind="text: team"></span></p>
-            </div>
+        <div class="country-label" data-bind="style: {'background-color': color}, attr: {'data-country-name': name}">
+            <div data-bind="text: displayName"></div>
+            <span>Team: <span data-bind="text: team"></span></span>
         </div>
     </script>
 </div>

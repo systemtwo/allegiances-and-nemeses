@@ -39,3 +39,23 @@
 .text-placeholder {
     color: #767676;
 }
+
+.flex-row {
+    display: flex;
+}
+
+.countries-area, .unclaimed-countries {
+    min-height: 100px;
+    border: dashed lightgray 1px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+
+.country-label {
+    white-space: nowrap;
+    padding: 5px;
+    margin: 5px;
+    border-radius: 3px;
+    color: ghostwhite;
+}

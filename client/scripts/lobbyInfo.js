@@ -1,7 +1,8 @@
-define(['underscore', 'knockout', "text!../templates/lobbyInfo.ko.html"], function (_, ko, template) {
+define(['underscore', 'knockout', "text!../templates/lobbyInfo.ko.html", "dragula"], function (_, ko, template, dragula) {
     var gameId = null;
     var viewModel = null;
     var userId = null;
+
     // takes in constants from the server. The params here should never change
     function initialize(gameIdParam, userIdParam) {
         gameId = gameIdParam;
@@ -11,6 +12,31 @@ define(['underscore', 'knockout', "text!../templates/lobbyInfo.ko.html"], functi
             viewModel = initViewModel(JSON.parse(modules[0]), response[0]);
 
             ko.applyBindings(viewModel, $("#lobby-info-container").append(template)[0]);
+
+            if (viewModel.canEdit()) {
+                var api = dragula({
+                    isContainer: function (el) {
+                        return el.classList.contains('countries-area') ||
+                            el.classList.contains("unclaimed-countries");
+                    }
+                });
+
+                api.on("drop", function (el, container, origin) {
+                    api.remove(); // don't let dragula move the DOM around
+                    var countryName = $(el).data("country-name");
+                    var $container = $(container);
+                    var $origin = $(origin);
+                    if ($container.hasClass("countries-area")) {
+                        var playerId = $container.closest(".player-info").data("player-id");
+                        viewModel.addCountryToPlayer(countryName, playerId);
+                    }
+
+                    if ($origin.hasClass("countries-area")) {
+                        var playerId = $origin.closest(".player-info").data("player-id");
+                        viewModel.removeCountryFromPlayer(countryName, playerId);
+                    }
+                });
+            }
         });
     }
 
@@ -51,14 +77,14 @@ define(['underscore', 'knockout', "text!../templates/lobbyInfo.ko.html"], functi
                 return maxPlayerOptions;
             };
 
-            vm.unassignedCountries = function () {
+            vm.unassignedCountries = ko.pureComputed(function () {
                 vm._countryAssignmentsNotifier(); // depend on this
                 return vm._countries().filter(function (country) {
                     return _.every(vm._players(), function (player) {
                         return !_.contains(player.assignedCountries, country.name);
                     })
                 })
-            };
+            });
 
             vm.players = function () {
                 vm._countryAssignmentsNotifier(); // depend on this
@@ -74,6 +100,24 @@ define(['underscore', 'knockout', "text!../templates/lobbyInfo.ko.html"], functi
             };
 
             // actions
+            vm.addCountryToPlayer = function(countryName, playerId) {
+                var players = vm._players();
+                var player = _.findWhere(players, {id: playerId});
+                if (player) {
+                    player.assignedCountries.push(countryName);
+                    vm._countryAssignmentsNotifier.notifySubscribers();
+                }
+            };
+
+            vm.removeCountryFromPlayer = function (countryName, playerId) {
+                var players = vm._players();
+                var player = _.findWhere(players, {id: playerId});
+                if (player) {
+                    player.assignedCountries = player.assignedCountries.filter(function (c) { return c != countryName});
+                    vm._countryAssignmentsNotifier.notifySubscribers();
+                }
+            };
+
             vm.beginGame = function () {
                 console.log("Begin game not implemented")
             };
