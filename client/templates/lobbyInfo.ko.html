@@ -20,7 +20,12 @@
             <div class="form-group">
                 <!--Manual save is a temp feature-->
                 <button class="btn space-out" data-bind="click: save, disable: !canEdit()">Save</button>
-                <button class="btn btn-primary pull-right space-out" data-bind="click: beginGame, disable: !canEdit()">Begin Game</button>
+                <!-- ko ifnot: started -->
+                <button class="btn btn-primary pull-right space-out" data-bind="click: beginGame, disable: !canEdit()">Begin game</button>
+                <!-- /ko -->
+                <!-- ko if: started -->
+                <button class="btn btn-primary pull-right space-out" data-bind="click: goToGame, disable: !canEdit()">Go to game</button>
+                <!-- /ko -->
             </div>
         </form>
         <div class="clearfix"></div>

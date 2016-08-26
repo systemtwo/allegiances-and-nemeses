@@ -8,8 +8,14 @@ define(['underscore', 'knockout', "text!../templates/lobbyInfo.ko.html", "dragul
         gameId = gameIdParam;
         userId = userIdParam;
 
-        $.when(fetchLobbyInfo(), fetchModulesInfo()).done(function (response, modules) {
-            viewModel = initViewModel(JSON.parse(modules[0]), response[0]);
+        $.when(fetchLobbyInfo(), fetchModulesInfo()).done(function (lobbyInfo, modules) {
+            if (lobbyInfo[0].started) {
+                if (confirm("Game has started. Go to game?")) {
+                    goToGame();
+                }
+            }
+
+            viewModel = initViewModel(JSON.parse(modules[0]), lobbyInfo[0]);
 
             ko.applyBindings(viewModel, $("#lobby-info-container").append(template)[0]);
 
@@ -63,6 +69,7 @@ define(['underscore', 'knockout', "text!../templates/lobbyInfo.ko.html", "dragul
                     return [];
                 }
             });
+            vm.started = ko.observable(initialLobbyInfo.started);
             vm.maxPlayersOptions = function () {
                 var selectedModule = vm.selectedModule();
                 var maxPlayerOptions = [];
@@ -119,7 +126,13 @@ define(['underscore', 'knockout', "text!../templates/lobbyInfo.ko.html", "dragul
             };
 
             vm.beginGame = function () {
-                console.log("Begin game not implemented")
+                beginGame().done(function () {
+                    goToGame();
+                })
+            };
+
+            vm.goToGame = function () {
+                goToGame()
             };
 
             vm.save = function () {
@@ -161,6 +174,14 @@ define(['underscore', 'knockout', "text!../templates/lobbyInfo.ko.html", "dragul
 
     function saveLobbyInfo(lobbyInfo) {
         return $.post("/lobby/" + gameId + "/update", lobbyInfo);
+    }
+
+    function beginGame() {
+        return $.post("/lobby/" + gameId + "/begin");
+    }
+
+    function goToGame() {
+        location.href = "/game/" + gameId
     }
 
     return {

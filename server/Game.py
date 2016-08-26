@@ -76,9 +76,18 @@ class Game:
 
     def startGame(self):
         if self.started:
-            return False
+            raise GameException("Game already started")
 
-        self.started = True
+        for country in self.board.countries:
+            if country.playable:
+                isAssigned = False
+                for id, countryNames in self.players.iteritems():
+                    if country.name in countryNames:
+                        isAssigned = True
+                        break
+                if not isAssigned:
+                    raise GameException("Country <" + country.name + "> is not assigned to a player")
+
         #Set up the players
         for user in self.players:
             print("Adding player", user)
@@ -86,6 +95,7 @@ class Game:
             if not self.board.addPlayer(user, self.players[user]):
                 print ("Problem adding player to board", user, self.players[user])
 
+        self.started = True
         return True
 
     def newBoard(self, moduleName):
@@ -100,3 +110,7 @@ class Game:
 
     def currentPlayerCount(self):
         return len(self.players)
+
+class GameException(Exception):
+    def __init__(self, *args, **kwargs):
+        super(GameException, self).__init__(*args, **kwargs)

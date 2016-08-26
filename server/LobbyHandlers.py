@@ -13,6 +13,9 @@ import Sessions
 
 
 # Lobby Route Handlers **
+from Game import GameException
+
+
 class BaseLobbyHandler(BaseAuthHandler):
     def initialize(self, config, gamesManager):
         super(BaseLobbyHandler, self).initialize(config=config)
@@ -109,57 +112,8 @@ class LobbyGameHandler(BaseLobbyHandler):
 
         self.write(loader.load("lobbygameinfo.html").generate(gameId=gameId, userId=userid, modules=json.dumps(modules)))
 
-    # Change the game settings, eg. Player <-> Country mapping
-    #TODO: Remove this
-    def post(self, **params):
-        userInput = {}
-
-        #TODO: Validate the game id
-        #FIXME? We hackishly cast here...
-        userInput['gameId'] = int(params["gameId"])
-        #userInput['countryId'] = self.get_argument("countryId")
-
-        schema = Schema({
-            Required("gameId"): All(int),
-        #    Required("countryId"): All(unicode, Length(min=1))
-        })
-
-        try:
-            validUserInput = schema(userInput)
-        except MultipleInvalid as e:
-            print(str(e))
-            self.send_error(400)
-            return
-
-        #FIXME: I disabled this for debugging purposes
-        ##Make it so that only the game creator can change the settings
-        #if (self.current_user is not self.gamesManager.getGame(validUserInput['gameId']).creatorId):
-            #self.send_error(403)
-            #return
-
-
-        game = self.gamesManager.getGame(validUserInput['gameId'])
-
-
-        #FIXME
-        #Before we set the user countries, we clear all player<->country associations
-        #for player in game.listPlayers():
-            #game.clearPlayerCountries(self.current_user)
-
-        #FIXME
-        #We grab each country entry, and put it in the player's list
-        for country in game.getCountries():
-            player = self.get_argument("country-selection-" + str(country.name))
-            game.addPlayer(player)
-            game.addPlayerCountry(player, country.name)
-
-        game.startGame()
-        #FIXME: use os.path.join or something
-        self.redirect(u"/game/" + str(validUserInput["gameId"]))
-
 
 ## API routes
-
 
 """
 Returns the game info as a JSON object
@@ -226,9 +180,11 @@ class LobbyGameBeginHandler(BaseLobbyHandler):
             return
 
         game = self.gamesManager.getGame(gameId)
-        if not game.startGame():
-            self.send_error(500)
-            return
+        try:
+            game.startGame()
+        except GameException as e:
+            # TODO dschwarz handle this on the client and display reason
+            raise tornado.web.HTTPError(500, reason = e.message)
 
 
 """Updates the settings of a game"""
