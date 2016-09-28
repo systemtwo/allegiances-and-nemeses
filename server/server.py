@@ -13,6 +13,7 @@ from AuthHandlers import LoginHandler, LogoutHandler, BaseAuthHandler
 from GameBoard import BoardState
 from GameConnection import GameConnection, GameSocketRouter
 from GameHandler import GameHandler
+from LobbyConnection import LobbySocketRouter, LobbyConnection
 from LobbyHandlers import (
     LobbyHandler,
     LobbyCreateHandler,
@@ -106,6 +107,7 @@ class Server:
         html_path = os.path.join(config.STATIC_CONTENT_PATH, "html")
         port = 8888
         gameSocketRouter = GameSocketRouter(GameConnection, '/gameStream')
+        lobbySocketRouter = LobbySocketRouter(LobbyConnection, '/lobbyStream')
 
         self.gamesManager = GamesManager.GamesManager()
 
@@ -152,9 +154,9 @@ class Server:
 
             #Lobby API routes
             (r"/lobby/(?P<gameId>[0-9]+)/info/?", LobbyGameInfoHandler, dict(config=config, gamesManager=self.gamesManager)),
-            (r"/lobby/(?P<gameId>[0-9]+)/join/?", LobbyGameJoinHandler, dict(config=config, gamesManager=self.gamesManager)),
-            (r"/lobby/(?P<gameId>[0-9]+)/begin/?", LobbyGameBeginHandler, dict(config=config, gamesManager=self.gamesManager)),
-            (r"/lobby/(?P<gameId>[0-9]+)/update/?", LobbyGameUpdateHandler, dict(config=config, gamesManager=self.gamesManager)),
+            (r"/lobby/(?P<gameId>[0-9]+)/join/?", LobbyGameJoinHandler, dict(config=config, gamesManager=self.gamesManager, lobbySocket=lobbySocketRouter)),
+            (r"/lobby/(?P<gameId>[0-9]+)/begin/?", LobbyGameBeginHandler, dict(config=config, gamesManager=self.gamesManager, lobbySocket=lobbySocketRouter)),
+            (r"/lobby/(?P<gameId>[0-9]+)/update/?", LobbyGameUpdateHandler, dict(config=config, gamesManager=self.gamesManager, lobbySocket=lobbySocketRouter)),
             (r"/lobby/(?P<gameId>[0-9]+)/delete/?", LobbyGameDeleteHandler, dict(config=config, gamesManager=self.gamesManager)),
 
             #Load/Save games
@@ -166,7 +168,7 @@ class Server:
             #Static files
             (r"/shared/(.*)", utils.NoCacheStaticFileHandler, {"path": config.SHARED_CONTENT_PATH}),
             (r"/static/(.*)", utils.NoCacheStaticFileHandler, {"path": config.STATIC_CONTENT_PATH}), #This is not a great way of doing this TODO: Change this to be more intuative
-        ] + gameSocketRouter.urls,
+        ] + gameSocketRouter.urls + lobbySocketRouter.urls,
         cookie_secret=config.COOKIE_SECRET,
         login_url="/login",
         debug=True

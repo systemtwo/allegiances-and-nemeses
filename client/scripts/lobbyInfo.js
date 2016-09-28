@@ -1,4 +1,5 @@
-define(['underscore', 'knockout', "text!../templates/lobbyInfo.ko.html", "dragula"], function (_, ko, template, dragula) {
+define(['underscore', 'knockout', "sockjs", "text!../templates/lobbyInfo.ko.html", "dragula"],
+function (_, ko, SockJS, template, dragula) {
     var gameId = null;
     var viewModel = null;
     var userId = null;
@@ -18,6 +19,10 @@ define(['underscore', 'knockout', "text!../templates/lobbyInfo.ko.html", "dragul
             viewModel = initViewModel(JSON.parse(modules[0]), lobbyInfo[0]);
 
             ko.applyBindings(viewModel, $("#lobby-info-container").append(template)[0]);
+
+            beginSocket(gameId, userId, function (newLobbyInfo) {
+                viewModel.updateLobbyInfo(newLobbyInfo);
+            });
 
             if (viewModel.canEdit()) {
                 var api = dragula({
@@ -50,6 +55,9 @@ define(['underscore', 'knockout', "text!../templates/lobbyInfo.ko.html", "dragul
         function LobbyInfoViewModel() {
             var vm = this;
             vm.modules = modules;
+            function getModule(moduleName) {
+                return _.findWhere(vm.modules, {name: moduleName});
+            }
             // array of player id and name
             vm._players = ko.observableArray(initialLobbyInfo.players);
             vm._countryAssignmentsNotifier = ko.observable();
@@ -58,8 +66,9 @@ define(['underscore', 'knockout', "text!../templates/lobbyInfo.ko.html", "dragul
                 return initialLobbyInfo.creatorId == userId;
             });
             vm.roomName = ko.observable(initialLobbyInfo.name);
-            vm.selectedModule = ko.observable(initialLobbyInfo.module);
+            vm.selectedModule = ko.observable(getModule(initialLobbyInfo.moduleName));
             vm.selectedMaxPlayersOption = ko.observable(initialLobbyInfo.maxPlayers);
+            vm.started = ko.observable(initialLobbyInfo.started);
 
             vm._countries = ko.computed(function () {
                 var selectedModule = vm.selectedModule();
@@ -69,7 +78,15 @@ define(['underscore', 'knockout', "text!../templates/lobbyInfo.ko.html", "dragul
                     return [];
                 }
             });
-            vm.started = ko.observable(initialLobbyInfo.started);
+
+            vm.updateLobbyInfo = function (newLobbyInfo) {
+                vm._players(newLobbyInfo.players);
+                vm.roomName(newLobbyInfo.name);
+                vm.selectedModule(getModule(newLobbyInfo.moduleName));
+                vm.selectedMaxPlayersOption(newLobbyInfo.maxPlayers);
+                vm.started(newLobbyInfo.started);
+            };
+
             vm.maxPlayersOptions = function () {
                 var selectedModule = vm.selectedModule();
                 var maxPlayerOptions = [];
@@ -162,6 +179,29 @@ define(['underscore', 'knockout', "text!../templates/lobbyInfo.ko.html", "dragul
         }
 
         return new LobbyInfoViewModel();
+    }
+
+    function beginSocket(gameId, userId, callback) {
+        var sock = new SockJS('/lobbyStream?gameId=' + encodeURIComponent(gameId) + "&userId=" + encodeURIComponent(userId));
+        sock.onopen = function() {
+            console.log('open');
+        };
+        sock.onmessage = function(e) {
+            var data = e.data;
+            if (data.type == "message") {
+                console.log('message', data.payload);
+            } else if  (data.type == 'beginGame') {
+                goToGame();
+            } else if (data.type == 'gameUpdate') {
+                callback(data.payload);
+            } else {
+                throw new Error("Invalid message type")
+            }
+        };
+        sock.onclose = function() {
+            console.log('close');
+        };
+        return sock;
     }
 
     function fetchLobbyInfo() {

@@ -21,7 +21,7 @@ class BaseLobbyHandler(BaseAuthHandler):
         super(BaseLobbyHandler, self).initialize(config=config)
         self.config = config
         self.gamesManager = gamesManager
-        
+
         self.LOBBY_HTML_PATH = os.path.join(self.config.STATIC_CONTENT_PATH, "html", "lobby")
 
     def _game_id_valid(self, game_id):
@@ -127,14 +127,7 @@ class LobbyGameInfoHandler(BaseLobbyHandler):
 
         game = self.gamesManager.getGame(gameId)
 
-        gameInfo = {
-            "name": game.name,
-            "players": game.listPlayers(),
-            "maxPlayers": game.maxPlayers,
-            "creatorId": game.creatorId,
-            "moduleName": game.moduleName,
-            "started": game.started,
-        }
+        gameInfo = game.toDict()
 
         self.finish(gameInfo)
 
@@ -146,6 +139,10 @@ The user will be added to the players list and the player will be
 redirected to the game detail page
 """
 class LobbyGameJoinHandler(BaseLobbyHandler):
+    def initialize(self, config, gamesManager, lobbySocket):
+        super(LobbyGameJoinHandler, self).initialize(config, gamesManager)
+        self.lobbySocket = lobbySocket
+
     @tornado.web.authenticated
     def get(self, **params):
         userInput = {}
@@ -161,10 +158,12 @@ class LobbyGameJoinHandler(BaseLobbyHandler):
             self.send_error(400)
             return
 
-        self.gamesManager.getGame(validUserInput['gameId'])
+        gameId = validUserInput['gameId']
+        game = self.gamesManager.getGame(gameId)
 
         userSession = Sessions.SessionManager.getSession(self.current_user)
-        if self.gamesManager.getGame(validUserInput['gameId']).addPlayer(userSession.getValue("userid")):
+        if game.addPlayer(userSession.getValue("userid")):
+            self.lobbySocket.notifyLobby(game, gameId)
             self.redirect("/lobby/" + str(validUserInput['gameId']))
         else:
             self.send_error(500)
@@ -172,6 +171,10 @@ class LobbyGameJoinHandler(BaseLobbyHandler):
 
 """Initiates a game from a game listing"""
 class LobbyGameBeginHandler(BaseLobbyHandler):
+    def initialize(self, config, gamesManager, lobbySocket):
+        super(LobbyGameBeginHandler, self).initialize(config, gamesManager)
+        self.lobbySocket = lobbySocket
+
     @tornado.web.authenticated
     def post(self, **params):
         gameId = int(params['gameId'])
@@ -186,9 +189,15 @@ class LobbyGameBeginHandler(BaseLobbyHandler):
             # TODO dschwarz handle this on the client and display reason
             raise tornado.web.HTTPError(500, reason = e.message)
 
+        self.lobbySocket.beginGame(gameId)
+
 
 """Updates the settings of a game"""
 class LobbyGameUpdateHandler(BaseLobbyHandler):
+    def initialize(self, config, gamesManager, lobbySocket):
+        super(LobbyGameUpdateHandler, self).initialize(config, gamesManager)
+        self.lobbySocket = lobbySocket
+
     @tornado.web.authenticated
     def post(self, **params):
         gameId = int(params['gameId'])
@@ -221,6 +230,8 @@ class LobbyGameUpdateHandler(BaseLobbyHandler):
             print(e.error_message)
             self.send_error(403)
             return
+
+        self.lobbySocket.notifyLobby(game, gameId)
 
     def _set_game_name(self, game, name):
         game.name = name

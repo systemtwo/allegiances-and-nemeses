@@ -104,10 +104,13 @@ class Game:
 
     def toDict(self):
         return {
-            "players": self.players,
-            "board": self.board
+            "name": self.name,
+            "players": self.listPlayers(),
+            "maxPlayers": self.maxPlayers,
+            "creatorId": self.creatorId,
+            "moduleName": self.moduleName,
+            "started": self.started,
         }
-
     def currentPlayerCount(self):
         return len(self.players)
 
