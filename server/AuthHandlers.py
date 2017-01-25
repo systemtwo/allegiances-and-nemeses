@@ -38,7 +38,7 @@ class LoginHandler(tornado.web.RequestHandler):
         userSession = Sessions.SessionManager.getSession(sessionId)
         userSession.setValue("username", "Guest_" + str(userNumber))
         #FIXME:This is VERY insecure
-        userSession.setValue("userid", "Guest_" + str(userNumber))
+        userSession.setValue("userid", "_" + Sessions.SessionManager.generateToken())
         
         
         #TODO: Fix this. An attacker can use this to use the server to redirect somewhere else
