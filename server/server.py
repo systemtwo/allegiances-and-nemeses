@@ -27,6 +27,7 @@ from LobbyHandlers import (
 from MapEditorHandler import MapEditorHandler
 from ModuleListHandler import ModuleListHandler
 from SaveHandler import SaveHandler
+from UserInfoHandlers import UserInfoHandler
 
 
 class IndexHandler(tornado.web.RequestHandler):
@@ -152,12 +153,16 @@ class Server:
             (r"/lobby/create/?", LobbyCreateHandler, dict(config=config, gamesManager=self.gamesManager)),
             (r"/lobby/(?P<gameId>[0-9]+)/?", LobbyGameHandler, dict(config=config, gamesManager=self.gamesManager)),
 
+            ##API ROUTES
             #Lobby API routes
             (r"/lobby/(?P<gameId>[0-9]+)/info/?", LobbyGameInfoHandler, dict(config=config, gamesManager=self.gamesManager)),
             (r"/lobby/(?P<gameId>[0-9]+)/join/?", LobbyGameJoinHandler, dict(config=config, gamesManager=self.gamesManager, lobbySocket=lobbySocketRouter)),
             (r"/lobby/(?P<gameId>[0-9]+)/begin/?", LobbyGameBeginHandler, dict(config=config, gamesManager=self.gamesManager, lobbySocket=lobbySocketRouter)),
             (r"/lobby/(?P<gameId>[0-9]+)/update/?", LobbyGameUpdateHandler, dict(config=config, gamesManager=self.gamesManager, lobbySocket=lobbySocketRouter)),
             (r"/lobby/(?P<gameId>[0-9]+)/delete/?", LobbyGameDeleteHandler, dict(config=config, gamesManager=self.gamesManager)),
+
+            (r"/userinfo/?", UserInfoHandler, dict(config=config)),
+            ##END API ROUTES
 
             #Load/Save games
             (r"/save/?", SaveHandler, saveHandlerOptions(SaveHandler.actions.SAVE)),
