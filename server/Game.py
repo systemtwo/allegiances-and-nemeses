@@ -14,15 +14,17 @@ class Game:
 
         #This could be a array of tuples if we need it to be
         self.players = {} #Contains (userId, [country, country, ...]) pairs
+        self.playerNames = {} #Contains userId => username pairs
 
     """Attempts to add a player to the Game. Returns True on success"""
-    def addPlayer(self, userId):
+    def addPlayer(self, userId, username):
         # add the player if they haven't been added yet
         if not self.containsPlayer(userId):
             if self.currentPlayerCount() >= self.maxPlayers:
                 # if player hasn't been added yet, but the room is full, addPlayer fails
                 return False
             self.players[userId] = []
+            self.playerNames[userId] = username
 
         return True
 
@@ -31,12 +33,15 @@ class Game:
 
     def removePlayer(self, userId):
         self.players[userId] = None
+        del self.players[userId]
+        self.playerNames[userId] = None
+        del self.playerNames[userId]
 
     def listPlayers(self):
         return [
             {
                 "id": userId,
-                "name": str(userId),
+                "name": self.playerNames[userId],
                 "assignedCountries": countries
             } for userId, countries in self.players.iteritems()
         ]

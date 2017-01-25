@@ -95,10 +95,11 @@ class LobbyGameHandler(BaseLobbyHandler):
 
         userSession = Sessions.SessionManager.getSession(self.current_user)
         userid = userSession.getValue("userid")
+        username = userSession.getValue("username")
 
         #We assume if you are hitting this page, you want to join the game
         game = self.gamesManager.getGame(gameId)
-        game.addPlayer(userid)
+        game.addPlayer(userid, username)
 
         moduleNames = ["napoleon"]
         modules = []
@@ -162,7 +163,7 @@ class LobbyGameJoinHandler(BaseLobbyHandler):
         game = self.gamesManager.getGame(gameId)
 
         userSession = Sessions.SessionManager.getSession(self.current_user)
-        if game.addPlayer(userSession.getValue("userid")):
+        if game.addPlayer(userSession.getValue("userid"), userSession.getValue("username")):
             self.lobbySocket.notifyLobby(game, gameId)
             self.redirect("/lobby/" + str(validUserInput['gameId']))
         else:
