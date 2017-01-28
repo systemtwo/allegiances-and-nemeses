@@ -14,6 +14,8 @@ class Game:
 
         #This could be a array of tuples if we need it to be
         self.players = {} #Contains (userId, [country, country, ...]) pairs
+        #Consider merging playerNames with players using {userId: {countries:[], username:""}
+        # Or use a class
         self.playerNames = {} #Contains userId => username pairs
 
     """Attempts to add a player to the Game. Returns True on success"""
