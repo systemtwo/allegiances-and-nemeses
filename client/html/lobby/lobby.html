@@ -21,6 +21,7 @@
                         <div>
                             <input id="input-username" type="text" class="form-control" name="username" placeholder="Alexander the Great" />
                             <button id="btn-set-name" class="btn btn-success">Set name!</button>
+                            <span id="username-saved" style="display: none;">Username set!</span>
                         </div>
                     </div>
                 </div>
@@ -83,7 +84,11 @@
                         "contentType": "application/json",
                         "data": JSON.stringify({
                             "username": document.getElementById("input-username").value
-                        })
+                        }),
+                        "success": function() {
+                            console.log("SAVED");
+                            $("#username-saved").fadeIn(200).delay(1000).fadeOut(200);
+                        }
                     });
             });
         </script>
