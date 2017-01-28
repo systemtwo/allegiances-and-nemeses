@@ -5,56 +5,92 @@
         <link href="/static/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all">
         <link href="/static/css/bootstrap-fixes.css" rel="stylesheet" type="text/css" media="all">
         <link href="/static/css/custom.css" rel="stylesheet" type="text/css" media="all">
+        <link href="/static/css/lobby-index.css" rel="stylesheet" type="text/css" media="all">
         <script src="/static/scripts/lib/jquery-1.11.1.js"></script>
     </head>
 
     <body>
         <div class="container">
-            <h1>Allegiances and the Nemeses </h1>
-            <h2>Lobby</h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="flex-col-container">
+                        <p>
+                            Welcome to Allegiances and Nemeses! A strategic turn based game where you take over the world!
+                        </p>
 
-            <a class="btn btn-primary" href="/lobby/create">Create Game</a>
-            <br />
+                        <div>
+                            <input id="input-username" type="text" class="form-control" name="username" placeholder="Alexander the Great" />
+                            <button id="btn-set-name" class="btn btn-success">Set name!</button>
+                            <span id="username-saved" style="display: none;">Username set!</span>
+                        </div>
+                    </div>
+                </div>
 
-            <table class="table table-hover table-condensed">
-                <thead>
-                <tr>
-                    <th>
-                        ID
-                    </th>
-                    <th>
-                        Name
-                    </th>
-                    <th>
-                        Players
-                    </th>
-                    <th>
-                        Link
-                    </th>
-                </tr>
-                </thead>
+                <div class="col-md-6">
+                    <h2>Lobby</h2>
 
-                <tbody>
-                {% for item in listings %}
-                <tr>
-                    <td class="vert-align">
-                        {{item['id']}}
-                    </td>
-                    <td class="vert-align">
-                        {{item['name']}}
-                    </td>
-                    <td class="vert-align">
-                        {{item['currentPlayerCount']}}/{{item['maxPlayers']}}
-                    </td>
-                    <td class="vert-align">
-                        <a class="btn btn-primary" href="/lobby/{{item['id']}}/join">Join</a>
-                    </td>
-                </tr>
-                {% end %}
-                </tbody>
-            </table>
+                    <div>
+                        <a class="btn btn-primary pull-right" href="/lobby/create">Create Game</a>
+                    </div>
+                    <br />
 
+                    <div class="min-height">
+                    <table class="table table-hover table-condensed">
+                        <thead>
+                            <tr>
+                                <th>
+                                    ID
+                                </th>
+                                <th>
+                                    Name
+                                </th>
+                                <th>
+                                    Players
+                                </th>
+                                <th>
+                                    Link
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for item in listings %}
+                            <tr>
+                                <td class="vert-align">
+                                    {{item['id']}}
+                                </td>
+                                <td class="vert-align">
+                                    {{item['name']}}
+                                </td>
+                                <td class="vert-align">
+                                    {{item['currentPlayerCount']}}/{{item['maxPlayers']}}
+                                </td>
+                                <td class="vert-align">
+                                    <a class="btn btn-primary" href="/lobby/{{item['id']}}/join">Join</a>
+                                </td>
+                            </tr>
+                            {% end %}
+                        </tbody>
+                    </table>
+                </div>
+                </div>
+            </div>
         </div>
-
+        <script type="text/javascript">
+            document.getElementById("btn-set-name").addEventListener("click", function() {
+                    $.ajax({
+                        "method": "POST",
+                        "url": "/userinfo",
+                        "contentType": "application/json",
+                        "data": JSON.stringify({
+                            "username": document.getElementById("input-username").value
+                        }),
+                        "success": function() {
+                            console.log("SAVED");
+                            $("#username-saved").fadeIn(200).delay(1000).fadeOut(200);
+                        }
+                    });
+            });
+        </script>
     </body>
 </html>
