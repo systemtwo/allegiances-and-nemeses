@@ -102,7 +102,10 @@ function (_, ko, SockJS, template, dragula) {
             };
 
             vm.unassignedCountries = ko.pureComputed(function () {
-                vm._countryAssignmentsNotifier(); // depend on this
+                // Depend on _countryAssignmentsNotifier
+                // See: http://knockoutjs.com/documentation/computed-dependency-tracking.html
+                vm._countryAssignmentsNotifier();
+
                 return vm._countries().filter(function (country) {
                     return _.every(vm._players(), function (player) {
                         return !_.contains(player.assignedCountries, country.name);
