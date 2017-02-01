@@ -141,6 +141,7 @@ function (_, ko, SockJS, template, dragula) {
                 if (player) {
                     player.assignedCountries.push(countryName);
                     vm._countryAssignmentsNotifier.notifySubscribers();
+                    vm.save();
                 }
             };
 
@@ -150,6 +151,7 @@ function (_, ko, SockJS, template, dragula) {
                 if (player) {
                     player.assignedCountries = player.assignedCountries.filter(function (c) { return c != countryName});
                     vm._countryAssignmentsNotifier.notifySubscribers();
+                    vm.save();
                 }
             };
 
