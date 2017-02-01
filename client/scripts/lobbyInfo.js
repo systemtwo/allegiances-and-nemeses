@@ -126,6 +126,14 @@ function (_, ko, SockJS, template, dragula) {
                 });
             };
 
+            vm.readyToStart = ko.pureComputed(function() {
+                return vm.unassignedCountries().length == 0;
+            });
+
+            vm.beginGameBtnDisabled = ko.pureComputed(function() {
+                return !(vm.canEdit()) || !(vm.readyToStart());
+            });
+
             // actions
             vm.addCountryToPlayer = function(countryName, playerId) {
                 var players = vm._players();
