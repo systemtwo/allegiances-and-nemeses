@@ -26,6 +26,7 @@
                 <!-- ko if: started -->
                 <button class="btn btn-primary pull-right space-out" data-bind="click: goToGame, disable: !canEdit()">Go to game</button>
                 <!-- /ko -->
+                <span data-bind="visible: savingIndicatorVisible()">Saving...</span>
             </div>
         </form>
         <div class="clearfix"></div>

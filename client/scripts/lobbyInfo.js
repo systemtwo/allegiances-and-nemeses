@@ -9,6 +9,10 @@ function (_, ko, SockJS, template, dragula) {
         gameId = gameIdParam;
         userId = userIdParam;
 
+        $(document).ajaxStop(function() {
+            viewModel.ajaxStopHandler();
+        });
+
         $.when(fetchLobbyInfo(), fetchModulesInfo()).done(function (lobbyInfo, modules) {
             if (lobbyInfo[0].started) {
                 if (confirm("Game has started. Go to game?")) {
@@ -69,6 +73,7 @@ function (_, ko, SockJS, template, dragula) {
             vm.selectedModule = ko.observable(getModule(initialLobbyInfo.moduleName));
             vm.selectedMaxPlayersOption = ko.observable(initialLobbyInfo.maxPlayers);
             vm.started = ko.observable(initialLobbyInfo.started);
+            vm.savingIndicatorVisible = ko.observable(false);
 
             vm._countries = ko.computed(function () {
                 var selectedModule = vm.selectedModule();
@@ -166,6 +171,7 @@ function (_, ko, SockJS, template, dragula) {
             };
 
             vm.save = function () {
+                vm.savingIndicatorVisible(true);
                 saveLobbyInfo(toSaveFormat());
             };
 
@@ -186,6 +192,10 @@ function (_, ko, SockJS, template, dragula) {
                     countryPlayer: countryPlayers,
                     moduleName: vm.selectedModule().name
                 })
+            };
+
+            vm.ajaxStopHandler = function() {
+                vm.savingIndicatorVisible(false);
             };
 
             return vm;
