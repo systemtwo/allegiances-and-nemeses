@@ -9,6 +9,10 @@ function (_, ko, SockJS, template, dragula) {
         gameId = gameIdParam;
         userId = userIdParam;
 
+        $(document).ajaxStop(function() {
+            viewModel.ajaxStopHandler();
+        });
+
         $.when(fetchLobbyInfo(), fetchModulesInfo()).done(function (lobbyInfo, modules) {
             if (lobbyInfo[0].started) {
                 if (confirm("Game has started. Go to game?")) {
@@ -69,6 +73,7 @@ function (_, ko, SockJS, template, dragula) {
             vm.selectedModule = ko.observable(getModule(initialLobbyInfo.moduleName));
             vm.selectedMaxPlayersOption = ko.observable(initialLobbyInfo.maxPlayers);
             vm.started = ko.observable(initialLobbyInfo.started);
+            vm.savingIndicatorVisible = ko.observable(false);
 
             vm._countries = ko.computed(function () {
                 var selectedModule = vm.selectedModule();
@@ -102,7 +107,10 @@ function (_, ko, SockJS, template, dragula) {
             };
 
             vm.unassignedCountries = ko.pureComputed(function () {
-                vm._countryAssignmentsNotifier(); // depend on this
+                // Depend on _countryAssignmentsNotifier
+                // See: http://knockoutjs.com/documentation/computed-dependency-tracking.html
+                vm._countryAssignmentsNotifier();
+
                 return vm._countries().filter(function (country) {
                     return _.every(vm._players(), function (player) {
                         return !_.contains(player.assignedCountries, country.name);
@@ -123,6 +131,14 @@ function (_, ko, SockJS, template, dragula) {
                 });
             };
 
+            vm.readyToStart = ko.pureComputed(function() {
+                return vm.unassignedCountries().length == 0;
+            });
+
+            vm.beginGameBtnDisabled = ko.pureComputed(function() {
+                return !(vm.canEdit()) || !(vm.readyToStart());
+            });
+
             // actions
             vm.addCountryToPlayer = function(countryName, playerId) {
                 var players = vm._players();
@@ -130,6 +146,7 @@ function (_, ko, SockJS, template, dragula) {
                 if (player) {
                     player.assignedCountries.push(countryName);
                     vm._countryAssignmentsNotifier.notifySubscribers();
+                    vm.save();
                 }
             };
 
@@ -139,6 +156,7 @@ function (_, ko, SockJS, template, dragula) {
                 if (player) {
                     player.assignedCountries = player.assignedCountries.filter(function (c) { return c != countryName});
                     vm._countryAssignmentsNotifier.notifySubscribers();
+                    vm.save();
                 }
             };
 
@@ -153,6 +171,7 @@ function (_, ko, SockJS, template, dragula) {
             };
 
             vm.save = function () {
+                vm.savingIndicatorVisible(true);
                 saveLobbyInfo(toSaveFormat());
             };
 
@@ -173,6 +192,10 @@ function (_, ko, SockJS, template, dragula) {
                     countryPlayer: countryPlayers,
                     moduleName: vm.selectedModule().name
                 })
+            };
+
+            vm.ajaxStopHandler = function() {
+                vm.savingIndicatorVisible(false);
             };
 
             return vm;

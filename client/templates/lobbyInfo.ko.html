@@ -3,29 +3,30 @@
         <form>
             <div class="form-group">
                 <label for="roomNameText">Room Name</label>
-                <input type="text" class="form-control" id="roomNameText" placeholder="Room Name" data-bind="value: roomName, disable: !canEdit()">
+                <input type="text" class="form-control" id="roomNameText" placeholder="Room Name" data-bind="value: roomName, disable: !canEdit(), change: save()">
             </div>
+            <!--
             <div class="form-group">
                 <label for="moduleName">Map</label>
                 <select id="moduleName" data-bind="options: modules, optionsText: 'name', value: selectedModule">
                 </select>
             </div>
+            -->
 
             <div class="form-group">
                 <label for="numPlayers">Number of players</label>
-                <select id="numPlayers" data-bind="options: maxPlayersOptions(), value: selectedMaxPlayersOption, disable: !canEdit()">
+                <select id="numPlayers" data-bind="options: maxPlayersOptions(), value: selectedMaxPlayersOption, disable: !canEdit(), change: save()">
                 </select>
             </div>
 
             <div class="form-group">
-                <!--Manual save is a temp feature-->
-                <button class="btn space-out" data-bind="click: save, disable: !canEdit()">Save</button>
                 <!-- ko ifnot: started -->
-                <button class="btn btn-primary pull-right space-out" data-bind="click: beginGame, disable: !canEdit()">Begin game</button>
+                <button class="btn btn-primary pull-right space-out" data-bind="click: beginGame, disable: beginGameBtnDisabled()">Begin game</button>
                 <!-- /ko -->
                 <!-- ko if: started -->
                 <button class="btn btn-primary pull-right space-out" data-bind="click: goToGame, disable: !canEdit()">Go to game</button>
                 <!-- /ko -->
+                <span data-bind="visible: savingIndicatorVisible()">Saving...</span>
             </div>
         </form>
         <div class="clearfix"></div>
